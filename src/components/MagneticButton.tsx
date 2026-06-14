@@ -6,7 +6,7 @@ import { gsap } from "@/lib/gsap";
 type Props = {
   href: string;
   children: React.ReactNode;
-  variant?: "primary" | "ghost" | "dark";
+  variant?: "primary" | "outline" | "ghost" | "dark";
   className?: string;
   external?: boolean;
 };
@@ -49,7 +49,11 @@ export default function MagneticButton({
       ? "bg-ember text-bg"
       : variant === "dark"
         ? "bg-bg text-cream"
-        : "border border-line text-cream hover:border-ember";
+        : variant === "ghost"
+          ? "text-cream hover:text-ember"
+          : "border border-line text-cream hover:border-ember"; // outline
+
+  const hasFill = variant === "primary" || variant === "dark";
 
   return (
     <a
@@ -60,7 +64,7 @@ export default function MagneticButton({
       {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       className={`${base} ${styles} ${className}`}
     >
-      {variant !== "ghost" && (
+      {hasFill && (
         <span
           className={`absolute inset-0 origin-center scale-0 rounded-full transition-transform duration-500 ease-out group-hover:scale-150 ${
             variant === "dark" ? "bg-cream" : "bg-flame"

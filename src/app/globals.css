@@ -1,54 +1,74 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════════════
-   THEME — change the entire site's palette from this one block.
-   Every component, including the WebGL flame, reads these variables.
+   FLAME — cinematic church template. Two schemes, one identity:
+   `:root` is the warm "lit" (parchment) variant, `.dark` is the
+   near-black ember variant. The church's brand maps into --ember/--flame
+   (see ministree.config.ts); structural tones stay flame's own.
    ═══════════════════════════════════════════════════════════════════ */
 :root {
-  --bg:      #0c0805; /* page background — warm near-black            */
-  --surface: #161009; /* cards and panels                             */
-  --line:    #2b2316; /* hairline borders                             */
-  --cream:   #f2e9d8; /* primary text                                 */
-  --muted:   #8d7f68; /* secondary text                               */
-  --ember:   #d9a441; /* accent — gold (buttons, highlights)          */
-  --flame:   #ff8a3c; /* hot accent — flame orange (WebGL core, glow) */
-  --crimson: #571610; /* deep undertone (WebGL smoke, shadows)        */
+  --bg: #f4ece0;      /* warm parchment */
+  --surface: #ece2d2; /* raised panels */
+  --line: #ddd0bd;    /* hairline */
+  --ink: #1d1510;     /* near-black warm text */
+  --muted: #6f6253;   /* secondary text */
+  --ember: #c8521f;   /* accent — mapped to church primary */
+  --flame: #e0922b;   /* hot accent — mapped to church accent */
+  --crimson: #7a2516; /* deep undertone */
+  --vignette: 0 0% 0% / 0.16;
+}
+
+.dark {
+  --bg: #0c0805;
+  --surface: #161009;
+  --line: #2b2316;
+  --ink: #f2e9d8;
+  --muted: #8d7f68;
+  --ember: #d9a441;
+  --flame: #ff8a3c;
+  --crimson: #571610;
+  --vignette: 0 0% 0% / 0.5;
 }
 
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-line: var(--line);
-  --color-cream: var(--cream);
+  --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-ember: var(--ember);
   --color-flame: var(--flame);
   --color-crimson: var(--crimson);
 
+  /* aliases so recovered primitives + earlier components resolve */
+  --color-cream: var(--ink);
+  --color-border: var(--line);
+  --color-accent: var(--ember);
+  --color-accent-2: var(--flame);
+  --color-accent-contrast: var(--bg);
+
   --font-display: var(--font-anton);
+  --font-heading: var(--font-anton);
   --font-serif: var(--font-cormorant);
   --font-sans: var(--font-archivo);
 
   --animate-marquee: marquee 28s linear infinite;
   --animate-marquee-slow: marquee 50s linear infinite;
-  --animate-spin-slow: spin 5s linear infinite;
-  --animate-slow-zoom: slow-zoom 24s ease-in-out infinite alternate;
 }
 
 html {
   background: var(--bg);
+  color-scheme: light;
   scrollbar-width: thin;
   scrollbar-color: var(--line) transparent;
 }
-
-/* Lock scrolling while the preloader is on screen */
-html[data-loading] {
-  overflow: hidden;
+html.dark {
+  color-scheme: dark;
 }
 
 body {
   background: var(--bg);
-  color: var(--cream);
+  color: var(--ink);
 }
 
 ::selection {
@@ -61,33 +81,22 @@ body {
   outline-offset: 3px;
 }
 
-/* ── Atmosphere overlays ──────────────────────────────────────────── */
+/* ── Atmosphere ───────────────────────────────────────────────────── */
 .grain {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
-  opacity: 0.07;
+  opacity: 0.06;
   mix-blend-mode: overlay;
 }
-
 .vignette {
-  background: radial-gradient(ellipse at center, transparent 52%, rgb(0 0 0 / 0.5) 100%);
+  background: radial-gradient(ellipse at center, transparent 54%, hsl(var(--vignette)) 100%);
 }
 
-/* ── Type treatments ──────────────────────────────────────────────── */
 .text-outline {
-  -webkit-text-stroke: 1px color-mix(in srgb, var(--cream) 28%, transparent);
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--ink) 26%, transparent);
   color: transparent;
 }
-
-/* the wordmark's cross is an SVG — outline it to match the stroked text */
-.text-outline svg path {
-  fill: none;
-  stroke: color-mix(in srgb, var(--cream) 28%, transparent);
-  stroke-width: 1;
-  vector-effect: non-scaling-stroke;
-}
-
 .text-outline-ember {
-  -webkit-text-stroke: 1px color-mix(in srgb, var(--ember) 60%, transparent);
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--ember) 65%, transparent);
   color: transparent;
 }
 
@@ -97,23 +106,55 @@ body {
   text-transform: uppercase;
 }
 
+/* ── Keyframes ────────────────────────────────────────────────────── */
 @keyframes marquee {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
 }
-
 @keyframes slow-zoom {
   from { transform: scale(1); }
   to { transform: scale(1.08); }
 }
-
 @keyframes scroll-hint {
   0% { transform: translateY(-100%); }
   100% { transform: translateY(220%); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
+  html { scroll-behavior: auto; }
+}
+
+/* ── Rich-text prose (sermon/post bodies) ─────────────────────────── */
+.prose {
+  line-height: 1.78;
+  color: var(--ink);
+}
+.prose > * + * { margin-top: 1.1em; }
+.prose h1, .prose h2, .prose h3 {
+  font-family: var(--font-serif), Georgia, serif;
+  font-weight: 600;
+  line-height: 1.2;
+  margin-top: 1.6em;
+}
+.prose h2 { font-size: 1.7rem; }
+.prose h3 { font-size: 1.3rem; }
+.prose a { color: var(--ember); text-decoration: underline; text-underline-offset: 2px; }
+.prose ul, .prose ol { padding-left: 1.4em; }
+.prose ul { list-style: disc; }
+.prose ol { list-style: decimal; }
+.prose blockquote {
+  border-left: 2px solid var(--ember);
+  padding-left: 1em;
+  font-family: var(--font-serif), Georgia, serif;
+  font-style: italic;
+  font-size: 1.2em;
+  color: var(--muted);
+}
+.prose img { border-radius: 0.5rem; }
+.prose code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+  background: var(--surface);
+  padding: 0.1em 0.35em;
+  border-radius: 0.3rem;
 }

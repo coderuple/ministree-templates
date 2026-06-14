@@ -1,109 +1,79 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata } from "next";
 import { Anton, Cormorant_Garamond, Archivo } from "next/font/google";
-import { site, TICKETS_URL } from "@/config/site";
+import { resolveColorScheme, resolveThemeCss } from "@ministree/template-sdk";
+import { defaults, loadContent, loadSettings, loadTokenOverrides, manifest, siteName } from "@/lib/ministree";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import SmoothScroll from "@/components/SmoothScroll";
+import Cursor from "@/components/Cursor";
 import "./globals.css";
 
-const anton = Anton({
-  weight: "400",
-  subsets: ["latin"],
-  variable: "--font-anton",
-});
-
+const anton = Anton({ weight: "400", subsets: ["latin"], variable: "--font-anton" });
 const cormorant = Cormorant_Garamond({
-  weight: ["400", "500"],
+  weight: ["400", "500", "600"],
   style: ["normal", "italic"],
   subsets: ["latin"],
   variable: "--font-cormorant",
 });
+const archivo = Archivo({ subsets: ["latin"], variable: "--font-archivo" });
 
-const archivo = Archivo({
-  subsets: ["latin"],
-  variable: "--font-archivo",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await loadSettings();
+  const name = siteName(settings);
+  const description = settings?.seoDescription ?? defaults.description;
+  return {
+    title: { default: name, template: `%s · ${name}` },
+    description,
+    icons: settings?.faviconUrl ? [{ url: settings.faviconUrl }] : undefined,
+  };
+}
 
-export const metadata: Metadata = {
-  metadataBase: new URL(site.url),
-  title: `The Altar ${site.year} — ${site.tagline} | ${site.host}`,
-  description: site.description,
-  openGraph: {
-    title: `The Altar ${site.year} — ${site.tagline}`,
-    description: site.description,
-    url: site.url,
-    siteName: `The Altar ${site.year}`,
-    images: [{ url: site.images.ogImage, width: 1200, height: 630 }],
-    locale: "en_GB",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: `The Altar ${site.year} — ${site.tagline}`,
-    description: site.description,
-    images: [site.images.ogImage],
-  },
-};
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const [settings, tokenOverrides, content] = await Promise.all([
+    loadSettings(),
+    loadTokenOverrides(),
+    loadContent(),
+  ]);
+  const scheme = resolveColorScheme(settings);
+  const themeCss = resolveThemeCss(manifest, { siteSettings: settings ?? undefined, tokenOverrides });
 
-export const viewport: Viewport = {
-  themeColor: "#0c0805",
-};
+  // Cinematic effects are flame-only and toggled per church in the Customizer.
+  // Omitted/undefined means ON (cinematic by default); only an explicit `false` calms it.
+  const fx = (content as { effects?: Record<string, boolean | undefined> }).effects ?? {};
+  const grainOn = fx.grain !== false;
+  const cursorOn = fx.cursor !== false;
+  const smoothScrollOn = fx.scrollReveals !== false;
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "MusicEvent",
-  name: `The Altar ${site.year}`,
-  description: site.description,
-  startDate: site.date.isoStart,
-  endDate: site.date.isoEnd,
-  doorTime: site.date.isoDoors,
-  eventStatus: "https://schema.org/EventScheduled",
-  eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-  image: [`${site.url}${site.images.ogImage}`],
-  location: {
-    "@type": "Place",
-    name: site.venue.name,
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: "Arena Square",
-      addressLocality: site.venue.city,
-      postalCode: "HA9 0AA",
-      addressCountry: site.venue.country,
-    },
-  },
-  organizer: {
-    "@type": "Organization",
-    name: site.host,
-    url: site.hostUrl,
-  },
-  performer: site.lineup.map((person) => ({
-    "@type": "Person",
-    name: person.name,
-  })),
-  offers: {
-    "@type": "Offer",
-    url: TICKETS_URL,
-    availability: "https://schema.org/InStock",
-    validFrom: "2026-01-01T00:00:00+00:00",
-  },
-};
+  // Dark mode follows the visitor's device preference WHEN the church enables it
+  // (Settings → dark mode). Disabled → light only. A manual toggle is remembered.
+  const darkAllowed =
+    (settings?.themeOverrides as Record<string, unknown> | undefined)?.darkModeEnabled !== false;
+  const schemeScript = `(function(){try{var allow=${darkAllowed};var d=document.documentElement;if(!allow){d.classList.remove('dark');return;}var s=localStorage.getItem('flame-scheme');if(s==='dark'){d.classList.add('dark');}else if(s==='light'){d.classList.remove('dark');}else if(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches){d.classList.add('dark');}}catch(e){}})();`;
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
   return (
     <html
       lang="en"
-      className={`${anton.variable} ${cormorant.variable} ${archivo.variable} antialiased`}
+      className={`${anton.variable} ${cormorant.variable} ${archivo.variable} ${scheme === "dark" ? "dark" : ""} antialiased`}
+      suppressHydrationWarning
     >
-      <body className="bg-bg font-sans text-cream">
-        {children}
-        {/* cinematic atmosphere — sits above everything except the cursor */}
-        <div aria-hidden className="vignette pointer-events-none fixed inset-0 z-80" />
-        <div aria-hidden className="grain pointer-events-none fixed inset-0 z-90" />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
+      <head>
+        {themeCss ? <style id="ministree-theme" dangerouslySetInnerHTML={{ __html: themeCss }} /> : null}
+        <script dangerouslySetInnerHTML={{ __html: schemeScript }} />
+      </head>
+      <body className="min-h-dvh bg-bg font-sans text-ink">
+        <Header />
+        <main>{children}</main>
+        <Footer />
+
+        {/* cinematic atmosphere — sit above content, below the cursor */}
+        {grainOn ? (
+          <>
+            <div aria-hidden className="vignette pointer-events-none fixed inset-0 z-[80]" />
+            <div aria-hidden className="grain pointer-events-none fixed inset-0 z-[90]" />
+          </>
+        ) : null}
+        {smoothScrollOn ? <SmoothScroll /> : null}
+        {cursorOn ? <Cursor /> : null}
       </body>
     </html>
   );

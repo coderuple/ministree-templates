@@ -1,10 +1,5 @@
-export default function SectionHead({
-  index,
-  label,
-}: {
-  index: string;
-  label: string;
-}) {
+/** Editorial section header: index number · hairline · tracked label. */
+export default function SectionHead({ index, label }: { index: string; label: string }) {
   return (
     <div className="flex items-center gap-5">
       <span className="font-display text-sm text-ember">{index}</span>

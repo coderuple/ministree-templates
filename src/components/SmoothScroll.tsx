@@ -5,6 +5,7 @@ import Lenis from "lenis";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { lenisStore } from "@/lib/state";
 
+/** Global smooth scroll (Lenis) wired into GSAP's ticker + ScrollTrigger. */
 export default function SmoothScroll() {
   useEffect(() => {
     const lenis = new Lenis({ autoRaf: false, lerp: 0.09 });
