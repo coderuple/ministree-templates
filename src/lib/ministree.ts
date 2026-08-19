@@ -1,9 +1,9 @@
 import { cache } from "react";
 import {
+  getChurchProfile,
   getNavigation,
   getSitePages,
   getSiteSettings,
-  getTemplateContent,
   getVisibility,
   resolveColorScheme,
   resolveContent,
@@ -16,6 +16,9 @@ import {
   type SchemeTokenOverrides,
   type SitePageSlugs,
 } from "@ministree/template-sdk";
+// The /next variant is preview-aware: during a Ministree Customizer preview
+// (draft mode) it fetches the church's DRAFT overrides uncached.
+import { getTemplateContent } from "@ministree/template-sdk/next";
 import manifest from "../../ministree.config";
 
 /**
@@ -68,6 +71,77 @@ export async function resolvePageTheme(path: string): Promise<{
   const scheme = resolveColorScheme(settings, { visibility });
   const themeCss = resolveThemeCss(manifest, { siteSettings: settings ?? undefined, tokenOverrides });
   return { settings, scheme, themeCss };
+}
+
+/**
+ * The church's locale, resolved once per request.
+ *
+ * `defaultLanguage` is a bare BCP-47 primary subtag ("en"), and `Intl` resolves
+ * a bare "en" to US conventions — so language alone does not stop a British
+ * church seeing month/day/year. The church's own country (from its address, or
+ * inferred from an IANA timezone when the address is blank) supplies the region
+ * that actually decides date order and currency placement.
+ *
+ * Returns `undefined` when the church has told us nothing, which lets `Intl`
+ * fall back to the runtime default rather than to a region we guessed.
+ */
+export const loadLocale = cache(async (): Promise<string | undefined> => {
+  const [settings, profile] = await Promise.all([loadSettings(), getChurchProfile()]);
+  const language =
+    typeof (settings as { defaultLanguage?: unknown } | null)?.defaultLanguage === "string"
+      ? ((settings as { defaultLanguage?: string }).defaultLanguage as string)
+      : undefined;
+
+  // Already regionalised ("en-GB") — nothing to add.
+  if (language && language.includes("-")) return language;
+
+  const country = profile?.address?.country?.trim();
+  const region = country ? countryToRegion(country) : timezoneToRegion(profile?.timezone);
+  if (language && region) return `${language}-${region}`;
+  return language;
+});
+
+/** ISO-3166 alpha-2 as-is; otherwise a few spellings churches actually type. */
+function countryToRegion(country: string): string | undefined {
+  if (/^[A-Za-z]{2}$/.test(country)) return country.toUpperCase();
+  const named: Record<string, string> = {
+    "united kingdom": "GB",
+    "great britain": "GB",
+    england: "GB",
+    scotland: "GB",
+    wales: "GB",
+    "northern ireland": "GB",
+    "united states": "US",
+    "united states of america": "US",
+    usa: "US",
+    canada: "CA",
+    australia: "AU",
+    "new zealand": "NZ",
+    ireland: "IE",
+    nigeria: "NG",
+    ghana: "GH",
+    "south africa": "ZA",
+    kenya: "KE",
+  };
+  return named[country.toLowerCase()];
+}
+
+/** Last resort: an IANA zone names a city, and the city implies a region. */
+function timezoneToRegion(timezone: string | null | undefined): string | undefined {
+  if (!timezone) return undefined;
+  const zones: Record<string, string> = {
+    "Europe/London": "GB",
+    "Europe/Dublin": "IE",
+    "Africa/Lagos": "NG",
+    "Africa/Accra": "GH",
+    "Africa/Johannesburg": "ZA",
+    "Africa/Nairobi": "KE",
+    "Australia/Sydney": "AU",
+    "Pacific/Auckland": "NZ",
+  };
+  if (zones[timezone]) return zones[timezone];
+  if (timezone.startsWith("America/")) return "US";
+  return undefined;
 }
 
 /** Display name: prefer the connected church, fall back to manifest defaults. */

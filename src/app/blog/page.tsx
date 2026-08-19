@@ -26,7 +26,7 @@ export default async function BlogArchive({ searchParams }: { searchParams: Prom
         {categories?.length ? (
           <div className="mb-8 flex flex-wrap gap-2 text-sm">
             {categories.map((c) => (
-              <Link key={c.id} href={`${base}/category/${c.slug}`} className="rounded-full border border-border px-3 py-1 text-muted hover:border-accent hover:text-accent">
+              <Link key={c.id} href={`${base}/category/${c.slug}`} className="rounded-full border border-line px-3 py-1 text-muted hover:border-ember hover:text-ember">
                 {c.name}
               </Link>
             ))}

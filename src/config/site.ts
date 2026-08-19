@@ -9,7 +9,7 @@ export const site = {
   name: "Flame Church",
   tagline: "A community of grace, growing in faith together",
   description:
-    "Flame is a clean, general-purpose church website template built on the Ministree template SDK. Connect a church to see its real sermons, events and giving flow in.",
+    "A clean, general-purpose church website template. Connect a church to see its real sermons, events and giving flow in.",
 
   hero: {
     eyebrow: "Welcome home",
@@ -20,6 +20,7 @@ export const site = {
     primaryCta: { label: "Plan your visit", href: "/about", variant: "primary" },
     secondaryCta: { label: "Watch a message", href: "/sermons", variant: "outline" },
     imageUrl: "",
+    imageFocalPoint: "center",
   },
 
   intro: {
@@ -27,8 +28,20 @@ export const site = {
     body: "Sunday gatherings, midweek groups, and a family that shows up for one another. New here? Start with a service — we'll save you a seat.",
   },
 
+  // The native /give experience (Customizer-editable).
+  giving: {
+    layout: "scroll",
+    heading: "Give",
+    lede: "Your generosity fuels the mission — here and beyond. Every gift makes a difference.",
+    showCampaigns: true,
+    showOtherWays: true,
+    successMessage: "",
+  },
+
   // Home composition (Customizer-editable). `templateHome` = flame's hero + the
   // composable section stack below; `ministreePage` renders a CMS page instead.
+  siteMode: "fullSite",
+  featuredEvent: "",
   homeSource: "templateHome",
   homePageSlug: "",
   homeSections: {
@@ -110,14 +123,21 @@ export const site = {
 
   // Fallback navigation when a church has no menu configured.
   nav: [
-    { label: "About", href: "/about" },
+    { label: "Visit", href: "/locations" },
     { label: "Sermons", href: "/sermons" },
     { label: "Events", href: "/events" },
     { label: "Blog", href: "/blog" },
     { label: "Give", href: "/give" },
   ],
 
-  footerNote: "Built with the Ministree template SDK.",
+  chrome: {
+    logoSize: "default",
+    showGiveButton: true,
+    stickyHeader: true,
+    footerWordmark: true,
+  },
+
+  footerNote: "",
 };
 
 export type SiteContent = typeof site;

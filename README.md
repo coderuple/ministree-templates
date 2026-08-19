@@ -1,59 +1,61 @@
-# The Altar 2026 — Official Site
+# Flame — a Ministree website template
 
-A cinematic one-page site for **The Altar 2026** (Jesus House, OVO Arena Wembley, 26 June 2026).
-Next.js App Router · Tailwind CSS v4 · three.js / React Three Fiber · GSAP + ScrollTrigger + SplitText · Lenis.
+A cinematic church website that reads everything from Ministree: sermons, events,
+blog posts, giving, forms, navigation and branding. Deploy it once for a church,
+connect it in the Ministree admin, and the church edits the whole site from there.
+
+Next.js 16 (App Router) · Tailwind CSS v4 · three.js / React Three Fiber · GSAP · Lenis · Stripe.
 
 ## Run it
 
 ```bash
-npm run dev      # development — http://localhost:3000
-npm run build    # production build
+npm install
+npm run dev      # http://localhost:3000
+npm run build
 ```
+
+With no Ministree connection Flame renders its own demo content, so it looks
+finished before a church is attached.
+
+## Connect a church
+
+```bash
+# .env.local
+NEXT_PUBLIC_MINISTREE_API_URL=https://api.example.church   # the church's Ministree API
+NEXT_PUBLIC_ORG_SLUG=grace-community                       # which church this deploy serves
+NEXT_PUBLIC_MINISTREE_TEMPLATE_ID=                         # added after connecting (see below)
+```
+
+Publish the site, then paste its address into **Templates** in the Ministree
+admin. Ministree reads `/ministree-manifest`, and the church gets a Customizer
+built from the fields this template declares. The template id only exists after
+that first connection — add it, redeploy, and the Customizer's edits start
+flowing through.
 
 ## Where to edit things
 
 | What | Where |
 | --- | --- |
-| **Colors** (whole site, incl. the WebGL flame) | `src/app/globals.css` — the `THEME` block at the top |
-| **All content** — copy, lineup, timings, FAQs, links | `src/config/site.ts` |
-| **Ticket links** (AXS) | `TICKETS_URL` / `ACCESSIBLE_TICKETS_URL` in `src/config/site.ts` |
-| **Images** | drop files into `public/images/**` (see below) |
-| **Fonts** | `src/app/layout.tsx` (next/font definitions) |
+| **What a church can customize** | `ministree.config.ts` — `content.fields` (the form) and `layout.tabs` (how it's grouped) |
+| **Colours** | `ministree.config.ts` `tokens[]`, with the defaults mirrored in `src/app/globals.css` |
+| **Demo content** (used when no church is connected) | `src/config/site.ts` |
+| **CMS section rendering** | `src/sections/index.tsx` — one component per Ministree section type |
+| **Reading Ministree data** | `src/lib/ministree.ts` — cached per-request loaders |
+| **The WebGL flame** | `src/components/canvas/EmberScene.tsx` |
 
-### Changing colors
+## How theming works
 
-Open `src/app/globals.css` and edit the variables in the `:root` block —
-`--bg`, `--ember`, `--flame`, `--crimson`, `--cream`, etc. Every component
-**and the three.js particle scene** read these same variables, so one edit
-recolors everything, including the flame.
+`tokens[]` in the manifest declares each CSS custom property with a light and a
+dark value. A token with `maps` adopts the church's own brand colour; the rest
+keep Flame's palette unless the church overrides them in the Customizer.
 
-### Swapping in real images
+Ministree returns the resolved CSS, `src/app/layout.tsx` injects it, and
+everything downstream — Tailwind utilities, the WebGL flame, even the Stripe
+card form — reads the same variables. One change in the admin recolours all of it.
 
-Labeled placeholder images live in `public/images/` as real `.jpg`/`.png`
-files. **Overwrite any of them with a real photo at the same path** (same
-filename) and it appears on the site — no config changes needed:
+## Effects
 
-- `images/speakers/*.jpg` — 3:4 portraits (≈900×1200) of each minister
-- `images/hero/keyart.jpg` — the official poster (16:9) — used as the hero on
-  mobile and for visitors with reduced motion
-- `images/bg/cathedral-texture.jpg` — faint full-bleed background in The Vision
-- `images/venue/ovo-arena-*.jpg` — venue/crowd photography
-- `images/og/og-image.jpg` — 1200×630 social share card (use the key art)
-- `images/logos/jesus-house.png` — host logo in the footer (transparent PNG)
-
-Regenerate missing placeholders anytime: `node scripts/gen-placeholders.mjs`
-(existing files are skipped, so your real photos are safe; add `--force` to
-overwrite everything, including real photos).
-
-## How it's put together
-
-- `src/components/Experience.tsx` — orchestrates everything (preloader →
-  intro, WebGL vs. poster fallback, section order)
-- `src/components/canvas/EmberScene.tsx` — the GPU particle flame, glows,
-  light shaft, bloom and camera rig (42k particles, custom GLSL)
-- `src/components/sections/*` — Hero, Vision, Lineup, TheNight, Venue,
-  Tickets, Faq, Footer
-- Scroll is driven by Lenis; all reveals/scrubs are GSAP ScrollTrigger
-- Reduced motion and small screens automatically get a static poster hero;
-  semantic HTML sits behind the canvas throughout
-# thealtar
+`webglHero`, `preloader`, `grain`, `cursor` and `scrollReveals` are per-church
+switches under the Customizer's **Effects** tab. Undefined means on. All of them
+respect `prefers-reduced-motion`, and the WebGL hero additionally requires a
+WebGL context and a screen wider than 768px before it loads.

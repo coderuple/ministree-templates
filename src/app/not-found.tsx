@@ -9,7 +9,7 @@ export default async function NotFound() {
 
   return (
     <Container className="py-32 text-center sm:py-40">
-      <p className="font-display text-7xl font-semibold text-accent">404</p>
+      <p className="font-display text-7xl font-semibold text-ember">404</p>
       <h1 className="mt-4 font-display text-3xl font-semibold tracking-tight">{title}</h1>
       <p className="mx-auto mt-3 max-w-md text-muted">{body}</p>
       <div className="mt-8">

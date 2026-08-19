@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getForm } from "@ministree/template-sdk";
 import { Container, Eyebrow } from "@/components/ui";
+import { extractFormFields } from "@/lib/forms";
 import FormRenderer from "@/components/FormRenderer";
 
 export const revalidate = 60;
@@ -14,15 +15,6 @@ export async function generateMetadata({ params }: Params) {
 }
 
 /** Defensively pull a flat field list from the various form payload shapes. */
-function extractFields(form: Record<string, unknown>): Array<Record<string, unknown>> {
-  if (Array.isArray(form.fields)) return form.fields as Array<Record<string, unknown>>;
-  const config = form.config as Record<string, unknown> | undefined;
-  if (config && Array.isArray(config.fields)) return config.fields as Array<Record<string, unknown>>;
-  const sections = (form.sections ?? config?.sections) as Array<Record<string, unknown>> | undefined;
-  if (Array.isArray(sections)) return sections.flatMap((s) => (Array.isArray(s.fields) ? (s.fields as Array<Record<string, unknown>>) : []));
-  return [];
-}
-
 export default async function FormPage({ params }: Params) {
   const { slug } = await params;
   const form = await getForm(slug);
@@ -30,7 +22,7 @@ export default async function FormPage({ params }: Params) {
 
   const title = (form.title as string) ?? "Form";
   const description = (form.description as string) ?? null;
-  const fields = extractFields(form);
+  const fields = extractFormFields(form);
 
   return (
     <Container size="narrow" className="py-16">

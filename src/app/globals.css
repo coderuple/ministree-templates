@@ -16,6 +16,21 @@
   --flame: #e0922b;   /* hot accent — mapped to church accent */
   --crimson: #7a2516; /* deep undertone */
   --vignette: 0 0% 0% / 0.16;
+  /* Inverted panels (hero, CTA, marquee, giving confirmation). A deliberate
+     device, not just "the dark scheme" — so they get their own tokens rather
+     than borrowing --bg/--ink, which would flatten them into the page. */
+  --panel: #0c0805;
+  --panel-ink: #f2e9d8;
+
+  /* Type and shape sit alongside the colours so a church override injected by
+     Ministree lands on the same cascade level and wins the same way. The
+     `--font-*-face` values are the next/font instances from layout.tsx —
+     flame's own faces, and what a church keeps unless it changes them. */
+  --font-display-face: var(--font-anton);
+  --font-heading-face: var(--font-anton);
+  --font-serif-face: var(--font-cormorant);
+  --font-sans-face: var(--font-archivo);
+  --radius: 1rem;
 }
 
 .dark {
@@ -28,6 +43,10 @@
   --flame: #ff8a3c;
   --crimson: #571610;
   --vignette: 0 0% 0% / 0.5;
+  /* In the dark scheme the page is already near-black, so a panel painted
+     #0c0805 vanished into it — only its hairline showed. Lift it instead. */
+  --panel: #161009;
+  --panel-ink: #f2e9d8;
 }
 
 @theme inline {
@@ -39,21 +58,26 @@
   --color-ember: var(--ember);
   --color-flame: var(--flame);
   --color-crimson: var(--crimson);
+  --color-panel: var(--panel);
+  --color-panel-ink: var(--panel-ink);
 
-  /* aliases so recovered primitives + earlier components resolve */
-  --color-cream: var(--ink);
-  --color-border: var(--line);
-  --color-accent: var(--ember);
-  --color-accent-2: var(--flame);
-  --color-accent-contrast: var(--bg);
-
-  --font-display: var(--font-anton);
-  --font-heading: var(--font-anton);
-  --font-serif: var(--font-cormorant);
-  --font-sans: var(--font-archivo);
+  --font-display: var(--font-display-face);
+  --font-heading: var(--font-heading-face);
+  --font-serif: var(--font-serif-face);
+  --font-sans: var(--font-sans-face);
+  --radius-flame: var(--radius);
 
   --animate-marquee: marquee 28s linear infinite;
   --animate-marquee-slow: marquee 50s linear infinite;
+  /* Single-event mode: the rotating ember border on the featured ticket, and
+     the key art's slow drift behind the flame. */
+  --animate-spin-slow: spin 5s linear infinite;
+  --animate-slow-zoom: slow-zoom 24s ease-in-out infinite alternate;
+}
+
+/* While the intro curtain is up, nothing behind it should scroll. */
+html[data-loading] {
+  overflow: hidden;
 }
 
 html {

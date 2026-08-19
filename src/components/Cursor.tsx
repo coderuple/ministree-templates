@@ -47,7 +47,7 @@ export default function Cursor() {
   return (
     <div className="pointer-events-none fixed inset-0 z-[200] hidden [@media(pointer:fine)]:block">
       <div ref={dotRef} className="invisible fixed left-0 top-0 size-1.5 rounded-full bg-ember opacity-0" />
-      <div ref={ringRef} className="invisible fixed left-0 top-0 size-9 rounded-full border border-cream/50 opacity-0 mix-blend-difference" />
+      <div ref={ringRef} className="invisible fixed left-0 top-0 size-9 rounded-full border border-ink/50 opacity-0 mix-blend-difference" />
     </div>
   );
 }

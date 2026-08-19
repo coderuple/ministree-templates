@@ -7,6 +7,8 @@ import { Container } from "@/components/ui";
 export default async function Footer() {
   const [settings, footerNav, content] = await Promise.all([loadSettings(), loadNav("footer"), loadContent()]);
   const name = siteName(settings);
+  // Undefined means on, matching the header and the effects toggles.
+  const showWordmark = (content.chrome ?? {}).footerWordmark !== false;
 
   const items: NavNode[] =
     footerNav.length > 0 ? footerNav : content.nav.map((n) => ({ label: n.label, href: n.href }));
@@ -28,11 +30,17 @@ export default async function Footer() {
   return (
     <footer className="relative mt-28 border-t border-line bg-surface/40">
       <Container className="py-16">
-        <p className="font-display text-[14vw] uppercase leading-[0.82] tracking-tight text-outline sm:text-[10vw]">
-          {name}
-        </p>
+        {showWordmark ? (
+          <p className="font-display text-[14vw] uppercase leading-[0.82] tracking-tight text-outline sm:text-[10vw]">
+            {name}
+          </p>
+        ) : null}
 
-        <div className="mt-12 grid gap-10 border-t border-line pt-12 sm:grid-cols-2 lg:grid-cols-4">
+        <div
+          className={`grid gap-10 sm:grid-cols-2 lg:grid-cols-4 ${
+            showWordmark ? "mt-12 border-t border-line pt-12" : ""
+          }`}
+        >
           <div className="space-y-3">
             <p className="micro text-muted">The church</p>
             <p className="max-w-xs text-sm text-muted">{content.tagline}</p>

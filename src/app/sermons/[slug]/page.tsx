@@ -27,7 +27,7 @@ export default async function SermonDetail({ params }: Params) {
 
   return (
     <article>
-      <header className="border-b border-border bg-surface/50">
+      <header className="border-b border-line bg-surface/50">
         <Container size="narrow" className="py-14 sm:py-20">
           {sermon.seriesName ? <Eyebrow>{sermon.seriesName}</Eyebrow> : null}
           <h1 className="mt-4 font-display text-5xl uppercase leading-[0.9] tracking-tight sm:text-7xl">{sermon.title}</h1>
@@ -40,7 +40,7 @@ export default async function SermonDetail({ params }: Params) {
 
       <Container size="narrow" className="py-12">
         {sermon.videoUrl ? (
-          <div className="mb-10 aspect-video overflow-hidden rounded-2xl border border-border bg-black">
+          <div className="mb-10 aspect-video overflow-hidden rounded-flame border border-line bg-black">
             <iframe src={sermon.videoUrl} title={sermon.title} className="h-full w-full" allowFullScreen />
           </div>
         ) : sermon.audioUrl ? (
@@ -73,7 +73,7 @@ export default async function SermonDetail({ params }: Params) {
       ) : null}
 
       <Container className="pb-16">
-        <Link href={hrefFor(slugs, "sermons")} className="text-sm text-accent hover:underline">
+        <Link href={hrefFor(slugs, "sermons")} className="text-sm text-ember hover:underline">
           ← All sermons
         </Link>
       </Container>

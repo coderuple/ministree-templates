@@ -48,10 +48,10 @@ export default function MagneticButton({
     variant === "primary"
       ? "bg-ember text-bg"
       : variant === "dark"
-        ? "bg-bg text-cream"
+        ? "bg-bg text-ink"
         : variant === "ghost"
-          ? "text-cream hover:text-ember"
-          : "border border-line text-cream hover:border-ember"; // outline
+          ? "text-ink hover:text-ember"
+          : "border border-line text-ink hover:border-ember"; // outline
 
   const hasFill = variant === "primary" || variant === "dark";
 
@@ -67,7 +67,7 @@ export default function MagneticButton({
       {hasFill && (
         <span
           className={`absolute inset-0 origin-center scale-0 rounded-full transition-transform duration-500 ease-out group-hover:scale-150 ${
-            variant === "dark" ? "bg-cream" : "bg-flame"
+            variant === "dark" ? "bg-ink" : "bg-flame"
           }`}
         />
       )}

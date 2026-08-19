@@ -1,4 +1,4 @@
-/** Editorial section header: index number · hairline · tracked label. */
+/** Numbered rule above each section — the spine of the single-event layout. */
 export default function SectionHead({ index, label }: { index: string; label: string }) {
   return (
     <div className="flex items-center gap-5">

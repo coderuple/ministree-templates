@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPost, hrefFor, RichText } from "@ministree/template-sdk";
-import { loadSlugs } from "@/lib/ministree";
+import { loadLocale, loadSlugs } from "@/lib/ministree";
 import { Container, Eyebrow } from "@/components/ui";
 import { PostCard } from "@/components/cards";
 import { formatDate } from "@/lib/format";
@@ -20,23 +20,23 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function PostDetail({ params }: Params) {
   const { slug } = await params;
-  const [post, slugs] = await Promise.all([getPost(slug), loadSlugs()]);
+  const [post, slugs, locale] = await Promise.all([getPost(slug), loadSlugs(), loadLocale()]);
   if (!post) notFound();
 
   return (
     <article>
-      <header className="border-b border-border bg-surface/50">
+      <header className="border-b border-line bg-surface/50">
         <Container size="narrow" className="py-14 sm:py-20">
           {post.category ? <Eyebrow>{post.category}</Eyebrow> : null}
           <h1 className="mt-4 font-display text-5xl uppercase leading-[0.9] tracking-tight sm:text-7xl">{post.title}</h1>
-          {post.publishedAt ? <p className="mt-4 text-muted">{formatDate(post.publishedAt)}</p> : null}
+          {post.publishedAt ? <p className="mt-4 text-muted">{formatDate(post.publishedAt, locale)}</p> : null}
         </Container>
       </header>
 
       {post.featuredImageUrl ? (
         <Container size="narrow" className="pt-10">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={post.featuredImageUrl} alt={post.title} className="w-full rounded-2xl object-cover" />
+          <img src={post.featuredImageUrl} alt={post.title} className="w-full rounded-flame object-cover" />
         </Container>
       ) : null}
 
@@ -56,7 +56,7 @@ export default async function PostDetail({ params }: Params) {
       ) : null}
 
       <Container className="pb-16">
-        <Link href={hrefFor(slugs, "blog")} className="text-sm text-accent hover:underline">
+        <Link href={hrefFor(slugs, "blog")} className="text-sm text-ember hover:underline">
           ← All posts
         </Link>
       </Container>

@@ -19,17 +19,17 @@ export default async function SpeakersArchive() {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {items.map((sp) => (
               <Link key={sp.id} href={`${base}/${sp.slug}`} className="group text-center">
-                <div className="mx-auto aspect-square w-full overflow-hidden rounded-2xl bg-surface">
+                <div className="mx-auto aspect-square w-full overflow-hidden rounded-flame bg-surface">
                   {sp.avatarUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={sp.avatarUrl} alt={`${sp.firstName} ${sp.lastName}`} className="h-full w-full object-cover" />
                   ) : (
-                    <div className="grid h-full w-full place-items-center bg-gradient-to-br from-accent/15 to-accent-2/10 font-display text-3xl text-accent">
+                    <div className="grid h-full w-full place-items-center bg-gradient-to-br from-ember/15 to-flame/10 font-display text-3xl text-ember">
                       {sp.firstName?.charAt(0)}
                     </div>
                   )}
                 </div>
-                <p className="mt-3 font-display text-lg font-semibold group-hover:text-accent">
+                <p className="mt-3 font-display text-lg font-semibold group-hover:text-ember">
                   {sp.firstName} {sp.lastName}
                 </p>
                 {sp.count != null ? <p className="text-sm text-muted">{sp.count} messages</p> : null}

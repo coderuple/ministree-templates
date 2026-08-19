@@ -21,10 +21,10 @@ export default async function EventsArchive({ searchParams }: { searchParams: Pr
       <ArchiveHeader eyebrow="Gather" title="Events" description="What's coming up — services, gatherings and special nights." />
       <Container className="py-12">
         <div className="mb-8 flex gap-4 text-sm">
-          <Link href={base} className={when === "upcoming" ? "font-semibold text-accent" : "text-muted hover:text-accent"}>
+          <Link href={base} className={when === "upcoming" ? "font-semibold text-ember" : "text-muted hover:text-ember"}>
             Upcoming
           </Link>
-          <Link href={`${base}?when=past`} className={when === "past" ? "font-semibold text-accent" : "text-muted hover:text-accent"}>
+          <Link href={`${base}?when=past`} className={when === "past" ? "font-semibold text-ember" : "text-muted hover:text-ember"}>
             Past
           </Link>
         </div>

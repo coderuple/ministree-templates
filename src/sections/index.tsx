@@ -1,8 +1,12 @@
 import {
   RichText,
   SectionWrapper,
-  getEvents,
+  Sections,
+  getForm,
+  getGroups,
   getSermons,
+  getEvents,
+  getTeams,
   hrefFor,
   type AccordionProps,
   type AudioProps,
@@ -26,7 +30,13 @@ import {
   type SectionComponentProps,
   type SectionContext,
   type SectionRegistry,
+  type CarouselProps,
+  type ColumnsProps,
+  type GroupsListProps,
+  type ProfileHeaderProps,
+  type SermonGroupsProps,
   type SermonsListProps,
+  type TeamsListProps,
   type StatementProps,
   type VideoProps,
 } from "@ministree/template-sdk";
@@ -34,6 +44,8 @@ import { Button, Container } from "@/components/ui";
 import { EventCard, SermonCard } from "@/components/cards";
 import { CopyValue } from "@/components/copy-value";
 import { loadSlugs } from "@/lib/ministree";
+import FormRenderer from "@/components/FormRenderer";
+import { extractFormFields } from "@/lib/forms";
 
 /**
  * flame's section registry — its cinematic interpretation of each Ministree
@@ -100,10 +112,10 @@ function Cta({ section, props, context }: SectionComponentProps) {
   const p = props as CtaProps;
   return (
     <Band section={section} context={context}>
-      <div className="relative overflow-hidden border border-line bg-[#0c0805] px-8 py-20 text-center text-[#f2e9d8]">
+      <div className="relative overflow-hidden border border-line bg-panel px-8 py-20 text-center text-panel-ink">
         <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-[var(--flame)]/25 blur-3xl" />
         {p.heading ? <h2 className="font-display text-4xl uppercase leading-[0.95] tracking-tight sm:text-5xl">{p.heading}</h2> : null}
-        {p.description ? <p className="font-serif mx-auto mt-4 max-w-xl text-xl italic text-[#f2e9d8]/70">{p.description}</p> : null}
+        {p.description ? <p className="font-serif mx-auto mt-4 max-w-xl text-xl italic text-panel-ink/70">{p.description}</p> : null}
         {p.ctas?.length ? (
           <div className="mt-9 flex flex-wrap justify-center gap-3">
             {p.ctas.map((c, i) => (
@@ -208,7 +220,7 @@ function Video({ section, props, context }: SectionComponentProps) {
   return (
     <Band section={section} context={context} narrow>
       <Title section={section} />
-      <div className="aspect-video overflow-hidden border border-line bg-[#0c0805]">
+      <div className="aspect-video overflow-hidden border border-line bg-panel">
         {embed ? (
           <iframe src={p.url} title={section.title ?? "Video"} className="h-full w-full" allowFullScreen />
         ) : (
@@ -306,10 +318,10 @@ async function GivingCta({ section, props, context }: SectionComponentProps) {
   const slugs = await loadSlugs();
   return (
     <Band section={section} context={context}>
-      <div className="relative overflow-hidden border border-line bg-[#0c0805] px-8 py-20 text-center text-[#f2e9d8]">
+      <div className="relative overflow-hidden border border-line bg-panel px-8 py-20 text-center text-panel-ink">
         <div aria-hidden className="pointer-events-none absolute -left-16 -bottom-16 size-64 rounded-full bg-[var(--ember)]/25 blur-3xl" />
         <h2 className="font-display text-4xl uppercase leading-[0.95] tracking-tight sm:text-5xl">{p.heading ?? "Partner with the vision"}</h2>
-        {p.description ? <p className="font-serif mx-auto mt-4 max-w-xl text-xl italic text-[#f2e9d8]/70">{p.description}</p> : null}
+        {p.description ? <p className="font-serif mx-auto mt-4 max-w-xl text-xl italic text-panel-ink/70">{p.description}</p> : null}
         <div className="mt-9 flex justify-center">
           <Button href={hrefFor(slugs, "giving")}>Give now</Button>
         </div>
@@ -380,7 +392,7 @@ function Marquee({ section, props, context }: SectionComponentProps) {
     </div>
   );
   return (
-    <SectionWrapper section={section} context={context} className="overflow-hidden border-y border-line bg-[#0c0805] py-6 text-[#f2e9d8]">
+    <SectionWrapper section={section} context={context} className="overflow-hidden border-y border-line bg-panel py-6 text-panel-ink">
       <div
         className="flex w-max animate-marquee motion-reduce:animate-none"
         style={{ animationDuration: duration, animationDirection: p.direction === "right" ? "reverse" : undefined }}
@@ -523,8 +535,271 @@ function Embed({ section, props, context }: SectionComponentProps) {
   );
 }
 
+/* ── Sections a church can add in Ministree that flame previously dropped ──
+   `Sections` skips any type its registry doesn't know, silently. So a church
+   could add a form, a carousel or a staff list to a page, publish, and see a
+   gap where it should be. These close that. */
+
+/** An embedded form — the same renderer as /forms/[slug], inline on a page. */
+async function FormSection({ section, props, context }: SectionComponentProps<Record<string, unknown>>) {
+  const slug = typeof props.formSlug === "string" ? props.formSlug : undefined;
+  const form = slug ? await getForm(slug) : null;
+  const fields = form ? extractFormFields(form) : [];
+  if (!form || fields.length === 0) return null;
+
+  return (
+    <Band section={section} context={context} narrow>
+      <Title section={section} heading={section.title ?? (form.title as string)} />
+      <FormRenderer slug={slug!} fields={fields as never} />
+    </Band>
+  );
+}
+
+/** Side-by-side columns, each holding its own stack of sections. */
+function Columns({ section, props, context }: SectionComponentProps<ColumnsProps>) {
+  const items = (props.items ?? []) as PageSection[];
+  if (items.length === 0) return null;
+  const count = props.count ?? 2;
+  const cols = count === 4 ? "md:grid-cols-4" : count === 3 ? "md:grid-cols-3" : "md:grid-cols-2";
+
+  return (
+    <Band section={section} context={context}>
+      <Title section={section} />
+      {/* Each column is its own section stack, so anything the registry renders
+          can nest here — including another set of columns. */}
+      <div className={`grid gap-8 ${cols}`}>
+        {items.map((item, i) => (
+          <div key={item.id ?? i}>
+            <Sections sections={[item]} registry={flameSections} context={context} />
+          </div>
+        ))}
+      </div>
+    </Band>
+  );
+}
+
+/** A horizontal run of slides. CSS scroll-snap rather than a carousel library:
+ *  it keeps keyboard and touch behaviour native, and works without JS. */
+function Carousel({ section, props, context }: SectionComponentProps<CarouselProps>) {
+  const slides = props.slides ?? [];
+  if (slides.length === 0) return null;
+  const per = props.slidesPerView ?? "1";
+  const basis =
+    per === "4" ? "sm:basis-1/3 lg:basis-1/4" : per === "3" ? "sm:basis-1/2 lg:basis-1/3" : per === "2" ? "sm:basis-1/2" : "";
+
+  return (
+    <Band section={section} context={context}>
+      <Title section={section} />
+      <div className="-mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-3">
+        {slides.map((slide, i) => (
+          <figure
+            key={i}
+            className={`relative w-[85%] shrink-0 snap-start overflow-hidden rounded-flame border border-line ${basis}`}
+          >
+            {slide.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={slide.imageUrl} alt={slide.alt ?? ""} className="aspect-[4/3] w-full object-cover" />
+            ) : (
+              <div className="aspect-[4/3] w-full bg-surface" />
+            )}
+            {slide.heading || slide.text ? (
+              <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-panel to-transparent p-5 text-panel-ink">
+                {slide.badge ? <p className="micro mb-1 text-ember">{slide.badge}</p> : null}
+                {slide.heading ? <p className="font-display text-xl uppercase">{slide.heading}</p> : null}
+                {slide.text ? <p className="mt-1 text-sm text-panel-ink/75">{slide.text}</p> : null}
+              </figcaption>
+            ) : null}
+          </figure>
+        ))}
+      </div>
+    </Band>
+  );
+}
+
+/** A person or ministry at the top of its own page. */
+function ProfileHeader({ section, props, context }: SectionComponentProps<ProfileHeaderProps>) {
+  if (!props.name) return null;
+  return (
+    <Band section={section} context={context}>
+      <div className="flex flex-col items-center gap-8 text-center sm:flex-row sm:items-end sm:text-left">
+        {props.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={props.imageUrl}
+            alt={props.name}
+            className="h-40 w-40 shrink-0 rounded-flame object-cover"
+          />
+        ) : null}
+        <div className="min-w-0">
+          {props.subtitle ? <p className="micro text-ember">{props.subtitle}</p> : null}
+          <h1 className="font-display mt-2 text-4xl uppercase leading-[0.95] tracking-tight sm:text-5xl">
+            {props.name}
+          </h1>
+          {props.description ? (
+            <p className="font-serif mt-4 max-w-2xl text-xl italic text-muted">{props.description}</p>
+          ) : null}
+          {props.stats?.length ? (
+            <dl className="mt-6 flex flex-wrap justify-center gap-8 sm:justify-start">
+              {props.stats.map((stat) => (
+                <div key={stat.label}>
+                  <dt className="micro text-muted">{stat.label}</dt>
+                  <dd className="font-display text-2xl">{stat.value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
+          {props.ctaLabel && props.ctaUrl ? (
+            <div className="mt-6">
+              <Button href={props.ctaUrl}>{props.ctaLabel}</Button>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </Band>
+  );
+}
+
+/** Small groups — from the church's own list, or hand-written. */
+async function GroupsList({ section, props, context }: SectionComponentProps<GroupsListProps>) {
+  const live =
+    props.source === "static" ? null : await getGroups(undefined, { limit: props.limit ?? 12 });
+  const items =
+    props.source === "static"
+      ? (props.groups ?? []).map((g) => ({
+          id: g.name,
+          name: g.name,
+          description: g.description,
+          when: g.schedule,
+          href: g.ctaUrl,
+          ctaLabel: g.ctaLabel,
+        }))
+      : (live?.items ?? []).map((g) => ({
+          id: g.id,
+          name: g.name,
+          description: g.description,
+          when: [g.meetingDay, g.meetingTime].filter(Boolean).join(" · ") || undefined,
+          href: undefined as string | undefined,
+          ctaLabel: undefined as string | undefined,
+        }));
+  if (items.length === 0) return null;
+
+  return (
+    <Band section={section} context={context}>
+      <Title section={section} />
+      <div className="grid gap-px overflow-hidden rounded-flame border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((g) => (
+          <div key={g.id} className="bg-bg p-6">
+            <p className="font-display text-xl uppercase">{g.name}</p>
+            {g.when ? <p className="micro mt-1 text-ember">{g.when}</p> : null}
+            {g.description ? <p className="mt-3 text-sm text-muted">{g.description}</p> : null}
+            {g.href ? (
+              <a href={g.href} className="micro mt-4 inline-block text-ember">
+                {g.ctaLabel ?? "Find out more"} →
+              </a>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    </Band>
+  );
+}
+
+/** Serving teams, with their open positions where the church tracks them. */
+async function TeamsList({ section, props, context }: SectionComponentProps<TeamsListProps>) {
+  const live = props.source === "static" ? null : await getTeams(undefined, { limit: props.limit ?? 12 });
+  const items =
+    props.source === "static"
+      ? (props.teams ?? []).map((t) => ({
+          id: t.name,
+          name: t.name,
+          description: t.description,
+          openings: t.openings,
+          href: t.ctaUrl,
+        }))
+      : (live?.items ?? []).map((t) => ({
+          id: t.id,
+          name: t.name,
+          description: t.description,
+          openings: t.openPositions ? `${t.openPositions} open` : undefined,
+          href: undefined as string | undefined,
+        }));
+  if (items.length === 0) return null;
+
+  return (
+    <Band section={section} context={context}>
+      <Title section={section} />
+      <ul className="divide-y divide-line border-y border-line">
+        {items.map((t) => (
+          <li key={t.id} className="flex flex-wrap items-baseline gap-x-4 gap-y-1 py-5">
+            <p className="font-display text-xl uppercase">{t.name}</p>
+            {t.openings ? <span className="micro text-ember">{t.openings}</span> : null}
+            {t.description ? <p className="w-full text-sm text-muted sm:w-auto sm:flex-1">{t.description}</p> : null}
+            {t.href ? (
+              <a href={t.href} className="micro text-ember">
+                {props.ctaLabel ?? "Join"} →
+              </a>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+    </Band>
+  );
+}
+
+/** Rails of sermons, one per series / speaker / topic the church picked. */
+async function SermonGroups({ section, props, context }: SectionComponentProps<SermonGroupsProps>) {
+  const groups = (props.groups ?? []).slice(0, 6);
+  if (groups.length === 0) return null;
+  const slugs = await loadSlugs();
+
+  const rails = await Promise.all(
+    groups.map(async (g) => {
+      const params: Record<string, string | number> = { limit: g.limit ?? 8 };
+      if (g.sourceType === "series" && g.seriesSlug) params.seriesSlug = g.seriesSlug;
+      if (g.sourceType === "speaker" && g.speakerId) params.speakerId = g.speakerId;
+      if (g.sourceType === "topic" && g.tag) params.tags = g.tag;
+      if (g.sourceType === "scripture" && g.book) params.book = g.book;
+      const data = await getSermons(undefined, params);
+      return { group: g, items: data?.items ?? [] };
+    }),
+  );
+
+  return (
+    <Band section={section} context={context}>
+      <Title section={section} />
+      <div className="space-y-12">
+        {rails.filter((r) => r.items.length > 0).map((rail, i) => (
+          <div key={i}>
+            <div className="mb-4 flex items-baseline justify-between gap-4">
+              <div>
+                {rail.group.subtitle ? <p className="micro text-ember">{rail.group.subtitle}</p> : null}
+                <h3 className="font-display text-2xl uppercase">{rail.group.title ?? "Sermons"}</h3>
+              </div>
+            </div>
+            {/* Scroll-snap rail: native momentum on touch, arrow keys on desktop. */}
+            <div className="-mx-1 flex snap-x gap-4 overflow-x-auto px-1 pb-2">
+              {rail.items.map((sermon) => (
+                <div key={sermon.id} className="w-64 shrink-0 snap-start">
+                  <SermonCard sermon={sermon} href={hrefFor(slugs, "sermons", sermon.slug)} />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </Band>
+  );
+}
+
 export const flameSections: SectionRegistry = {
   hero: Hero,
+  form: FormSection,
+  columns: Columns,
+  carousel: Carousel,
+  profileHeader: ProfileHeader,
+  groupsList: GroupsList,
+  teamsList: TeamsList,
+  sermonGroups: SermonGroups,
   richText: RichTextSection,
   cta: Cta,
   links: Links,

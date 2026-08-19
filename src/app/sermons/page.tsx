@@ -20,10 +20,10 @@ export default async function SermonsArchive({ searchParams }: { searchParams: P
       <ArchiveHeader eyebrow="Watch & listen" title="Sermons" description="Messages from our gatherings — watch, listen, and dig deeper." />
       <Container className="py-12">
         <div className="mb-8 flex gap-4 text-sm">
-          <Link href={`${hrefFor(slugs, "sermons")}/series`} className="text-accent hover:underline">
+          <Link href={`${hrefFor(slugs, "sermons")}/series`} className="text-ember hover:underline">
             Browse series
           </Link>
-          <Link href={`${hrefFor(slugs, "sermons")}/speakers`} className="text-accent hover:underline">
+          <Link href={`${hrefFor(slugs, "sermons")}/speakers`} className="text-ember hover:underline">
             Speakers
           </Link>
         </div>

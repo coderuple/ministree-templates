@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { hrefFor, type NavNode } from "@ministree/template-sdk";
-import { defaults, loadNav, loadSettings, loadSlugs, siteName } from "@/lib/ministree";
+import { defaults, loadContent, loadNav, loadSettings, loadSlugs, siteName } from "@/lib/ministree";
 import { Container } from "@/components/ui";
 import Nav from "@/components/Nav";
+import MobileMenu from "@/components/MobileMenu";
 import ThemeToggle from "@/components/ThemeToggle";
 import MagneticButton from "@/components/MagneticButton";
 
@@ -16,7 +17,19 @@ function FlameMark({ className = "" }: { className?: string }) {
 
 /** Cinematic site header: flame wordmark, uppercase nav, scheme toggle, magnetic Give. */
 export default async function Header() {
-  const [settings, navItems, slugs] = await Promise.all([loadSettings(), loadNav("header"), loadSlugs()]);
+  const [settings, navItems, slugs, content] = await Promise.all([
+    loadSettings(),
+    loadNav("header"),
+    loadSlugs(),
+    loadContent(),
+  ]);
+
+  const chrome = content.chrome ?? {};
+  // Undefined means on, matching how the effects toggles behave.
+  const sticky = chrome.stickyHeader !== false;
+  const showGive = chrome.showGiveButton !== false;
+  const logoHeight =
+    chrome.logoSize === "small" ? "h-7" : chrome.logoSize === "large" ? "h-14" : "h-9";
 
   const items: NavNode[] =
     navItems.length > 0 ? navItems : defaults.nav.map((n) => ({ label: n.label, href: n.href }));
@@ -26,12 +39,14 @@ export default async function Header() {
     (settings?.themeOverrides as Record<string, unknown> | undefined)?.darkModeEnabled !== false;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line/70 bg-bg/80 backdrop-blur-xl">
+    <header
+      className={`${sticky ? "sticky top-0" : "relative"} z-40 border-b border-line/70 bg-bg/80 backdrop-blur-xl`}
+    >
       <Container className="flex h-16 items-center justify-between gap-4">
         <Link href="/" className="group flex items-center gap-2.5" data-cursor>
           {logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={logoUrl} alt={name} className="h-8 w-auto" />
+            <img src={logoUrl} alt={name} className={`${logoHeight} w-auto`} />
           ) : (
             <FlameMark className="h-6 w-6 text-ember transition-transform duration-500 group-hover:scale-110" />
           )}
@@ -44,11 +59,15 @@ export default async function Header() {
 
         <div className="flex items-center gap-3">
           {darkAllowed ? <ThemeToggle /> : null}
-          <div className="hidden sm:block">
-            <MagneticButton href={hrefFor(slugs, "giving")} className="px-6 py-2.5 text-[11px]">
-              Give
-            </MagneticButton>
-          </div>
+          {showGive ? (
+            <div className="hidden sm:block">
+              <MagneticButton href={hrefFor(slugs, "giving")} className="px-6 py-2.5 text-[11px]">
+                Give
+              </MagneticButton>
+            </div>
+          ) : null}
+          {/* Below `md` the nav above is hidden, so this carries the whole menu. */}
+          <MobileMenu items={items} giveHref={hrefFor(slugs, "giving")} />
         </div>
       </Container>
     </header>

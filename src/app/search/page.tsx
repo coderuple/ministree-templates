@@ -27,9 +27,9 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
             name="q"
             defaultValue={q}
             placeholder="Search sermons and posts…"
-            className="w-full rounded-full border border-border bg-bg px-5 py-3 outline-none focus:border-accent"
+            className="w-full rounded-full border border-line bg-bg px-5 py-3 outline-none focus:border-ember"
           />
-          <button type="submit" className="rounded-full bg-accent px-6 py-3 text-sm font-medium text-accent-contrast">
+          <button type="submit" className="rounded-full bg-ember px-6 py-3 text-sm font-medium text-bg">
             Search
           </button>
         </form>
@@ -65,7 +65,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
         <p className="mt-12 text-sm text-muted">
           Looking for something else?{" "}
-          <Link href="/" className="text-accent hover:underline">
+          <Link href="/" className="text-ember hover:underline">
             Back home
           </Link>
         </p>

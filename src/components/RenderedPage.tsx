@@ -14,7 +14,7 @@ export default function RenderedPage({ page, showTitle = true }: { page: PageRes
   return (
     <article>
       {showTitle && !hasHeroSection ? (
-        <header className="border-b border-border bg-surface/50">
+        <header className="border-b border-line bg-surface/50">
           <Container className="py-14 sm:py-20">
             <h1 className="font-display text-6xl uppercase leading-[0.88] tracking-tight sm:text-7xl">{page.title}</h1>
             {page.description ? <p className="mt-4 max-w-2xl text-lg text-muted">{page.description}</p> : null}

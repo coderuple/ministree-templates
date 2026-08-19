@@ -9,10 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@ministree/template-sdk": "file:../ministree/packages/template-sdk/ministree-template-sdk-0.2.0.tgz",
+    "@ministree/template-sdk": "file:../ministree/packages/template-sdk/ministree-template-sdk-0.4.0.tgz",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "@react-three/postprocessing": "^3.0.4",
+    "@stripe/react-stripe-js": "^6.6.0",
+    "@stripe/stripe-js": "^9.8.0",
     "gsap": "^3.15.0",
     "lenis": "^1.3.23",
     "next": "16.2.9",
