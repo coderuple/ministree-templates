@@ -164,6 +164,7 @@ export default defineMinistreeTemplate({
       hero: {
         kind: "group",
         label: "Home hero",
+        visibleWhen: { field: "siteMode", equals: "fullSite" },
         fields: {
           eyebrow: { kind: "text", label: "Eyebrow" },
           title: { kind: "text", label: "Headline", help: "Optional — defaults to your church name" },
@@ -217,6 +218,7 @@ export default defineMinistreeTemplate({
       intro: {
         kind: "group",
         label: "Welcome section",
+        visibleWhen: { field: "siteMode", equals: "fullSite" },
         fields: {
           heading: { kind: "text", label: "Heading" },
           body: { kind: "textarea", label: "Body" },
@@ -246,6 +248,11 @@ export default defineMinistreeTemplate({
          words around it, so a church never types the same thing twice. Each
          one has a sensible default in EventSite, so an empty group still
          renders a complete site. */
+      /* What is left after the running order became sections.
+         Every heading, label and piece of copy now lives on the section it
+         belongs to, edited where you can see it. Only two kinds of thing stay
+         here: the page-level identity above the stack, and the handful of
+         values no section prop can carry. */
       event: {
         kind: "group",
         label: "Event site",
@@ -253,53 +260,24 @@ export default defineMinistreeTemplate({
         fields: {
           presenter: { kind: "text", label: "Presented by", optional: true, help: "Defaults to your church name." },
           tagline: { kind: "text", label: "Tagline", optional: true, help: "The short line under the title." },
-          visionLabel: { kind: "text", label: "Vision — section label", optional: true },
-          visionFootnote: { kind: "text", label: "Vision — footnote", optional: true },
-          lineupLabel: { kind: "text", label: "Lineup — section label", optional: true },
-          lineupHeading: { kind: "text", label: "Lineup — heading", optional: true },
-          timelineLabel: { kind: "text", label: "Schedule — section label", optional: true },
-          timelineHeading: { kind: "text", label: "Schedule — heading", optional: true },
-          timelineNote: { kind: "text", label: "Schedule — note", optional: true },
-          venueLabel: { kind: "text", label: "Venue — section label", optional: true },
-          venueBlurb: { kind: "textarea", label: "Venue — description", optional: true },
           venueImages: {
             kind: "media",
             multiple: true,
             max: 2,
-            label: "Venue — extra photos",
+            label: "Venue \u2014 extra photos",
             optional: true,
-            help: "The event's own image leads; these two sit beside it.",
+            help: "The event's own image leads; these two sit beside it. The venue section carries the rest.",
           },
-          ticketsLabel: { kind: "text", label: "Tickets — section label", optional: true },
-          ticketsHeading: { kind: "text", label: "Tickets — heading", optional: true },
-          ticketsCta: { kind: "text", label: "Tickets — button", optional: true },
-          ticketsBlurb: { kind: "textarea", label: "Tickets — description", optional: true },
-          ticketsNote: { kind: "textarea", label: "Tickets — small print", optional: true },
-          giveLabel: { kind: "text", label: "Giving — section label", optional: true },
-          giveHeading: { kind: "text", label: "Giving — heading", optional: true },
-          giveStrapline: { kind: "text", label: "Giving — strapline", optional: true },
-          giveOnlineTitle: { kind: "text", label: "Giving — online card title", optional: true },
-          giveOnlineBody: { kind: "textarea", label: "Giving — online card text", optional: true },
-          giveTextTitle: { kind: "text", label: "Giving — text card title", optional: true },
-          giveTextBody: { kind: "textarea", label: "Giving — text card text", optional: true, help: "Leave empty to hide this card." },
-          giveCashTitle: { kind: "text", label: "Giving — cash card title", optional: true },
-          giveCashBody: { kind: "textarea", label: "Giving — cash card text", optional: true, help: "Leave empty to hide this card." },
-          giveBankTitle: { kind: "text", label: "Giving — bank card title", optional: true },
-          giveBankBody: { kind: "textarea", label: "Giving — bank card text", optional: true, help: "Leave empty to hide this card." },
-          faqLabel: { kind: "text", label: "FAQ — section label", optional: true },
-          faqHeading: { kind: "text", label: "FAQ — heading", optional: true },
-          faqs: {
-            kind: "repeatable",
-            label: "Questions",
-            itemLabel: "Question",
-            fields: {
-              q: { kind: "text", label: "Question" },
-              a: { kind: "textarea", label: "Answer" },
-              linkHref: { kind: "text", label: "Link address", optional: true },
-              linkLabel: { kind: "text", label: "Link text", optional: true },
-            },
-          },
+          ticketsCta: { kind: "text", label: "Tickets \u2014 button", optional: true },
+          ticketsNote: { kind: "textarea", label: "Tickets \u2014 small print", optional: true },
         },
+      },
+
+      eventSections: {
+        kind: "sections",
+        label: "Event page sections",
+        help: "The running order of the event page. Wording is edited on each section. The lineup, schedule, venue and tickets fill themselves from the event you picked \u2014 change those in Events, not here.",
+        visibleWhen: { field: "siteMode", equals: "singleEvent" },
       },
 
       // Home composition.
@@ -317,12 +295,19 @@ export default defineMinistreeTemplate({
         kind: "text",
         label: "Page address",
         help: "Which of your pages to show as home (e.g. home, welcome).",
-        visibleWhen: { field: "homeSource", equals: "ministreePage" },
+        // Two conditions, not one: without the siteMode half this field stayed
+        // behind in event mode whenever homeSource happened to be saved as
+        // "ministreePage", stranded in a card whose every sibling was hidden.
+        visibleWhen: [
+          { field: "homeSource", equals: "ministreePage" },
+          { field: "siteMode", equals: "fullSite" },
+        ],
       },
       homeSections: {
         kind: "sections",
         label: "Home sections",
         help: "The composable stack below the hero on the template home. Reorder, add or remove.",
+        visibleWhen: { field: "siteMode", equals: "fullSite" },
       },
 
       // Giving page (the native /give experience).
@@ -397,7 +382,7 @@ export default defineMinistreeTemplate({
           description: "Your home page — hero, welcome, and the composable stack beneath it.",
           groups: [
             { title: "What is this site?", columns: 2, fields: ["siteMode", "featuredEvent"] },
-            { title: "Event site", fields: ["event"] },
+            { title: "Event page", fields: ["eventSections", "event"] },
             { title: "Home source", columns: 2, fields: ["homeSource", "homePageSlug"] },
             { title: "Hero", fields: ["hero"] },
             { title: "Welcome", fields: ["intro"] },

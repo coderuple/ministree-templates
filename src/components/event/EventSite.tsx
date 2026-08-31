@@ -1,18 +1,18 @@
 import {
   getChurchProfile,
-  getGiving,
   hrefFor,
   type EventDetail,
 } from "@ministree/template-sdk";
 import { getPreviewToken } from "@ministree/template-sdk/next";
+import { Sections, type PageSection } from "@ministree/template-sdk";
+import { defaults } from "@/lib/ministree";
+import { flameEventSections, type EventSectionContext } from "@/sections/event";
 import { loadContent, loadSettings, loadSlugs, siteName } from "@/lib/ministree";
 import { formatDateRange, type Locale } from "@/lib/format";
 import EventExperience, { type EventExperienceProps } from "@/components/event/EventExperience";
 import type { LineupPerson } from "@/components/event/sections/EventLineup";
 import type { TimelineEntry } from "@/components/event/sections/EventTimeline";
 import type { TicketTier } from "@/components/event/sections/EventTickets";
-import type { GiveCard } from "@/components/event/sections/EventGive";
-import type { FaqEntry } from "@/components/event/sections/EventFaq";
 
 /**
  * The whole site, for one event.
@@ -36,12 +36,11 @@ export default async function EventSite({
   locale: Locale;
   currency: string;
 }) {
-  const [settings, content, slugs, profile, giving, previewToken] = await Promise.all([
+  const [settings, content, slugs, profile, previewToken] = await Promise.all([
     loadSettings(),
     loadContent(),
     loadSlugs(),
     getChurchProfile(),
-    getGiving(),
     getPreviewToken(),
   ]);
 
@@ -139,39 +138,7 @@ export default async function EventSite({
     }),
   );
 
-  const giveCards: GiveCard[] = [];
   const givingHref = hrefFor(slugs, "giving");
-  if (giving) {
-    giveCards.push({
-      key: "online",
-      title: str("giveOnlineTitle") ?? "Online",
-      body:
-        str("giveOnlineBody") ??
-        "The fastest way to give — securely, from anywhere, before or after the night.",
-      href: givingHref,
-      cta: "Give now",
-    });
-  }
-  for (const key of ["text", "cash", "bank"] as const) {
-    const body = str(`give${key[0].toUpperCase()}${key.slice(1)}Body`);
-    if (!body) continue;
-    giveCards.push({
-      key,
-      title: str(`give${key[0].toUpperCase()}${key.slice(1)}Title`) ?? key,
-      body,
-    });
-  }
-
-  const faqs: FaqEntry[] = Array.isArray(ev.faqs)
-    ? (ev.faqs as Array<Record<string, unknown>>)
-        .filter((f) => typeof f.q === "string" && typeof f.a === "string")
-        .map((f) => ({
-          q: f.q as string,
-          a: f.a as string,
-          linkHref: (f.linkHref as string) ?? null,
-          linkLabel: (f.linkLabel as string) ?? null,
-        }))
-    : [];
 
   const social = profile?.socials ?? null;
   const socials = [
@@ -181,55 +148,74 @@ export default async function EventSite({
     { label: "X", href: social?.x },
   ].filter((s): s is { label: string; href: string } => Boolean(s.href));
 
-  // Only sections that will actually render get a link, so the bar never points
-  // at an anchor that isn't on the page.
-  const nav = [
-    e.description ? { label: "Vision", href: "#vision" } : null,
-    people.length > 0 ? { label: "Lineup", href: "#lineup" } : null,
-    timeline.length > 0 ? { label: "The night", href: "#night" } : null,
-    venueImages.length > 0 || venueName ? { label: "Venue", href: "#venue" } : null,
-    tiers.length > 0 ? { label: "Tickets", href: "#tickets" } : null,
-    giveCards.length > 0 ? { label: "Give", href: "#give" } : null,
-    faqs.length > 0 ? { label: "FAQ", href: "#faq" } : null,
-  ].filter((n): n is { label: string; href: string } => n !== null);
+  /* The running order the church arranged. `loadContent` has already merged the
+     manifest defaults underneath, so this is normally present; the `??` covers
+     a template deployed before the field existed. Undefined only — an EMPTY
+     array is a church deliberately clearing the page, not an accident, and
+     resurrecting the default order there would ignore them. */
+  const stack = ((content as { eventSections?: { sections?: PageSection[] } }).eventSections
+    ?.sections ?? (defaults.eventSections as { sections: PageSection[] }).sections) as PageSection[];
+
+  /* The nav follows the ORDER ON THE PAGE, not a fixed list — a church who moves
+     the venue above the lineup gets a bar that agrees with what they see.
+     Anchors match the ids the Event* components render. A beat with nothing to
+     show still resolves to null below, so the bar never points at an anchor
+     that isn't there. */
+  const NAV_BY_TYPE: Record<string, { label: string; href: string; has: boolean }> = {
+    statement: { label: "Vision", href: "#vision", has: Boolean(e.description) },
+    profileCards: { label: "Lineup", href: "#lineup", has: people.length > 0 },
+    schedule: { label: "The night", href: "#night", has: timeline.length > 0 },
+    location: { label: "Venue", href: "#venue", has: Boolean(venueName) || venueImages.length > 0 },
+    cta: { label: "Tickets", href: "#tickets", has: tiers.length > 0 },
+    givingMethods: { label: "Give", href: "#give", has: true },
+    accordion: { label: "FAQ", href: "#faq", has: true },
+  };
+  const seen = new Set<string>();
+  const nav = stack
+    .map((section) => {
+      const entry = NAV_BY_TYPE[section.type];
+      if (!entry || !entry.has || seen.has(entry.href)) return null;
+      seen.add(entry.href);
+      /* The SHORT label, not the section's title. A nav bar wants "Vision", not
+         "How the evening unfolds" — the title is the heading on the section
+         itself, and putting it here made the bar wrap. */
+      return { label: entry.label, href: entry.href };
+    })
+    .filter((n): n is { label: string; href: string } => n !== null);
 
   const tagline = str("tagline") ?? (e.description ? null : null);
 
-  const props: EventExperienceProps = {
-    presenter: str("presenter") ?? church,
-    presenterUrl: profile?.website ?? null,
-    title,
-    tagline,
-    year,
-    dateLabel,
-    venueLabel,
+  /* Everything the event itself knows, in the shape each beat wants. This is the
+     FALLBACK layer: a section renders from here whenever its own props are
+     empty, which is what stops a church having to retype their lineup into a
+     section editor. See `flameEventSections`. */
+  const evt: EventSectionContext = {
     keyart: heroImage,
     marquee: [tagline, dateLabel, venueName, venue?.city].filter((v): v is string => Boolean(v)),
-    marqueeSecondary: [title, dateLabel].filter((v): v is string => Boolean(v)),
     vision: e.description
       ? {
           body: e.description as string,
-          label: str("visionLabel") ?? "The vision",
-          footnote: str("visionFootnote"),
+          label: "The vision",
+          footnote: null,
         }
       : null,
     lineup: {
       people,
-      label: str("lineupLabel") ?? "The lineup",
-      heading: str("lineupHeading") ?? "Who you'll hear",
+      label: "The lineup",
+      heading: "Who you'll hear",
     },
     timeline: {
       entries: timeline,
-      label: str("timelineLabel") ?? "The night",
-      heading: str("timelineHeading") ?? "How the evening unfolds",
-      note: str("timelineNote"),
+      label: "The night",
+      heading: "How the evening unfolds",
+      note: null,
     },
     venue:
       venueName || venueImages.length > 0
         ? {
-            label: str("venueLabel") ?? "The venue",
+            label: "The venue",
             name: venueName ?? "Where",
-            blurb: str("venueBlurb"),
+            blurb: null,
             address,
             directionsUrl: address
               ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
@@ -241,24 +227,48 @@ export default async function EventSite({
         : null,
     tickets: {
       tiers,
-      label: str("ticketsLabel") ?? "Tickets",
-      heading: str("ticketsHeading") ?? "Be in the room",
+      label: "Tickets",
+      heading: "Be in the room",
       href: `${hrefFor(slugs, "events")}/${e.slug as string}`,
       ctaLabel: str("ticketsCta") ?? "Get tickets",
-      blurb: str("ticketsBlurb"),
+      blurb: null,
       note: str("ticketsNote"),
     },
+    givingHref,
     give: {
-      cards: giveCards,
-      label: str("giveLabel") ?? "Giving",
-      heading: str("giveHeading") ?? "Ways to give",
-      strapline: str("giveStrapline"),
+      cards: [],
+      label: "Giving",
+      heading: "Ways to give",
+      strapline: null,
     },
     faq: {
-      entries: faqs,
-      label: str("faqLabel") ?? "Know before you go",
-      heading: str("faqHeading") ?? "Good to know",
+      entries: [],
+      label: "Know before you go",
+      heading: "Good to know",
     },
+  };
+
+  /* Rendered HERE, on the server, and handed down as a ReactNode.
+     `EventExperience` is a client component and seven of Flame's section
+     renderers are async server components, so `<Sections>` cannot live inside
+     it — but a ReactNode prop crosses the boundary exactly like `children`. */
+  const blocks = (
+    <Sections sections={stack} registry={flameEventSections} context={{ evt }} />
+  );
+
+  const props: EventExperienceProps = {
+    presenter: str("presenter") ?? church,
+    presenterUrl: profile?.website ?? null,
+    title,
+    tagline,
+    year,
+    dateLabel,
+    venueLabel,
+    keyart: heroImage,
+    ticketsHref: evt.tickets?.href ?? null,
+    ticketsLabel: evt.tickets?.ctaLabel ?? "Get tickets",
+    hasTickets: tiers.length > 0,
+    blocks,
     nav,
     socials,
     summary: (e.description as string | null) ?? null,

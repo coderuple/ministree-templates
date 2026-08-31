@@ -5,15 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 
 import Preloader from "@/components/Preloader";
-import Marquee from "@/components/Marquee";
 import EventHero from "@/components/event/sections/EventHero";
-import EventVision from "@/components/event/sections/EventVision";
-import EventLineup, { type LineupPerson } from "@/components/event/sections/EventLineup";
-import EventTimeline, { type TimelineEntry } from "@/components/event/sections/EventTimeline";
-import EventVenue from "@/components/event/sections/EventVenue";
-import EventTickets, { type TicketTier } from "@/components/event/sections/EventTickets";
-import EventGive, { type GiveCard } from "@/components/event/sections/EventGive";
-import EventFaq, { type FaqEntry } from "@/components/event/sections/EventFaq";
 import EventFooter from "@/components/event/sections/EventFooter";
 import EventNav from "@/components/event/EventNav";
 
@@ -28,30 +20,13 @@ export interface EventExperienceProps {
   dateLabel: string | null;
   venueLabel: string | null;
   keyart: string | null;
-  marquee: string[];
-  marqueeSecondary: string[];
-  vision: { body: string; label: string; footnote: string | null } | null;
-  lineup: { people: LineupPerson[]; label: string; heading: string };
-  timeline: { entries: TimelineEntry[]; label: string; heading: string; note: string | null };
-  venue: {
-    label: string;
-    name: string;
-    blurb: string | null;
-    address: string | null;
-    directionsUrl: string | null;
-    images: string[];
-  } | null;
-  tickets: {
-    tiers: TicketTier[];
-    label: string;
-    heading: string;
-    href: string;
-    ctaLabel: string;
-    blurb: string | null;
-    note: string | null;
-  };
-  give: { cards: GiveCard[]; label: string; heading: string; strapline: string | null };
-  faq: { entries: FaqEntry[]; label: string; heading: string };
+  ticketsHref: string | null;
+  ticketsLabel: string;
+  hasTickets: boolean;
+  /** The composed running order, rendered on the SERVER and passed down.
+   *  This component is a client component and several section renderers are
+   *  async server components, so it cannot build this itself. */
+  blocks: React.ReactNode;
   nav: Array<{ label: string; href: string }>;
   socials: Array<{ label: string; href: string }>;
   summary: string | null;
@@ -170,8 +145,8 @@ export default function EventExperience(props: EventExperienceProps) {
         loaded={loaded}
         title={props.title}
         items={props.nav}
-        ticketsHref={props.tickets.href}
-        ticketsLabel={props.tickets.ctaLabel}
+        ticketsHref={props.ticketsHref ?? "#top"}
+        ticketsLabel={props.ticketsLabel}
       />
 
       <main className="relative z-10">
@@ -183,32 +158,15 @@ export default function EventExperience(props: EventExperienceProps) {
           year={props.year}
           dateLabel={props.dateLabel}
           venueLabel={props.venueLabel}
-          ticketsHref={props.tickets.tiers.length > 0 ? props.tickets.href : null}
-          ticketsLabel={props.tickets.ctaLabel}
+          ticketsHref={props.hasTickets ? props.ticketsHref : null}
+          ticketsLabel={props.ticketsLabel}
         />
 
-        {props.marquee.length > 0 ? <Marquee items={props.marquee} /> : null}
-
-        {props.vision ? (
-          <EventVision
-            body={props.vision.body}
-            label={props.vision.label}
-            footnote={props.vision.footnote}
-            backdrop={props.keyart}
-          />
-        ) : null}
-
-        <EventLineup {...props.lineup} />
-        <EventTimeline {...props.timeline} />
-
-        {props.marqueeSecondary.length > 0 ? (
-          <Marquee items={props.marqueeSecondary} speed="slow" />
-        ) : null}
-
-        {props.venue ? <EventVenue {...props.venue} /> : null}
-        <EventTickets {...props.tickets} />
-        <EventGive {...props.give} />
-        <EventFaq {...props.faq} />
+        {/* Everything below the hero is the church's arrangement. The hero
+            stays put because no section type carries a date + venue lockup with
+            a countdown, and a page that can lose its own opening is not worth
+            the flexibility. */}
+        {props.blocks}
       </main>
 
       <EventFooter

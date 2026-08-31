@@ -138,6 +138,95 @@ export const site = {
   },
 
   footerNote: "",
+
+  /**
+   * Single-event mode's running order, as sections.
+   *
+   * This reproduces EXACTLY what the fixed order rendered before it was
+   * composable — same beats, same sequence, same labels — so the day this ships
+   * no live event site changes. That matters more than usual here: the
+   * Customizer freezes a church's merged defaults the first time they edit
+   * anything, so this list becomes their copy and a later correction never
+   * reaches them.
+   *
+   * Content props are deliberately EMPTY. Each beat inherits from the event's
+   * own record (see `flameEventSections`); filling a prop is how a church
+   * overrides it. Only the labels are seeded, because those are wording rather
+   * than data.
+   *
+   * `evt-` ids so these can never collide with `homeSections`.
+   */
+  eventSections: {
+    sections: [
+      { id: "evt-marquee-open", type: "marquee", props: {} },
+      {
+        id: "evt-vision",
+        type: "statement",
+        title: "The vision",
+        // `statement` left empty on purpose: it inherits the event's own
+        // description, so a church writes the event once. Type here to override.
+        props: { eyebrow: "The vision", statement: "" },
+      },
+      {
+        id: "evt-lineup",
+        type: "profileCards",
+        title: "Who you'll hear",
+        // `source: people` is Ministree's own way of saying "pull it live" —
+        // the billing comes from the event, not from cards typed twice.
+        props: { source: "people", eyebrow: "The lineup" },
+      },
+      {
+        id: "evt-timeline",
+        type: "schedule",
+        title: "How the evening unfolds",
+        props: { eyebrow: "The night", items: [], note: "" },
+      },
+      { id: "evt-marquee-close", type: "marquee", props: { speed: "slow" } },
+      {
+        id: "evt-venue",
+        type: "location",
+        title: "The venue",
+        props: { eyebrow: "The venue", serviceTimes: "" },
+      },
+      {
+        id: "evt-tickets",
+        type: "cta",
+        title: "Be in the room",
+        props: { eyebrow: "Tickets", description: "" },
+      },
+      {
+        id: "evt-give",
+        type: "givingMethods",
+        title: "Ways to give",
+        props: {
+          eyebrow: "Giving",
+          description: "Partner with what happens here \u2014 every gift keeps a place open for someone.",
+          methods: [
+            {
+              kind: "online",
+              title: "Online",
+              description:
+                "The fastest way to give \u2014 securely, from anywhere, before or after the night.",
+              ctaLabel: "Give now",
+            },
+          ],
+        },
+      },
+      {
+        id: "evt-faq",
+        type: "accordion",
+        title: "Good to know",
+        props: {
+          eyebrow: "Know before you go",
+          items: [
+            { title: "What time should I arrive?", content: "Doors open thirty minutes before we start." },
+            { title: "Is there parking?", content: "Yes \u2014 and the nearest station is a short walk." },
+            { title: "Can I bring someone?", content: "Please do. Bring the person you were thinking of." },
+          ],
+        },
+      },
+    ],
+  },
 };
 
 export type SiteContent = typeof site;
