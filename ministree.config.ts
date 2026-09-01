@@ -381,7 +381,7 @@ export default defineMinistreeTemplate({
           title: "Home",
           description: "Your home page — hero, welcome, and the composable stack beneath it.",
           groups: [
-            { title: "What is this site?", columns: 2, fields: ["siteMode", "featuredEvent"] },
+            { columns: 2, fields: ["siteMode", "featuredEvent"] },
             { title: "Event page", fields: ["eventSections", "event"] },
             { title: "Home source", columns: 2, fields: ["homeSource", "homePageSlug"] },
             { title: "Hero", fields: ["hero"] },
