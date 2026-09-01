@@ -1,3 +1,4 @@
+import { isBackdropElement, type BackdropElement } from "@/lib/backdrop";
 import { cache } from "react";
 import {
   getChurchProfile,
@@ -154,4 +155,21 @@ export function serviceTimes(settings: MinistreeSiteSettings | null): Array<{ la
   const list = settings?.contactInfo?.serviceTimesList;
   if (list && list.length) return list.map((s) => ({ label: s.label, value: s.value }));
   return defaults.serviceTimes;
+}
+
+/**
+ * Which element the moving backdrop is made of.
+ *
+ * Shared by the home hero and the single-event site so one Customizer setting
+ * drives both — the event site used to mount the scene itself and ignore the
+ * switch entirely, so turning the backdrop off left it running there.
+ */
+export function backdropElement(content: unknown): BackdropElement {
+  const v = (content as { effects?: { backdropElement?: unknown } })?.effects?.backdropElement;
+  return isBackdropElement(v) ? v : "fire";
+}
+
+/** Is the moving backdrop on at all? Undefined means on, matching the other effects. */
+export function backdropEnabled(content: unknown): boolean {
+  return (content as { effects?: { webglHero?: boolean } })?.effects?.webglHero !== false;
 }

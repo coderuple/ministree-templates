@@ -1,5 +1,5 @@
 import { getPage, hrefFor, resolveEntities, Sections, type EventDetail, type PageSection } from "@ministree/template-sdk";
-import { loadContent, loadLocale, loadSettings, loadSlugs, siteName } from "@/lib/ministree";
+import { backdropElement, loadContent, loadLocale, loadSettings, loadSlugs, siteName } from "@/lib/ministree";
 import { flameSections } from "@/sections";
 import RenderedPage from "@/components/RenderedPage";
 import HomeHero from "@/components/hero/HomeHero";
@@ -57,6 +57,7 @@ export default async function Home() {
         backgroundImageUrl={hero.imageUrl?.trim() || undefined}
         backgroundFocalPoint={hero.imageFocalPoint}
         webgl={(content as { effects?: { webglHero?: boolean } }).effects?.webglHero !== false}
+        element={backdropElement(content)}
         primary={{
           label: hero.primaryCta.label,
           href: hero.primaryCta.href,

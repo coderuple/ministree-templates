@@ -6,6 +6,7 @@ import { PerformanceMonitor } from "@react-three/drei";
 import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
 import { useMemo, useRef, useState } from "react";
 import { cssVar, introState } from "@/lib/state";
+import { BACKDROP_ELEMENTS, type BackdropElement } from "@/lib/backdrop";
 
 const PARTICLE_COUNT_DESKTOP = 42000;
 const PARTICLE_COUNT_MOBILE = 18000;
@@ -13,11 +14,32 @@ const PARTICLE_COUNT_MOBILE = 18000;
 /* The flame column — GPU particles shaped, moved and colored entirely
    in the vertex/fragment shaders. Colors come from the CSS theme vars. */
 
+/**
+ * One particle system, five elements.
+ *
+ * Fire, smoke, embers, dust and snow are the same 42k points with different
+ * numbers: how fast they travel, which way, how far they spread, whether the
+ * silhouette tapers like a flame or widens like a plume, and how much of the
+ * heat gradient they use. Five shaders would have been five things to keep in
+ * step and five performance profiles to tune; this is one code path and a
+ * struct of floats, so a new element is a preset rather than a rewrite.
+ */
 const flameVertex = /* glsl */ `
   uniform float uTime;
   uniform float uScroll;
   uniform float uDim;
   uniform float uPixelRatio;
+
+  // ── Element character ───────────────────────────────────────────────
+  uniform float uFall;      // 0 rises, 1 falls
+  uniform float uSpeedMin;
+  uniform float uSpeedMax;
+  uniform float uTaper;     // 0 plume (widens), 1 flame silhouette
+  uniform float uSpread;
+  uniform float uSway;
+  uniform float uSizeMin;
+  uniform float uSizeMax;
+  uniform float uOpacity;
 
   varying float vHeat;
   varying float vAlpha;
@@ -29,28 +51,34 @@ const flameVertex = /* glsl */ `
   void main() {
     vec3 seed = position; // each component in [0, 1)
 
-    float speed = mix(0.035, 0.13, seed.z);
+    float speed = mix(uSpeedMin, uSpeedMax, seed.z);
     float life = fract(seed.y + uTime * speed);
 
-    float y = mix(-3.4, 5.4, life);
+    // Snow and ash fall; everything else rises.
+    float y = mix(mix(-3.4, 5.4, life), mix(5.4, -3.4, life), uFall);
 
-    // flame silhouette: wide base ring, pinch, soft bulge, taper to a point
-    float r = 1.5 * smoothstep(0.0, 0.16, life)
-            * (1.0 - 0.75 * smoothstep(0.12, 0.5, life));
-    r += 0.5 * smoothstep(0.32, 0.58, life) * (1.0 - smoothstep(0.58, 0.95, life));
-    r += 0.06;
-    r *= (1.0 - 0.6 * life);
+    // Flame silhouette: wide base ring, pinch, soft bulge, taper to a point.
+    float flameR = 1.5 * smoothstep(0.0, 0.16, life)
+                 * (1.0 - 0.75 * smoothstep(0.12, 0.5, life));
+    flameR += 0.5 * smoothstep(0.32, 0.58, life) * (1.0 - smoothstep(0.58, 0.95, life));
+    flameR += 0.06;
+    flameR *= (1.0 - 0.6 * life);
+
+    // Plume: no pinch, keeps opening out as it travels — smoke and dust.
+    float plumeR = 0.35 + 1.35 * life;
+
+    float r = mix(plumeR, flameR, uTaper) * uSpread;
 
     float ang = seed.x * TAU + uTime * mix(0.06, 0.3, hash(seed.x * 7.0)) + life * 2.2;
     float rad = r * (0.3 + 0.7 * hash(seed.x * 91.7));
     vec3 p = vec3(cos(ang) * rad, y, sin(ang) * rad);
 
-    // turbulent drift, stronger as embers rise
-    float sway = 0.3 + life;
+    // Turbulent drift, stronger the further a particle has travelled.
+    float sway = (0.3 + life) * uSway;
     p.x += sin(y * 1.6 + uTime * 1.2 + seed.z * TAU) * 0.17 * sway;
     p.z += cos(y * 1.3 + uTime * 0.9 + seed.x * TAU) * 0.17 * sway;
 
-    // scroll: the formation disperses into drifting embers
+    // Scroll: the formation disperses and drifts apart.
     p.xz *= 1.0 + uScroll * 2.6;
     p.y += uScroll * 1.6 * (seed.z - 0.5);
 
@@ -60,9 +88,9 @@ const flameVertex = /* glsl */ `
     float fadeIn = smoothstep(0.0, 0.16, life);
     float fadeOut = 1.0 - smoothstep(0.7, 1.0, life);
     vHeat = 1.0 - life;
-    vAlpha = fadeIn * fadeOut * (1.0 - uScroll * 0.82) * uDim;
+    vAlpha = fadeIn * fadeOut * (1.0 - uScroll * 0.82) * uDim * uOpacity;
 
-    float size = mix(10.0, 26.0, hash(seed.y * 57.0));
+    float size = mix(uSizeMin, uSizeMax, hash(seed.y * 57.0));
     gl_PointSize = size * uPixelRatio * (6.0 / max(1.0, -mv.z));
   }
 `;
@@ -71,6 +99,9 @@ const flameFragment = /* glsl */ `
   uniform vec3 uColorHot;
   uniform vec3 uColorEmber;
   uniform vec3 uColorDeep;
+  uniform float uHeatBase;  // colour a particle starts at, before any ramp
+  uniform float uHeatGain;  // how much of the hot→deep ramp it travels
+  uniform float uGlow;      // brightness multiplier; smoke and dust do not glow
 
   varying float vHeat;
   varying float vAlpha;
@@ -81,14 +112,15 @@ const flameFragment = /* glsl */ `
     float a = core * vAlpha;
     if (a < 0.004) discard;
 
-    vec3 col = mix(uColorDeep, uColorEmber, smoothstep(0.0, 0.55, vHeat));
-    col = mix(col, uColorHot, smoothstep(0.55, 1.0, vHeat) * 0.9);
+    float heat = clamp(uHeatBase + vHeat * uHeatGain, 0.0, 1.0);
+    vec3 col = mix(uColorDeep, uColorEmber, smoothstep(0.0, 0.55, heat));
+    col = mix(col, uColorHot, smoothstep(0.55, 1.0, heat) * 0.9);
 
-    gl_FragColor = vec4(col * (0.35 + 0.95 * vHeat), a);
+    gl_FragColor = vec4(col * (0.35 + 0.95 * heat) * uGlow, a);
   }
 `;
 
-function Flame({ count }: { count: number }) {
+function Flame({ count, element }: { count: number; element: BackdropElement }) {
   const palette = useMemo(
     () => ({
       hot: new THREE.Color(cssVar("--flame")),
@@ -97,6 +129,8 @@ function Flame({ count }: { count: number }) {
     }),
     []
   );
+
+  const u = BACKDROP_ELEMENTS[element].u;
 
   const geometry = useMemo(() => {
     const g = new THREE.BufferGeometry();
@@ -117,6 +151,18 @@ function Flame({ count }: { count: number }) {
           uColorHot: { value: palette.hot },
           uColorEmber: { value: palette.ember },
           uColorDeep: { value: palette.deep },
+          uFall: { value: u.fall },
+          uSpeedMin: { value: u.speedMin },
+          uSpeedMax: { value: u.speedMax },
+          uTaper: { value: u.taper },
+          uSpread: { value: u.spread },
+          uSway: { value: u.sway },
+          uSizeMin: { value: u.sizeMin },
+          uSizeMax: { value: u.sizeMax },
+          uOpacity: { value: u.opacity },
+          uHeatBase: { value: u.heatBase },
+          uHeatGain: { value: u.heatGain },
+          uGlow: { value: u.glow },
         },
         vertexShader: flameVertex,
         fragmentShader: flameFragment,
@@ -124,7 +170,7 @@ function Flame({ count }: { count: number }) {
         depthWrite: false,
         blending: THREE.AdditiveBlending,
       }),
-    [palette]
+    [palette, u],
   );
 
   useFrame((state) => {
@@ -259,7 +305,13 @@ function Rig() {
   return null;
 }
 
-export default function EmberScene() {
+export default function EmberScene({
+  element = "fire",
+}: {
+  /** Which of the five elements to draw. Defaults to the original flame, so a
+   *  church that never touches the setting sees exactly what shipped. */
+  element?: BackdropElement;
+}) {
   // lighter scene on phones: fewer particles, lower pixel ratio
   const [lite] = useState(
     () => typeof window !== "undefined" &&
@@ -280,6 +332,7 @@ export default function EmberScene() {
         <Rig />
         <Flame
           count={lite ? PARTICLE_COUNT_MOBILE : PARTICLE_COUNT_DESKTOP}
+          element={element}
         />
         <Glow
           position={[0, -2.5, 0]}

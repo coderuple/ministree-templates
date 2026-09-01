@@ -7,7 +7,7 @@ import { getPreviewToken } from "@ministree/template-sdk/next";
 import { Sections, type PageSection } from "@ministree/template-sdk";
 import { defaults } from "@/lib/ministree";
 import { flameEventSections, type EventSectionContext } from "@/sections/event";
-import { loadContent, loadSettings, loadSlugs, siteName } from "@/lib/ministree";
+import { backdropElement, backdropEnabled, loadContent, loadSettings, loadSlugs, siteName } from "@/lib/ministree";
 import { formatDateRange, type Locale } from "@/lib/format";
 import EventExperience, { type EventExperienceProps } from "@/components/event/EventExperience";
 import type { LineupPerson } from "@/components/event/sections/EventLineup";
@@ -273,6 +273,7 @@ export default async function EventSite({
     socials,
     summary: (e.description as string | null) ?? null,
     preloaderLabel: title,
+    backdrop: backdropEnabled(content) ? backdropElement(content) : null,
     /* Not in the Customizer preview: the curtain would wipe across the editor's
        preview pane on every draft reload, hiding the change they just made. */
     preloader:

@@ -7,6 +7,7 @@ import MagneticButton from "@/components/MagneticButton";
 
 // The WebGL ember is heavy + client-only; load it lazily and never on the server.
 const EmberScene = dynamic(() => import("@/components/canvas/EmberScene"), { ssr: false });
+import type { BackdropElement } from "@/lib/backdrop";
 
 type CtaVariant = "primary" | "outline" | "ghost" | "dark";
 type Cta = { label: string; href: string; variant?: CtaVariant };
@@ -32,6 +33,7 @@ export default function HomeHero({
   primary,
   secondary,
   webgl = true,
+  element = "fire",
   backgroundImageUrl,
   backgroundFocalPoint,
 }: {
@@ -42,6 +44,7 @@ export default function HomeHero({
   secondary: Cta;
   /** Customizer toggle: when false, always use the ember-gradient poster (no WebGL). */
   webgl?: boolean;
+  element?: BackdropElement;
   /** Customizer: optional photo behind the ember (the particles glow over it). */
   backgroundImageUrl?: string;
   /** Which part of the picture survives the crop — from the Customizer's
@@ -85,7 +88,7 @@ export default function HomeHero({
       ) : null}
       <div aria-hidden className={`absolute inset-0 ${backgroundImageUrl ? "mix-blend-screen" : ""}`}>
         {scene ? (
-          <EmberScene />
+          <EmberScene element={element} />
         ) : (
           <div className="h-full w-full bg-[radial-gradient(ellipse_at_50%_75%,_color-mix(in_srgb,var(--flame)_55%,transparent),transparent_60%),radial-gradient(ellipse_at_50%_100%,_color-mix(in_srgb,var(--ember)_45%,transparent),transparent_55%)]" />
         )}

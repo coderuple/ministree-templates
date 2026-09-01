@@ -10,6 +10,7 @@ import EventFooter from "@/components/event/sections/EventFooter";
 import EventNav from "@/components/event/EventNav";
 
 const EmberScene = dynamic(() => import("@/components/canvas/EmberScene"), { ssr: false });
+import type { BackdropElement } from "@/lib/backdrop";
 
 export interface EventExperienceProps {
   presenter: string | null;
@@ -31,6 +32,8 @@ export interface EventExperienceProps {
   socials: Array<{ label: string; href: string }>;
   summary: string | null;
   preloaderLabel: string;
+  /** Which element the moving backdrop is made of, or null when it is off. */
+  backdrop: BackdropElement | null;
   /** False inside the Customizer preview, or when the church turned the intro
    *  off — the hero then plays immediately rather than waiting for a curtain
    *  that never rises. */
@@ -134,9 +137,14 @@ export default function EventExperience(props: EventExperienceProps) {
 
       <div className="fixed inset-0 z-0" aria-hidden>
         {heavy !== null && props.keyart ? <Poster src={props.keyart} /> : null}
-        {heavy === true ? (
+        {/* Gated on the church's own switch as well as the capability probe.
+            This branch used to check only whether the browser COULD draw the
+            scene, so turning the moving backdrop off left it running here — the
+            setting worked on the home page and silently did nothing on an
+            event site. */}
+        {heavy === true && props.backdrop ? (
           <div className="absolute inset-0">
-            <EmberScene />
+            <EmberScene element={props.backdrop} />
           </div>
         ) : null}
       </div>
