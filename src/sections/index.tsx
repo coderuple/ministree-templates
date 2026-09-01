@@ -41,6 +41,7 @@ import {
   type VideoProps,
 } from "@ministree/template-sdk";
 import { Button, Container } from "@/components/ui";
+import MarqueeBand from "@/components/Marquee";
 import { EventCard, SermonCard } from "@/components/cards";
 import { CopyValue } from "@/components/copy-value";
 import { loadSlugs } from "@/lib/ministree";
@@ -377,29 +378,20 @@ function ProfileCards({ section, props, context }: SectionComponentProps) {
 
 function Marquee({ section, props, context }: SectionComponentProps) {
   const p = props as MarqueeProps;
-  const items = p.items ?? [];
+  const items = (p.items ?? []).map((it) => it.text).filter(Boolean);
   if (!items.length) return null;
-  const sep = p.separator ?? "✝";
-  const duration = p.speed === "slow" ? "50s" : p.speed === "fast" ? "16s" : "28s";
-  const Run = ({ hidden }: { hidden?: boolean }) => (
-    <div className="flex shrink-0 items-center gap-8 pr-8" aria-hidden={hidden}>
-      {items.map((it, i) => (
-        <span key={i} className="font-display flex items-center gap-8 text-2xl uppercase tracking-tight sm:text-3xl">
-          <span>{it.text}</span>
-          <span className="text-ember">{sep}</span>
-        </span>
-      ))}
-    </div>
-  );
+  /* Delegates to the shared self-measuring band. This renderer used to be its
+     own copy with NO repetition - one run per half - so any phrase narrower
+     than the viewport scrolled past followed by an equal width of nothing. */
   return (
     <SectionWrapper section={section} context={context} className="overflow-hidden border-y border-line bg-panel py-6 text-panel-ink">
-      <div
-        className="flex w-max animate-marquee motion-reduce:animate-none"
-        style={{ animationDuration: duration, animationDirection: p.direction === "right" ? "reverse" : undefined }}
-      >
-        <Run />
-        <Run hidden />
-      </div>
+      <MarqueeBand
+        items={items}
+        separator={p.separator ?? "\u271d"}
+        speed={p.speed === "slow" ? "slow" : p.speed === "fast" ? "fast" : "normal"}
+        direction={p.direction === "right" ? "right" : "left"}
+        className=""
+      />
     </SectionWrapper>
   );
 }
