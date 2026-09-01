@@ -99,7 +99,12 @@ export default defineMinistreeTemplate({
       type: "color",
       default: "#c8521f",
       darkDefault: "#d9a441",
-      maps: "--color-primary",
+      /* Light only, on purpose. The brand colour is designed against white;
+         Jesus House's is a near-black brown, and following it into dark mode
+         painted the schedule's display type invisible on a near-black ground.
+         Dark keeps this template's own gold, which was tuned for that ground.
+         A church that sets a real dark palette can map it with `dark:`. */
+      maps: { light: "--color-primary" },
       label: "Backdrop — mid tone",
       description: "The middle colour of the moving backdrop, and the site's main accent. Follows your brand colour unless you change it.",
     },
@@ -108,7 +113,7 @@ export default defineMinistreeTemplate({
       type: "color",
       default: "#e0922b",
       darkDefault: "#ff8a3c",
-      maps: "--color-accent",
+      maps: { light: "--color-accent" }, // light only — see --ember
       label: "Backdrop — brightest",
       description: "The hottest part of the moving backdrop, and the accent used across the site. Follows your brand accent unless you change it.",
     },
