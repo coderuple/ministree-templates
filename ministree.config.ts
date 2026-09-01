@@ -301,9 +301,13 @@ export default defineMinistreeTemplate({
         ],
       },
       homePageSlug: {
-        kind: "text",
-        label: "Page address",
-        help: "Which of your pages to show as home (e.g. home, welcome).",
+        // Chosen from your pages, not typed. It was a text box asking for a
+        // slug "(e.g. home, welcome)" — which is asking a church to remember an
+        // address, and to know that addresses are what pages have.
+        kind: "entity",
+        module: "pages",
+        label: "Which page?",
+        help: "The page to show as your home page.",
         // Two conditions, not one: without the siteMode half this field stayed
         // behind in event mode whenever homeSource happened to be saved as
         // "ministreePage", stranded in a card whose every sibling was hidden.
