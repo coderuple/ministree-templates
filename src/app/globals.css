@@ -31,6 +31,9 @@
   --font-serif-face: var(--font-cormorant);
   --font-sans-face: var(--font-archivo);
   --radius: 1rem;
+  /* Buttons are shaped separately from cards. They were a hardcoded pill, so a
+     church whose brand is square had round buttons and no way to say otherwise. */
+  --radius-button: 9999px;
 }
 
 .dark {
@@ -66,6 +69,7 @@
   --font-serif: var(--font-serif-face);
   --font-sans: var(--font-sans-face);
   --radius-flame: var(--radius);
+  --radius-button: var(--radius-button);
 
   --animate-marquee: marquee 28s linear infinite;
   --animate-marquee-slow: marquee 50s linear infinite;

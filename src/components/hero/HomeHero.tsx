@@ -96,14 +96,14 @@ export default function HomeHero({
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-panel/40 via-transparent to-panel" />
 
       <div className="relative z-10 mx-auto w-full max-w-5xl px-5 text-center sm:px-8">
-        {eyebrow ? <p className="micro mb-6 text-panel-ink/60">{eyebrow}</p> : null}
+        {eyebrow ? <p className="micro mb-6 text-panel-ink/85">{eyebrow}</p> : null}
         <AnimatedText
           as="h1"
           className="font-display text-[16vw] uppercase leading-[0.86] tracking-tight sm:text-[11vw] lg:text-[8.5vw]"
         >
           {name}
         </AnimatedText>
-        <p className="font-serif mx-auto mt-6 max-w-xl text-xl italic text-panel-ink/75 md:text-2xl">{tagline}</p>
+        <p className="font-serif mx-auto mt-6 max-w-xl text-xl italic text-panel-ink/90 md:text-2xl">{tagline}</p>
         <div className="mt-10 flex flex-wrap justify-center gap-4">
           <MagneticButton href={primary.href} variant={primary.variant ?? "primary"}>
             {primary.label}

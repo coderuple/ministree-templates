@@ -84,7 +84,16 @@ export default defineMinistreeTemplate({
     { name: "--surface", type: "color", default: "#ece2d2", darkDefault: "#161009", label: "Surface" },
     { name: "--line", type: "color", default: "#ddd0bd", darkDefault: "#2b2316", label: "Hairline" },
     { name: "--ink", type: "color", default: "#1d1510", darkDefault: "#f2e9d8", label: "Text" },
-    { name: "--muted", type: "color", default: "#6f6253", darkDefault: "#8d7f68", label: "Muted text" },
+    {
+      name: "--muted",
+      type: "color",
+      // Was #6f6253, which measured 3.54:1 on the page background — under the
+      // 4.5:1 a body-sized secondary line needs. Darkened until it passes.
+      default: "#5c5044",
+      darkDefault: "#a2937c",
+      label: "Muted text",
+      description: "Dates, captions and secondary lines. Kept dark enough to stay readable.",
+    },
     {
       name: "--ember",
       type: "color",
@@ -160,6 +169,14 @@ export default defineMinistreeTemplate({
       default: "1rem",
       label: "Corner rounding",
       description: "How round cards and panels are. Pill buttons keep their shape.",
+    },
+    {
+      name: "--radius-button",
+      type: "length",
+      control: "cornerRadius",
+      default: "9999px",
+      label: "Button shape",
+      description: "How round the buttons are. Separate from cards, because a square card often wants a pill button.",
     },
   ],
 

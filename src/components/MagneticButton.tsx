@@ -43,15 +43,20 @@ export default function MagneticButton({
   };
 
   const base =
-    "group relative inline-flex items-center justify-center overflow-hidden rounded-full px-8 py-4 text-xs uppercase tracking-[0.25em] transition-colors duration-500";
+    "group relative inline-flex items-center justify-center overflow-hidden rounded-[var(--radius-button)] px-8 py-4 text-xs uppercase tracking-[0.25em] transition-colors duration-500";
   const styles =
     variant === "primary"
       ? "bg-ember text-bg"
       : variant === "dark"
         ? "bg-bg text-ink"
         : variant === "ghost"
-          ? "text-ink hover:text-ember"
-          : "border border-line text-ink hover:border-ember"; // outline
+          /* `currentColor`, not `text-ink`. These two variants have no fill, so
+             they sit on whatever is behind them — and the hero is an inverted
+             panel. Forcing the light-mode ink painted dark text on a dark
+             photograph, which is how "Watch a message" became unreadable. The
+             panel already sets `text-panel-ink`; inheriting it is the fix. */
+          ? "text-current hover:text-ember"
+          : "border border-current/35 text-current hover:border-ember"; // outline
 
   const hasFill = variant === "primary" || variant === "dark";
 

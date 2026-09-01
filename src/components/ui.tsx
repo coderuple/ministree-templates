@@ -32,7 +32,7 @@ export function Button({
   external?: boolean;
 }) {
   const base =
-    "inline-flex items-center justify-center gap-2 rounded-full px-7 py-3 text-[11px] uppercase tracking-[0.22em] transition-colors duration-300";
+    "inline-flex items-center justify-center gap-2 rounded-[var(--radius-button)] px-7 py-3 text-[11px] uppercase tracking-[0.22em] transition-colors duration-300";
   const styles: Record<ButtonVariant, string> = {
     primary: "bg-ember text-bg hover:bg-flame",
     outline: "border border-line text-ink hover:border-ember hover:text-ember",
