@@ -106,7 +106,7 @@ export default defineMinistreeTemplate({
          A church that sets a real dark palette can map it with `dark:`. */
       maps: { light: "--color-primary" },
       label: "Backdrop — mid tone",
-      description: "The middle colour of the moving backdrop, and the site's main accent. Follows your brand colour unless you change it.",
+      description: "The middle colour of the moving backdrop, and the site's main accent. Follows your brand colour in light mode; dark keeps a gold that stays readable on a near-black background.",
     },
     {
       name: "--flame",
@@ -115,7 +115,7 @@ export default defineMinistreeTemplate({
       darkDefault: "#ff8a3c",
       maps: { light: "--color-accent" }, // light only — see --ember
       label: "Backdrop — brightest",
-      description: "The hottest part of the moving backdrop, and the accent used across the site. Follows your brand accent unless you change it.",
+      description: "The brightest part of the moving backdrop. Follows your brand accent in light mode; dark keeps its own, so a dark brand colour cannot vanish into the background.",
     },
     {
       name: "--crimson",
