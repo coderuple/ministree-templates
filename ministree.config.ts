@@ -99,23 +99,20 @@ export default defineMinistreeTemplate({
       type: "color",
       default: "#c8521f",
       darkDefault: "#d9a441",
-      /* Light only, on purpose. The brand colour is designed against white;
-         Jesus House's is a near-black brown, and following it into dark mode
-         painted the schedule's display type invisible on a near-black ground.
-         Dark keeps this template's own gold, which was tuned for that ground.
-         A church that sets a real dark palette can map it with `dark:`. */
-      maps: { light: "--color-primary" },
+      // The brand colour the picker suggests. A suggestion: this default ships,
+      // in both schemes, and a church opts in from the picker.
+      maps: "--color-primary",
       label: "Backdrop — mid tone",
-      description: "The middle colour of the moving backdrop, and the site's main accent. Follows your brand colour in light mode; dark keeps a gold that stays readable on a near-black background.",
+      description: "The middle colour of the moving backdrop, and the site's main accent. Pick your brand colour from the palette if you want it here.",
     },
     {
       name: "--flame",
       type: "color",
       default: "#e0922b",
       darkDefault: "#ff8a3c",
-      maps: { light: "--color-accent" }, // light only — see --ember
+      maps: "--color-accent", // suggested — see --ember
       label: "Backdrop — brightest",
-      description: "The brightest part of the moving backdrop. Follows your brand accent in light mode; dark keeps its own, so a dark brand colour cannot vanish into the background.",
+      description: "The brightest part of the moving backdrop. Pick your brand accent from the palette if you want it here.",
     },
     {
       name: "--crimson",
@@ -182,6 +179,73 @@ export default defineMinistreeTemplate({
       default: "9999px",
       label: "Button shape",
       description: "How round the buttons are. Separate from cards, because a square card often wants a pill button.",
+    },
+  ],
+
+  /* Looks this template ships with. The defaults above are "Original"; each of
+     these swaps the whole palette, the type and the corners in one click.
+     Tokens only — a look never reaches a content field. Fonts are limited to
+     faces the picker already offers, because a preset cannot load a new one. */
+  presets: [
+    {
+      id: "midnight",
+      label: "Midnight",
+      description: "Cool, deep blues. Reads as night in both schemes.",
+      tokens: {
+        "--bg": { light: "#0f141c", dark: "#05080d" },
+        "--surface": { light: "#171f2b", dark: "#0b111a" },
+        "--line": { light: "#26334a", dark: "#16202e" },
+        "--ink": "#e6edf7",
+        "--muted": { light: "#93a3bb", dark: "#8b9bb3" },
+        "--ember": { light: "#4f8cff", dark: "#7cb0ff" },
+        "--flame": { light: "#9ad0ff", dark: "#bde0ff" },
+        "--crimson": { light: "#1f3a6b", dark: "#142a52" },
+        "--panel": { light: "#05080d", dark: "#0b111a" },
+        "--panel-ink": "#e6edf7",
+        "--radius": "0.5rem",
+        "--radius-button": "0.5rem",
+      },
+    },
+    {
+      id: "parchment",
+      label: "Parchment",
+      description: "Warm paper, serif type, square corners \u2014 editorial.",
+      tokens: {
+        "--bg": { light: "#fbf6ee", dark: "#1a1410" },
+        "--surface": { light: "#f3ebdd", dark: "#241c15" },
+        "--line": { light: "#e2d6c2", dark: "#3a2e22" },
+        "--ink": { light: "#2a1f16", dark: "#f2e9d8" },
+        "--muted": { light: "#6b5d4d", dark: "#a2937c" },
+        "--ember": { light: "#8a3b12", dark: "#d9a441" },
+        "--flame": { light: "#b8651f", dark: "#ff8a3c" },
+        "--crimson": { light: "#5c1d10", dark: "#571610" },
+        "--panel": { light: "#2a1f16", dark: "#1a1410" },
+        "--panel-ink": "#f7efe2",
+        "--font-display-face": 'Georgia, "Times New Roman", serif',
+        "--font-serif-face": '"Iowan Old Style", Palatino, serif',
+        "--radius": "0.25rem",
+        "--radius-button": "0.25rem",
+      },
+    },
+    {
+      id: "mono",
+      label: "Mono",
+      description: "Black, white and nothing else. Highest contrast.",
+      tokens: {
+        "--bg": { light: "#ffffff", dark: "#000000" },
+        "--surface": { light: "#f2f2f2", dark: "#111111" },
+        "--line": { light: "#d9d9d9", dark: "#2a2a2a" },
+        "--ink": { light: "#000000", dark: "#ffffff" },
+        "--muted": { light: "#5a5a5a", dark: "#a3a3a3" },
+        "--ember": { light: "#000000", dark: "#ffffff" },
+        "--flame": { light: "#333333", dark: "#dddddd" },
+        "--crimson": { light: "#1a1a1a", dark: "#e6e6e6" },
+        "--panel": { light: "#000000", dark: "#111111" },
+        "--panel-ink": "#ffffff",
+        "--font-display-face": "Helvetica, Arial, sans-serif",
+        "--radius": "0px",
+        "--radius-button": "0px",
+      },
     },
   ],
 
