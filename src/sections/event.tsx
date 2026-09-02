@@ -45,6 +45,19 @@ import EventTickets, { type TicketTier } from "@/components/event/sections/Event
  * deliberately overridden it. One `??` per beat, no new section type, and a
  * church never retypes their own lineup.
  */
+/**
+ * The id this section answers to.
+ *
+ * A church can set an anchor on any section, and the menu is built from those.
+ * These components each hardcoded their own id ("vision", "night"), so a church
+ * that named one got a menu link pointing at an element that did not exist.
+ * Their anchor wins; the built-in stays as the default so existing links hold.
+ */
+function anchorOf(section: { anchorId?: string }, fallback: string): string {
+  const a = section.anchorId?.trim();
+  return a ? a.replace(/^#/, '') : fallback;
+}
+
 export interface EventSectionContext {
   vision: { body: string; label: string; footnote: string | null } | null;
   lineup: { people: LineupPerson[]; label: string; heading: string };
@@ -89,6 +102,7 @@ function EventVisionSection({ section, props, context }: SectionComponentProps) 
   if (!body) return null;
   return (
     <EventVision
+      anchor={anchorOf(section, "vision")}
       body={body}
       label={text(section.title) ?? text(p.eyebrow) ?? base?.label ?? "The vision"}
       footnote={text(p.attribution) ?? base?.footnote ?? null}
@@ -114,6 +128,7 @@ function EventLineupSection({ section, props, context }: SectionComponentProps) 
     : (base?.people ?? []);
   return (
     <EventLineup
+      anchor={anchorOf(section, "lineup")}
       people={people}
       label={text(p.eyebrow) ?? base?.label ?? "The lineup"}
       heading={text(section.title) ?? base?.heading ?? "Who you'll hear"}
@@ -129,6 +144,7 @@ function EventTimelineSection({ section, props, context }: SectionComponentProps
     : (base?.entries ?? []);
   return (
     <EventTimeline
+      anchor={anchorOf(section, "night")}
       entries={entries}
       label={text(p.eyebrow) ?? base?.label ?? "The night"}
       heading={text(section.title) ?? text(p.heading) ?? base?.heading ?? "How the evening unfolds"}
@@ -146,6 +162,7 @@ function EventVenueSection({ section, props, context }: SectionComponentProps) {
   const images = text(p.mapImageUrl) ? [p.mapImageUrl as string] : (base?.images ?? []);
   return (
     <EventVenue
+      anchor={anchorOf(section, "venue")}
       label={text(section.title) ?? text(p.heading) ?? base?.label ?? "The venue"}
       name={name}
       blurb={text(p.serviceTimes) ?? base?.blurb ?? null}
@@ -168,6 +185,7 @@ function EventFaqSection({ section, props, context }: SectionComponentProps) {
     : (base?.entries ?? []);
   return (
     <EventFaq
+      anchor={anchorOf(section, "faq")}
       entries={entries}
       label={text(p.eyebrow) ?? base?.label ?? "Know before you go"}
       heading={text(section.title) ?? base?.heading ?? "Good to know"}
@@ -192,6 +210,7 @@ function EventGiveSection({ section, props, context }: SectionComponentProps) {
     : (base?.cards ?? []);
   return (
     <EventGive
+      anchor={anchorOf(section, "give")}
       cards={cards}
       label={text(p.eyebrow) ?? base?.label ?? "Giving"}
       heading={text(section.title) ?? text(p.heading) ?? base?.heading ?? "Ways to give"}
@@ -219,6 +238,7 @@ function EventTicketsSection({ section, props, context }: SectionComponentProps)
   if (!base || base.tiers.length === 0) return null;
   return (
     <EventTickets
+      anchor={anchorOf(section, "tickets")}
       tiers={base.tiers}
       label={text(p.eyebrow) ?? base.label}
       heading={text(section.title) ?? text(p.heading) ?? base.heading}

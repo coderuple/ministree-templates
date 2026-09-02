@@ -161,25 +161,47 @@ export default async function EventSite({
      Anchors match the ids the Event* components render. A beat with nothing to
      show still resolves to null below, so the bar never points at an anchor
      that isn't there. */
-  const NAV_BY_TYPE: Record<string, { label: string; href: string; has: boolean }> = {
-    statement: { label: "Vision", href: "#vision", has: Boolean(e.description) },
-    profileCards: { label: "Lineup", href: "#lineup", has: people.length > 0 },
-    schedule: { label: "The night", href: "#night", has: timeline.length > 0 },
-    location: { label: "Venue", href: "#venue", has: Boolean(venueName) || venueImages.length > 0 },
-    cta: { label: "Tickets", href: "#tickets", has: tiers.length > 0 },
-    givingMethods: { label: "Give", href: "#give", has: true },
-    accordion: { label: "FAQ", href: "#faq", has: true },
+  /* The menu is built from the sections themselves, not from a list of types.
+     It used to be a hardcoded map of seven types to seven fixed labels, so a
+     section a church ADDED could never get a link, a second FAQ was silently
+     deduped, and the anchors only lined up because the same strings were typed
+     on both sides. Now every section carries an anchor — its own if the church
+     set one, else this template's default — and that is what the bar links to.
+
+     Beats that fall back to the event record are dropped when the event has
+     nothing to show, so the bar never points at a section that rendered null. */
+  const EMPTY_WITHOUT: Record<string, boolean> = {
+    statement: !e.description,
+    profileCards: people.length === 0,
+    schedule: timeline.length === 0,
+    location: !venueName && venueImages.length === 0,
+    cta: tiers.length === 0,
   };
+  const DEFAULT_ANCHORS: Record<string, string> = {
+    statement: 'vision',
+    profileCards: 'lineup',
+    schedule: 'night',
+    location: 'venue',
+    cta: 'tickets',
+    givingMethods: 'give',
+    accordion: 'faq',
+  };
+  /** "the-night" → "The night". Short by nature, which a nav bar needs — the
+   *  section's own title is a heading ("How the evening unfolds") and wrapped. */
+  const labelFromAnchor = (a: string) =>
+    a.replace(/[-_]+/g, ' ').replace(/^\s*\w/, (c) => c.toUpperCase()).trim();
+
   const seen = new Set<string>();
   const nav = stack
     .map((section) => {
-      const entry = NAV_BY_TYPE[section.type];
-      if (!entry || !entry.has || seen.has(entry.href)) return null;
-      seen.add(entry.href);
-      /* The SHORT label, not the section's title. A nav bar wants "Vision", not
-         "How the evening unfolds" — the title is the heading on the section
-         itself, and putting it here made the bar wrap. */
-      return { label: entry.label, href: entry.href };
+      if (EMPTY_WITHOUT[section.type]) return null;
+      const raw = (section as { anchorId?: string }).anchorId?.trim().replace(/^#/, '');
+      const anchor = raw || DEFAULT_ANCHORS[section.type];
+      // A section with no anchor and no built-in one — a decorative marquee, or
+      // something generic a church dropped in — is on the page but not in the bar.
+      if (!anchor || seen.has(anchor)) return null;
+      seen.add(anchor);
+      return { label: labelFromAnchor(anchor), href: `#${anchor}` };
     })
     .filter((n): n is { label: string; href: string } => n !== null);
 

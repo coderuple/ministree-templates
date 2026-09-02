@@ -147,6 +147,15 @@ export default function EventExperience(props: EventExperienceProps) {
             <EmberScene element={props.backdrop} />
           </div>
         ) : null}
+        {/* A veil between the backdrop and everything above it. Content is drawn
+            straight over the particle scene, so a bright element behind bright
+            type erased whole letters — "YOUTH NIGHT" came out with holes in it.
+            Sits inside the fixed layer, so it dims the scene and the key art
+            together without touching the text. */}
+        <div
+          className="absolute inset-0"
+          style={{ background: `rgb(0 0 0 / var(--backdrop-scrim, 0.45))` }}
+        />
       </div>
 
       <EventNav

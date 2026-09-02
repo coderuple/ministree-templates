@@ -173,6 +173,13 @@ export default defineMinistreeTemplate({
       description: "How round cards and panels are. Pill buttons keep their shape.",
     },
     {
+      name: "--backdrop-scrim",
+      type: "length",
+      default: "0.45",
+      label: "Backdrop dimming",
+      description: "How much the moving backdrop is dimmed behind text. 0 shows it at full strength; higher keeps headings readable over it.",
+    },
+    {
       name: "--radius-button",
       type: "length",
       control: "cornerRadius",
@@ -204,6 +211,7 @@ export default defineMinistreeTemplate({
         "--panel-ink": "#e6edf7",
         "--radius": "0.5rem",
         "--radius-button": "0.5rem",
+        "--backdrop-scrim": "0.5",
       },
     },
     {
@@ -225,6 +233,7 @@ export default defineMinistreeTemplate({
         "--font-serif-face": '"Iowan Old Style", Palatino, serif',
         "--radius": "0.25rem",
         "--radius-button": "0.25rem",
+        "--backdrop-scrim": "0.35",
       },
     },
     {
@@ -237,14 +246,19 @@ export default defineMinistreeTemplate({
         "--line": { light: "#d9d9d9", dark: "#2a2a2a" },
         "--ink": { light: "#000000", dark: "#ffffff" },
         "--muted": { light: "#5a5a5a", dark: "#a3a3a3" },
-        "--ember": { light: "#000000", dark: "#ffffff" },
-        "--flame": { light: "#333333", dark: "#dddddd" },
-        "--crimson": { light: "#1a1a1a", dark: "#e6e6e6" },
+        /* Mid-greys, not black and white. The backdrop draws in these, and a
+           white plume behind white display type ate whole letters — the type
+           and the particles were the same colour. Grey reads as texture. */
+        "--ember": { light: "#6b6b6b", dark: "#8f8f8f" },
+        "--flame": { light: "#9a9a9a", dark: "#b5b5b5" },
+        "--crimson": { light: "#3a3a3a", dark: "#4a4a4a" },
         "--panel": { light: "#000000", dark: "#111111" },
         "--panel-ink": "#ffffff",
         "--font-display-face": "Helvetica, Arial, sans-serif",
         "--radius": "0px",
         "--radius-button": "0px",
+        // Highest contrast look, so the heaviest veil.
+        "--backdrop-scrim": "0.6",
       },
     },
   ],
@@ -441,6 +455,13 @@ export default defineMinistreeTemplate({
             control: "logoSize",
             label: "Logo size",
             help: "How tall your logo sits in the header.",
+          },
+          logoTextSize: {
+            kind: "choice",
+            control: "logoSize",
+            label: "Church name size",
+            help: "The text beside your logo in the header.",
+            optional: true,
           },
           showGiveButton: { kind: "boolean", label: "Give button in the header" },
           stickyHeader: {

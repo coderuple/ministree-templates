@@ -93,6 +93,13 @@ export default function HomeHero({
           <div className="h-full w-full bg-[radial-gradient(ellipse_at_50%_75%,_color-mix(in_srgb,var(--flame)_55%,transparent),transparent_60%),radial-gradient(ellipse_at_50%_100%,_color-mix(in_srgb,var(--ember)_45%,transparent),transparent_55%)]" />
         )}
       </div>
+      {/* The scrim first, then the template's own top-and-tail gradient. Same
+          token as the event site, so one look dims both consistently. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ background: `rgb(0 0 0 / var(--backdrop-scrim, 0.45))` }}
+      />
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-panel/40 via-transparent to-panel" />
 
       <div className="relative z-10 mx-auto w-full max-w-5xl px-5 text-center sm:px-8">

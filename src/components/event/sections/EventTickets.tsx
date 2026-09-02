@@ -23,7 +23,10 @@ export default function EventTickets({
   ctaLabel,
   blurb,
   note,
+  anchor,
 }: {
+  /** The id this section answers to — a church can rename it. */
+  anchor: string;
   tiers: TicketTier[];
   label: string;
   heading: string;
@@ -36,7 +39,7 @@ export default function EventTickets({
   const [featured, ...rest] = tiers;
 
   return (
-    <section id="tickets" className="relative px-[4vw] py-32">
+    <section id={anchor} className="relative px-[4vw] py-32">
       <SectionHead index="05" label={label} />
       <AnimatedText
         as="h2"

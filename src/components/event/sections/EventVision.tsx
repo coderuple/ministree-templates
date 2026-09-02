@@ -20,7 +20,10 @@ export default function EventVision({
   label,
   footnote,
   backdrop,
+  anchor,
 }: {
+  /** The id this section answers to — a church can rename it. */
+  anchor: string;
   body: string;
   label: string;
   footnote: string | null;
@@ -60,7 +63,7 @@ export default function EventVision({
   }, [body]);
 
   return (
-    <section ref={sectionRef} id="vision" className="relative h-[280vh]">
+    <section ref={sectionRef} id={anchor} className="relative h-[280vh]">
       <div className="sticky top-0 flex h-svh items-center overflow-hidden">
         {backdrop ? (
           // eslint-disable-next-line @next/next/no-img-element

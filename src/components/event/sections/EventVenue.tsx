@@ -45,7 +45,10 @@ export default function EventVenue({
   address,
   directionsUrl,
   images,
+  anchor,
 }: {
+  /** The id this section answers to — a church can rename it. */
+  anchor: string;
   label: string;
   name: string;
   blurb: string | null;
@@ -54,7 +57,7 @@ export default function EventVenue({
   images: string[];
 }) {
   return (
-    <section id="venue" className="relative px-[4vw] py-32">
+    <section id={anchor} className="relative px-[4vw] py-32">
       <SectionHead index="04" label={label} />
 
       <div className="mt-12 grid gap-6 md:grid-cols-12">

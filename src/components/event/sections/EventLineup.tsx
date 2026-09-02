@@ -28,7 +28,10 @@ export default function EventLineup({
   people,
   label,
   heading,
+  anchor,
 }: {
+  /** The id this section answers to — a church can rename it. */
+  anchor: string;
   people: LineupPerson[];
   label: string;
   heading: string;
@@ -90,7 +93,7 @@ export default function EventLineup({
   if (people.length === 0) return null;
 
   return (
-    <section id="lineup" className="relative px-[4vw] py-32">
+    <section id={anchor} className="relative px-[4vw] py-32">
       <SectionHead index="02" label={label} />
       <AnimatedText
         as="h2"

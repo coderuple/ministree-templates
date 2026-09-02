@@ -34,6 +34,10 @@
   /* Buttons are shaped separately from cards. They were a hardcoded pill, so a
      church whose brand is square had round buttons and no way to say otherwise. */
   --radius-button: 9999px;
+  /* How much the moving backdrop is dimmed behind content. The hero draws its
+     text straight over the particle scene, and a light element (Mono's white
+     plume) against light type ate whole letters. 0 = no veil, 1 = solid. */
+  --backdrop-scrim: 0.45;
 }
 
 .dark {

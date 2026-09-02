@@ -132,6 +132,7 @@ export const site = {
 
   chrome: {
     logoSize: "default",
+    logoTextSize: "default",
     showGiveButton: true,
     stickyHeader: true,
     footerWordmark: true,

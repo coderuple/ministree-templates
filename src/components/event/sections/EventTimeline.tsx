@@ -24,7 +24,10 @@ export default function EventTimeline({
   label,
   heading,
   note,
+  anchor,
 }: {
+  /** The id this section answers to — a church can rename it. */
+  anchor: string;
   entries: TimelineEntry[];
   label: string;
   heading: string;
@@ -73,7 +76,7 @@ export default function EventTimeline({
   if (entries.length === 0) return null;
 
   return (
-    <section id="night" className="relative px-[4vw] py-32">
+    <section id={anchor} className="relative px-[4vw] py-32">
       <SectionHead index="03" label={label} />
       <AnimatedText
         as="h2"

@@ -30,6 +30,14 @@ export default async function Header() {
   const showGive = chrome.showGiveButton !== false;
   const logoHeight =
     chrome.logoSize === "small" ? "h-7" : chrome.logoSize === "large" ? "h-14" : "h-9";
+  /* The church name beside the logo. Separate from `logoSize` on purpose: a
+     church with a wide name wants it small next to a normal-sized mark. */
+  const wordmarkSize =
+    chrome.logoTextSize === "small"
+      ? "text-sm"
+      : chrome.logoTextSize === "large"
+        ? "text-2xl"
+        : "text-lg";
 
   const items: NavNode[] =
     navItems.length > 0 ? navItems : defaults.nav.map((n) => ({ label: n.label, href: n.href }));
@@ -50,7 +58,7 @@ export default async function Header() {
           ) : (
             <FlameMark className="h-6 w-6 text-ember transition-transform duration-500 group-hover:scale-110" />
           )}
-          <span className="font-display text-lg uppercase tracking-[0.12em]">{name}</span>
+          <span className={`font-display uppercase tracking-[0.12em] ${wordmarkSize}`}>{name}</span>
         </Link>
 
         <nav className="hidden md:block" aria-label="Primary">

@@ -20,7 +20,10 @@ export default function EventFaq({
   entries,
   label,
   heading,
+  anchor,
 }: {
+  /** The id this section answers to — a church can rename it. */
+  anchor: string;
   entries: FaqEntry[];
   label: string;
   heading: string;
@@ -29,7 +32,7 @@ export default function EventFaq({
   if (entries.length === 0) return null;
 
   return (
-    <section id="faq" className="relative px-[4vw] py-32">
+    <section id={anchor} className="relative px-[4vw] py-32">
       <SectionHead index="07" label={label} />
       <AnimatedText
         as="h2"

@@ -77,7 +77,10 @@ export default function EventGive({
   label,
   heading,
   strapline,
+  anchor,
 }: {
+  /** The id this section answers to — a church can rename it. */
+  anchor: string;
   cards: GiveCard[];
   label: string;
   heading: string;
@@ -108,7 +111,7 @@ export default function EventGive({
     "give-card flex flex-col gap-5 border border-line bg-surface/70 p-8 backdrop-blur-sm transition-colors duration-500 hover:border-ember/50";
 
   return (
-    <section id="give" className="relative px-[4vw] py-32">
+    <section id={anchor} className="relative px-[4vw] py-32">
       <SectionHead index="06" label={label} />
       <AnimatedText
         as="h2"
