@@ -1,0 +1,268 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════════
+   FLAME — cinematic church template. Two schemes, one identity:
+   `:root` is the warm "lit" (parchment) variant, `.dark` is the
+   near-black ember variant. The church's brand maps into --ember/--flame
+   (see ministree.config.ts); structural tones stay flame's own.
+   ═══════════════════════════════════════════════════════════════════ */
+:root {
+  --bg: #f4ece0;      /* warm parchment */
+  --surface: #ece2d2; /* raised panels */
+  --line: #ddd0bd;    /* hairline */
+  --ink: #1d1510;     /* near-black warm text */
+  --muted: #6f6253;   /* secondary text */
+  --ember: #c8521f;   /* accent — mapped to church primary */
+  --flame: #e0922b;   /* hot accent — mapped to church accent */
+  --crimson: #7a2516; /* deep undertone */
+  --vignette: 0 0% 0% / 0.16;
+  /* Inverted panels (hero, CTA, marquee, giving confirmation). A deliberate
+     device, not just "the dark scheme" — so they get their own tokens rather
+     than borrowing --bg/--ink, which would flatten them into the page. */
+  --panel: #0c0805;
+  --panel-ink: #f2e9d8;
+
+  /* Type and shape sit alongside the colours so a church override injected by
+     Ministree lands on the same cascade level and wins the same way. The
+     `--font-*-face` values are the next/font instances from layout.tsx —
+     flame's own faces, and what a church keeps unless it changes them. */
+  --font-display-face: var(--font-anton);
+  --font-serif-face: var(--font-cormorant);
+  --font-sans-face: var(--font-archivo);
+  --radius: 1rem;
+  /* Buttons are shaped separately from cards. They were a hardcoded pill, so a
+     church whose brand is square had round buttons and no way to say otherwise. */
+  --radius-button: 9999px;
+  /* How much the moving backdrop is dimmed behind content. The hero draws its
+     text straight over the particle scene, and a light element (Mono's white
+     plume) against light type ate whole letters. 0 = no veil, 1 = solid. */
+  --backdrop-scrim: 0.45;
+}
+
+.dark {
+  --bg: #0c0805;
+  --surface: #161009;
+  --line: #2b2316;
+  --ink: #f2e9d8;
+  --muted: #8d7f68;
+  --ember: #d9a441;
+  --flame: #ff8a3c;
+  --crimson: #571610;
+  --vignette: 0 0% 0% / 0.5;
+  /* In the dark scheme the page is already near-black, so a panel painted
+     #0c0805 vanished into it — only its hairline showed. Lift it instead. */
+  --panel: #161009;
+  --panel-ink: #f2e9d8;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-ember: var(--ember);
+  --color-flame: var(--flame);
+  --color-crimson: var(--crimson);
+  --color-panel: var(--panel);
+  --color-panel-ink: var(--panel-ink);
+
+  --font-display: var(--font-display-face);
+  --font-serif: var(--font-serif-face);
+  --font-sans: var(--font-sans-face);
+  --radius-flame: var(--radius);
+  --radius-button: var(--radius-button);
+
+  --animate-marquee: marquee 28s linear infinite;
+  --animate-marquee-slow: marquee 50s linear infinite;
+  /* Single-event mode: the rotating ember border on the featured ticket, and
+     the key art's slow drift behind the flame. */
+  --animate-spin-slow: spin 5s linear infinite;
+  --animate-slow-zoom: slow-zoom 24s ease-in-out infinite alternate;
+}
+
+/* While the intro curtain is up, nothing behind it should scroll. */
+html[data-loading] {
+  overflow: hidden;
+}
+
+html {
+  background: var(--bg);
+  color-scheme: light;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+::selection {
+  background: var(--ember);
+  color: var(--bg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ember);
+  outline-offset: 3px;
+}
+
+/* ── Atmosphere ───────────────────────────────────────────────────── */
+.grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+}
+.vignette {
+  background: radial-gradient(ellipse at center, transparent 54%, hsl(var(--vignette)) 100%);
+}
+
+.text-outline {
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--ink) 26%, transparent);
+  color: transparent;
+}
+.text-outline-ember {
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--ember) 65%, transparent);
+  color: transparent;
+}
+
+.micro {
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+/* ── Struck-through manifesto ─────────────────────────────────────── */
+/* A grease-pencil line drawn across a word. Pure CSS on a pseudo-element, so
+   the whole wall animates by toggling one class from a single scroll handler —
+   no per-word tweens, and 60fps on a cheap Android. --ember goes straight into
+   `background`: a rule that declared nothing but a custom property would be
+   stripped from the Tailwind v4 build. */
+.strike-word {
+  position: relative;
+  display: inline-block;
+}
+.strike-word::after {
+  content: "";
+  position: absolute;
+  left: -2%;
+  top: 54%;
+  width: 104%;
+  height: 0.14em;
+  background: var(--ember);
+  transform: scaleX(0) rotate(-1.2deg);
+  transform-origin: left center;
+}
+.strike-word.struck::after {
+  transform: scaleX(1) rotate(-1.2deg);
+  transition: transform 0.28s cubic-bezier(0.7, 0, 0.2, 1);
+}
+.strike-word.struck {
+  color: var(--muted);
+  opacity: 0.32;
+  transition: color 0.4s, opacity 0.4s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .strike-word.struck::after { transition: none; }
+  .strike-word.struck { transition: none; }
+}
+
+/* ── Speaker card (native <dialog>) ───────────────────────────────── */
+/* showModal() makes the page behind inert for pointer and focus but NOT for
+   scroll — wheel and arrow keys still move it. Lenis is stopped in the
+   component; this covers the keyboard, which Lenis never intercepts. */
+html[data-modal] {
+  overflow: hidden;
+}
+dialog.speaker-card {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  padding: 0;
+  max-width: min(920px, 92vw);
+  max-height: 90dvh;
+  margin: auto;
+  opacity: 0;
+  transform: translateY(24px) scale(0.985);
+}
+dialog.speaker-card[open] {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+dialog.speaker-card::backdrop {
+  background: rgb(0 0 0 / 0.82);
+  backdrop-filter: blur(4px);
+}
+@media (max-width: 767px) {
+  /* Full-screen on phones — the card IS the portrait. */
+  dialog.speaker-card {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    border: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  dialog.speaker-card { opacity: 1; transform: none; }
+  dialog.speaker-card[open] { transition: none; }
+}
+
+/* ── Keyframes ────────────────────────────────────────────────────── */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes slow-zoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.08); }
+}
+@keyframes scroll-hint {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(220%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* ── Rich-text prose (sermon/post bodies) ─────────────────────────── */
+.prose {
+  line-height: 1.78;
+  color: var(--ink);
+}
+.prose > * + * { margin-top: 1.1em; }
+.prose h1, .prose h2, .prose h3 {
+  font-family: var(--font-serif), Georgia, serif;
+  font-weight: 600;
+  line-height: 1.2;
+  margin-top: 1.6em;
+}
+.prose h2 { font-size: 1.7rem; }
+.prose h3 { font-size: 1.3rem; }
+.prose a { color: var(--ember); text-decoration: underline; text-underline-offset: 2px; }
+.prose ul, .prose ol { padding-left: 1.4em; }
+.prose ul { list-style: disc; }
+.prose ol { list-style: decimal; }
+.prose blockquote {
+  border-left: 2px solid var(--ember);
+  padding-left: 1em;
+  font-family: var(--font-serif), Georgia, serif;
+  font-style: italic;
+  font-size: 1.2em;
+  color: var(--muted);
+}
+.prose img { border-radius: 0.5rem; }
+.prose code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+  background: var(--surface);
+  padding: 0.1em 0.35em;
+  border-radius: 0.3rem;
+}
