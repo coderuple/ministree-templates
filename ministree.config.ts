@@ -18,7 +18,7 @@ export default defineMinistreeTemplate({
   },
 
   compatibility: {
-    sdk: "^0.4.0",
+    sdk: "^0.4.1",
     deploymentMode: "single",
     requiresModules: [],
   },
@@ -366,19 +366,88 @@ export default defineMinistreeTemplate({
         kind: "group",
         label: "Event site",
         visibleWhen: { field: "siteMode", equals: "singleEvent" },
+        /* Ordered as someone fills it in — who it is, what it looks like, how
+           to get in — rather than grouped by data type. Widths are real inside
+           a group now, so the short pairs sit on one row and every picker gets
+           the full width its preview needs. */
         fields: {
-          presenter: { kind: "text", label: "Presented by", optional: true, help: "Defaults to your church name." },
-          tagline: { kind: "text", label: "Tagline", optional: true, help: "The short line under the title." },
+          presenter: {
+            kind: "text",
+            label: "Presented by",
+            optional: true,
+            width: "half",
+            help: "Defaults to your church name.",
+          },
+          tagline: {
+            kind: "text",
+            label: "Tagline",
+            optional: true,
+            width: "half",
+            help: "The short line under the title.",
+          },
+          countdown: {
+            kind: "boolean",
+            label: "Countdown in the hero",
+            help: "Counts down to the start time on the event you picked. It takes itself away once the event begins.",
+          },
+          backdropVideo: {
+            /* `accept: "video"` gets the Customizer's video picker — upload with
+               a progress bar, drag-and-drop, and the church's existing videos to
+               choose from. Without it a `media` field is an image picker, which
+               is why this was briefly a `url` text box asking a church to go and
+               find a file's address by hand. Needs SDK >= 0.4.1. */
+            kind: "media",
+            accept: "video",
+            label: "Backdrop video",
+            optional: true,
+            help: "A short, silent loop behind the whole page, in place of the event image. Keep it small \u2014 phones and anyone on a metered connection are shown the still instead.",
+          },
+          backdropPoster: {
+            kind: "media",
+            label: "Backdrop still",
+            optional: true,
+            help: "Shown before the loop starts, and in place of it for anyone on a phone or asking for less movement. Defaults to the event's own image.",
+          },
           venueImages: {
             kind: "media",
             multiple: true,
             max: 2,
             label: "Venue \u2014 extra photos",
             optional: true,
-            help: "The event's own image leads; these two sit beside it. The venue section carries the rest.",
+            help: "The event's own image leads; these two sit beside it.",
           },
-          ticketsCta: { kind: "text", label: "Tickets \u2014 button", optional: true },
-          ticketsNote: { kind: "textarea", label: "Tickets \u2014 small print", optional: true },
+          flyerUrl: {
+            kind: "media",
+            label: "Shareable flyer",
+            optional: true,
+            help: "The picture people send to their friends. Defaults to the event's own image.",
+          },
+          ticketsCta: {
+            kind: "text",
+            label: "Tickets \u2014 button",
+            optional: true,
+            width: "half",
+            help: "What the button says. Defaults to \u201cGet tickets\u201d.",
+          },
+          ticketsPhone: {
+            kind: "text",
+            label: "Tickets \u2014 info line",
+            optional: true,
+            width: "half",
+            help: "A number to ring about tickets. Shown as a tap-to-call link.",
+          },
+          ticketPerks: {
+            kind: "textarea",
+            label: "Tickets \u2014 what's included",
+            optional: true,
+            help: "One per line. Listed above the ticket tiers.",
+          },
+          ticketsNote: {
+            kind: "textarea",
+            label: "Tickets \u2014 small print",
+            optional: true,
+            help: "Anything that has to be said under the tiers \u2014 age limits, refunds, door times.",
+          },
         },
       },
 

@@ -59,6 +59,22 @@ export default async function EventSite({
   /* The outlined year sits under the lockup as a graphic. Plenty of events
      already carry it in their name ("Youth Retreat 2026"), and printing it
      again beside the title reads as a mistake rather than as a device. */
+  /* Resolved here, on the server, and passed as a number. `new Date(iso)` on a
+     string with no UTC offset is parsed as the READER's local time, so a
+     visitor in another country would see a clock hours out. Ministree sends an
+     offset; this only stays correct because it is computed once.
+     ponytail: if a church ever reports drift, the event's own `timezone` field
+     is the input to an Intl-based fix — not a timezone library. */
+  const startAtMs = e.startAt ? new Date(e.startAt as string).getTime() : NaN;
+  const endAtMs = e.endAt ? new Date(e.endAt as string).getTime() : null;
+  /* Whether the event has already finished is deliberately NOT decided here.
+     "Now" on the server is the moment the page was last revalidated, not the
+     moment someone is reading it — and `Date.now()` in a component body is an
+     impure render either way. `Countdown` has a live clock and takes itself off
+     the page past `endAtMs`; one place owns the question. */
+  const countdownOn = ev.countdown !== false;
+  const heroCountdown = countdownOn && !Number.isNaN(startAtMs) ? startAtMs : null;
+
   const rawYear = e.startAt ? String(new Date(e.startAt as string).getFullYear()) : null;
   const year = rawYear && !((e.title as string) ?? "").includes(rawYear) ? rawYear : null;
 
@@ -87,6 +103,23 @@ export default async function EventSite({
      row — so reading only the linked person dropped exactly the visiting
      speakers a one-event site is usually built around. The guest fields win
      when present, because that is where someone typed the billing they want. */
+  /* Names collide — two Smiths, a father and son on the same bill. The second
+     one takes a -2 so a shared ?speaker= link always resolves to one card.
+     React still keys off `id`; this exists only for the URL. */
+  const usedSlugs = new Map<string, number>();
+  const slugify = (name: string) => {
+    const base =
+      name
+        .toLowerCase()
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "") || "speaker";
+    const seenCount = (usedSlugs.get(base) ?? 0) + 1;
+    usedSlugs.set(base, seenCount);
+    return seenCount === 1 ? base : `${base}-${seenCount}`;
+  };
+
   const people: LineupPerson[] = ((e.people ?? []) as Array<Record<string, unknown>>)
     .map((entry, i) => {
       const person = (entry.person ?? null) as Record<string, unknown> | null;
@@ -94,9 +127,11 @@ export default async function EventSite({
         ? [person.firstName, person.lastName].filter(Boolean).join(" ").trim()
         : "";
       const guestName = typeof entry.name === "string" ? entry.name.trim() : "";
+      const name = guestName || linkedName;
       return {
         id: String(entry.id ?? person?.id ?? i),
-        name: guestName || linkedName,
+        slug: slugify(name),
+        name,
         role:
           (typeof entry.title === "string" && entry.title.trim() ? entry.title.trim() : null) ??
           (entry.role as { name?: string } | undefined)?.name ??
@@ -105,6 +140,14 @@ export default async function EventSite({
           (entry.photoUrl as string) ??
           (person?.portraitUrl as string) ??
           (person?.avatarUrl as string) ??
+          null,
+        /* Already in the payload, and until now thrown away. A guest's bio is
+           typed on the event row itself; a member's lives on their Person
+           record. The SDK's types name neither, which is why this file reads
+           the whole entry as a record — the data has always been here. */
+        bio:
+          (typeof entry.bio === "string" && entry.bio.trim() ? entry.bio.trim() : null) ??
+          (typeof person?.bio === "string" && person.bio.trim() ? person.bio.trim() : null) ??
           null,
       };
     })
@@ -185,6 +228,9 @@ export default async function EventSite({
     cta: 'tickets',
     givingMethods: 'give',
     accordion: 'faq',
+    video: 'trailer',
+    features: 'stripping',
+    links: 'share',
   };
   /** "the-night" → "The night". Short by nature, which a nav bar needs — the
    *  section's own title is a heading ("How the evening unfolds") and wrapped. */
@@ -255,6 +301,22 @@ export default async function EventSite({
       ctaLabel: str("ticketsCta") ?? "Get tickets",
       blurb: null,
       note: str("ticketsNote"),
+      // One per line, the way it is typed. Blank lines dropped so a stray
+      // return at the end doesn't render an empty numbered row.
+      perks: (str("ticketPerks") ?? "")
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean),
+      phone: str("ticketsPhone"),
+    },
+    share: {
+      // The church's chosen flyer, else the event's own picture — the thing
+      // someone would have screenshotted anyway.
+      flyerUrl: str("flyerUrl") ?? heroImage,
+      filename: `${(e.slug as string) || "event"}.jpg`,
+      title,
+      text: [title, dateLabel, venueName].filter(Boolean).join(" · ") || null,
+      socials,
     },
     givingHref,
     give: {
@@ -286,7 +348,11 @@ export default async function EventSite({
     year,
     dateLabel,
     venueLabel,
-    keyart: heroImage,
+    /* The poster wins over the event's own image when a church set one — the
+       loop's first frame and the key art are rarely the same picture, and a
+       mismatch shows as a flash when playback starts. */
+    keyart: str("backdropPoster") ?? heroImage,
+    backdropVideo: str("backdropVideo"),
     ticketsHref: evt.tickets?.href ?? null,
     ticketsLabel: evt.tickets?.ctaLabel ?? "Get tickets",
     hasTickets: tiers.length > 0,
@@ -295,6 +361,8 @@ export default async function EventSite({
     socials,
     summary: (e.description as string | null) ?? null,
     preloaderLabel: title,
+    startAtMs: heroCountdown,
+    endAtMs,
     backdrop: backdropEnabled(content) ? backdropElement(content) : null,
     /* Not in the Customizer preview: the curtain would wipe across the editor's
        preview pane on every draft reload, hiding the change they just made. */

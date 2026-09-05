@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/gsap";
 import { lenisStore } from "@/lib/state";
 import MagneticButton from "@/components/MagneticButton";
+import { reducedMotion, revealsDisabled } from "@/lib/motion";
 
 /**
  * The event site's own bar — the church header would be wrong here, because in
@@ -18,28 +19,39 @@ export default function EventNav({
   items,
   ticketsHref,
   ticketsLabel,
+  hasTickets,
 }: {
   loaded: boolean;
   title: string;
   items: Array<{ label: string; href: string }>;
   ticketsHref: string;
   ticketsLabel: string;
+  /** The hero already hides its button when nothing is on sale; the bar used
+   *  to keep one that scrolled to the top of the page it was already on. */
+  hasTickets: boolean;
 }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const barRef = useRef<HTMLElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const burgerRef = useRef<HTMLButtonElement>(null);
+  const wasOpen = useRef(false);
 
   useEffect(() => {
-    gsap.set(barRef.current, { yPercent: -110 });
+    /* autoAlpha, not yPercent alone. Translated off-screen the bar is still
+       painted and still focusable, so tabbing from the address bar walked
+       through the whole nav and the tickets button while the curtain was up.
+       autoAlpha carries visibility: hidden, which takes them out of the tab
+       order until the bar actually arrives. */
+    if (!revealsDisabled()) gsap.set(barRef.current, { yPercent: -110, autoAlpha: 0 });
     const onScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
-    if (!loaded) return;
-    gsap.to(barRef.current, { yPercent: 0, duration: 1, ease: "expo.out", delay: 0.15 });
+    if (!loaded || revealsDisabled()) return;
+    gsap.to(barRef.current, { yPercent: 0, autoAlpha: 1, duration: 1, ease: "expo.out", delay: 0.15 });
   }, [loaded]);
 
   useEffect(() => {
@@ -47,22 +59,46 @@ export default function EventNav({
     if (!overlay) return;
     if (open) {
       lenisStore.current?.stop();
+      /* Lenis intercepts wheel and touch — not the keyboard. Arrow keys, Space
+         and PageDown still scrolled the page behind the open menu, so the
+         overflow lock has to be set as well, not instead. */
+      document.documentElement.style.overflow = "hidden";
+      // Every duration collapses to 0 under reduced motion: the menu appears,
+      // rather than fading and sliding in. Same idiom as the cursor.
+      const d = reducedMotion() ? 0 : 1;
       gsap.set(overlay, { display: "flex" });
-      gsap.fromTo(overlay, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 });
+      gsap.fromTo(overlay, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 * d });
       gsap.fromTo(
         overlay.querySelectorAll(".menu-link"),
         { yPercent: 120 },
-        { yPercent: 0, duration: 0.9, stagger: 0.07, ease: "expo.out", delay: 0.1 },
+        { yPercent: 0, duration: 0.9 * d, stagger: 0.07 * d, ease: "expo.out", delay: 0.1 * d },
       );
+      overlay.querySelector<HTMLElement>(".menu-link")?.focus();
     } else {
       lenisStore.current?.start();
+      document.documentElement.style.overflow = "";
+      // Only after a real close, or the hamburger would steal focus on mount.
+      if (wasOpen.current) burgerRef.current?.focus({ preventScroll: true });
       gsap.to(overlay, {
         autoAlpha: 0,
-        duration: 0.35,
+        duration: reducedMotion() ? 0 : 0.35,
         onComplete: () => gsap.set(overlay, { display: "none" }),
       });
     }
+    wasOpen.current = open;
   }, [open]);
+
+  /* Unmount with the menu open — a preview reload, a route change — used to
+     leave the page permanently unscrollable. Unconditional, because the cost of
+     starting an already-started Lenis is nothing and the cost of missing one is
+     a frozen page. */
+  useEffect(
+    () => () => {
+      lenisStore.current?.start();
+      document.documentElement.style.overflow = "";
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -104,9 +140,11 @@ export default function EventNav({
               {item.label}
             </a>
           ))}
-          <MagneticButton href={ticketsHref} className="px-6 py-2.5 text-[11px]">
-            {ticketsLabel}
-          </MagneticButton>
+          {hasTickets ? (
+            <MagneticButton href={ticketsHref} className="px-6 py-2.5 text-[11px]">
+              {ticketsLabel}
+            </MagneticButton>
+          ) : null}
         </nav>
 
         {/* The name stays "Menu" and aria-expanded carries the state — flipping
@@ -118,6 +156,7 @@ export default function EventNav({
           aria-expanded={open}
           aria-controls="event-menu"
           aria-label="Menu"
+          ref={burgerRef}
           className="relative z-50 flex h-10 w-10 items-center justify-center text-ink md:hidden"
         >
           <span className="relative block h-3 w-6" aria-hidden>
@@ -157,13 +196,15 @@ export default function EventNav({
             </a>
           </div>
         ))}
-        <a
-          href={ticketsHref}
-          onClick={(e) => goTo(e, ticketsHref)}
-          className="menu-link mt-10 inline-block w-max rounded-full bg-ember px-8 py-4 text-[11px] uppercase tracking-[0.22em] text-bg"
-        >
-          {ticketsLabel}
-        </a>
+        {hasTickets ? (
+          <a
+            href={ticketsHref}
+            onClick={(e) => goTo(e, ticketsHref)}
+            className="menu-link mt-10 inline-block w-max rounded-full bg-ember px-8 py-4 text-[11px] uppercase tracking-[0.22em] text-bg"
+          >
+            {ticketsLabel}
+          </a>
+        ) : null}
       </div>
     </>
   );

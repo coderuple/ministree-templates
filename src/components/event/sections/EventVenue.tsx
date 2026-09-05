@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { gsap } from "@/lib/gsap";
 import SectionHead from "@/components/SectionHead";
 import AnimatedText from "@/components/AnimatedText";
+import { reducedMotion } from "@/lib/motion";
 
 /**
  * Scrolls slower than the page it sits in. The image is pre-scaled 1.18× so
@@ -15,6 +16,13 @@ function ParallaxImage({ src, alt, className = "" }: { src: string; alt: string;
   const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
+    /* gsap.set beats the class: `scale-[1.18]` only exists to give the parallax
+       room to travel, so with no travel it is just a crop. Inline transform
+       wins over the utility, which is why this is a set and not a class edit. */
+    if (reducedMotion()) {
+      gsap.set(imgRef.current, { scale: 1, yPercent: 0 });
+      return;
+    }
     const tween = gsap.fromTo(
       imgRef.current,
       { yPercent: -9 },

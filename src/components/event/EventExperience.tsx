@@ -8,6 +8,8 @@ import Preloader from "@/components/Preloader";
 import EventHero from "@/components/event/sections/EventHero";
 import EventFooter from "@/components/event/sections/EventFooter";
 import EventNav from "@/components/event/EventNav";
+import AmbientVideo from "@/components/AmbientVideo";
+import { motionTier } from "@/lib/motion";
 
 const EmberScene = dynamic(() => import("@/components/canvas/EmberScene"), { ssr: false });
 import type { BackdropElement } from "@/lib/backdrop";
@@ -21,6 +23,8 @@ export interface EventExperienceProps {
   dateLabel: string | null;
   venueLabel: string | null;
   keyart: string | null;
+  /** A silent loop behind the whole page, in place of the key art. */
+  backdropVideo: string | null;
   ticketsHref: string | null;
   ticketsLabel: string;
   hasTickets: boolean;
@@ -38,6 +42,11 @@ export interface EventExperienceProps {
    *  off — the hero then plays immediately rather than waiting for a curtain
    *  that never rises. */
   preloader: boolean;
+  /** When the event starts, as an instant. Null turns the hero countdown off. */
+  startAtMs: number | null;
+  /** When it ends. The clock removes itself past this, for a tab left open
+   *  across the event — the page's own 60s revalidation can't reach that one. */
+  endAtMs: number | null;
 }
 
 /**
@@ -47,7 +56,7 @@ export interface EventExperienceProps {
  * sections are what matters, and a poster at full contrast underneath them is
  * a legibility problem dressed up as atmosphere.
  */
-function Poster({ src }: { src: string }) {
+function Backdrop({ src, video }: { src: string | null; video: string | null }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -71,15 +80,25 @@ function Poster({ src }: { src: string }) {
     };
   }, []);
 
+  /* Same scrub, same wash, different media. The loop only plays where there is
+     headroom for it: on a "lite" device — a phone, a low-memory machine — the
+     key art is the backdrop, and on "still" AmbientVideo would refuse to fetch
+     it anyway. Checked here as well so the <video> is never even mounted. */
+  const playable = Boolean(video) && motionTier() === "full";
+
   return (
     <div ref={ref} className="absolute inset-0 overflow-hidden">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt=""
-        aria-hidden
-        className="h-full w-full animate-slow-zoom object-cover opacity-50 motion-reduce:animate-none"
-      />
+      {playable && video ? (
+        <AmbientVideo src={video} poster={src} preload="auto" className="opacity-50" />
+      ) : src ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt=""
+          aria-hidden
+          className="h-full w-full animate-slow-zoom object-cover opacity-50 motion-reduce:animate-none"
+        />
+      ) : null}
       <div className="absolute inset-0 bg-gradient-to-b from-bg/60 via-bg/30 to-bg" />
     </div>
   );
@@ -136,7 +155,9 @@ export default function EventExperience(props: EventExperienceProps) {
       ) : null}
 
       <div className="fixed inset-0 z-0" aria-hidden>
-        {heavy !== null && props.keyart ? <Poster src={props.keyart} /> : null}
+        {heavy !== null && (props.keyart || props.backdropVideo) ? (
+          <Backdrop src={props.keyart} video={props.backdropVideo} />
+        ) : null}
         {/* Gated on the church's own switch as well as the capability probe.
             This branch used to check only whether the browser COULD draw the
             scene, so turning the moving backdrop off left it running here — the
@@ -164,6 +185,7 @@ export default function EventExperience(props: EventExperienceProps) {
         items={props.nav}
         ticketsHref={props.ticketsHref ?? "#top"}
         ticketsLabel={props.ticketsLabel}
+        hasTickets={props.hasTickets}
       />
 
       <main className="relative z-10">
@@ -177,6 +199,8 @@ export default function EventExperience(props: EventExperienceProps) {
           venueLabel={props.venueLabel}
           ticketsHref={props.hasTickets ? props.ticketsHref : null}
           ticketsLabel={props.ticketsLabel}
+          startAtMs={props.startAtMs}
+          endAtMs={props.endAtMs}
         />
 
         {/* Everything below the hero is the church's arrangement. The hero

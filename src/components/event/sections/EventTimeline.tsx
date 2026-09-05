@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { gsap } from "@/lib/gsap";
 import SectionHead from "@/components/SectionHead";
 import AnimatedText from "@/components/AnimatedText";
+import { revealsDisabled } from "@/lib/motion";
 
 export interface TimelineEntry {
   id: string;
@@ -39,6 +40,16 @@ export default function EventTimeline({
   useEffect(() => {
     const list = listRef.current;
     if (!list) return;
+    /* The rail and the items both animate *from* a hidden state, so leaving them
+       alone already lands them at the end state. The reading band is the one
+       thing that has to be said out loud: with nothing scrubbing, every item is
+       lit rather than none of them. */
+    if (revealsDisabled()) {
+      list
+        .querySelectorAll(".night-item")
+        .forEach((item) => item.classList.add("is-active"));
+      return;
+    }
     const ctx = gsap.context(() => {
       gsap.fromTo(
         railRef.current,

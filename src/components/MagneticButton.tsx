@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { gsap } from "@/lib/gsap";
+import { reducedMotion } from "@/lib/motion";
 
 type Props = {
   href: string;
@@ -21,6 +22,9 @@ export default function MagneticButton({
   const innerRef = useRef<HTMLSpanElement>(null);
 
   const onMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // Nothing to set an end state to — the button's resting position IS the end
+    // state, so declining to move it is the whole fix. onLeave then tweens 0→0.
+    if (reducedMotion()) return;
     const el = e.currentTarget;
     const rect = el.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;

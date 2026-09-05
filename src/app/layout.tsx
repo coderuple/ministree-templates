@@ -90,7 +90,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
      light mode for the same reason. The church's own palette still drives the
      accent, so an event site is still recognisably theirs. */
   const forceDark = singleEvent;
-  const smoothScrollOn = fx.scrollReveals !== false;
+  /* The switch is stamped on <html> rather than used to withhold a component.
+     It reads "Scroll-reveal animations", and it used to gate Lenis — so turning
+     it off killed smooth scroll and left every reveal running. `revealsDisabled()`
+     in src/lib/motion.ts reads this attribute, so one flag reaches every
+     animated component without threading a prop through the whole tree. */
+  const revealsOff = fx.scrollReveals === false;
 
   // Dark mode follows the visitor's device preference WHEN the church enables it
   // (Settings → dark mode). Disabled → light only. A manual toggle is remembered.
@@ -104,6 +109,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       className={`${anton.variable} ${cormorant.variable} ${archivo.variable} ${
         forceDark || scheme === "dark" ? "dark" : ""
       } antialiased`}
+      data-fx-reveals={revealsOff ? "off" : undefined}
       suppressHydrationWarning
     >
       <head>
@@ -131,7 +137,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <div aria-hidden className="grain pointer-events-none fixed inset-0 z-[90]" />
           </>
         ) : null}
-        {smoothScrollOn ? <SmoothScroll /> : null}
+        <SmoothScroll />
         {cursorOn ? <Cursor /> : null}
         {previewToken ? <PreviewBridge token={previewToken} /> : null}
       </body>

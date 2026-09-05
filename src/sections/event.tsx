@@ -4,11 +4,14 @@ import type {
   GivingMethodsProps,
   LocationProps,
   MarqueeProps,
+  FeaturesProps,
+  LinksProps,
   ProfileCardsProps,
   ScheduleProps,
   SectionComponentProps,
   SectionRegistry,
   StatementProps,
+  VideoProps,
 } from "@ministree/template-sdk";
 import { flameSections } from "@/sections";
 import Marquee from "@/components/Marquee";
@@ -19,6 +22,9 @@ import EventVenue from "@/components/event/sections/EventVenue";
 import EventFaq, { type FaqEntry } from "@/components/event/sections/EventFaq";
 import EventGive, { type GiveCard } from "@/components/event/sections/EventGive";
 import EventTickets, { type TicketTier } from "@/components/event/sections/EventTickets";
+import EventTrailer from "@/components/event/sections/EventTrailer";
+import EventStripping from "@/components/event/sections/EventStripping";
+import EventShare from "@/components/event/sections/EventShare";
 
 /**
  * The event page's own treatment of ordinary section types.
@@ -79,8 +85,17 @@ export interface EventSectionContext {
     ctaLabel: string;
     blurb: string | null;
     note: string | null;
+    perks: string[];
+    phone: string | null;
   } | null;
   faq: { entries: FaqEntry[]; label: string; heading: string };
+  share: {
+    flyerUrl: string | null;
+    filename: string;
+    title: string;
+    text: string | null;
+    socials: Array<{ label: string; href: string }>;
+  };
   marquee: string[];
   keyart: string | null;
   /** Where "Give now" points when a giving method doesn't name its own link. */
@@ -121,9 +136,13 @@ function EventLineupSection({ section, props, context }: SectionComponentProps) 
   const people: LineupPerson[] = cards?.length
     ? cards.map((c, i) => ({
         id: `card-${i}`,
+        // Hand-entered cards get a slug too, so they are as linkable as the
+        // event's own billing. Index-suffixed: two cards may share a name.
+        slug: `${(c.name ?? "speaker").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "speaker"}-${i + 1}`,
         name: c.name,
         role: c.subtitle ?? null,
         image: c.imageUrl ?? null,
+        bio: c.description ?? null,
       }))
     : (base?.people ?? []);
   return (
@@ -132,6 +151,74 @@ function EventLineupSection({ section, props, context }: SectionComponentProps) 
       people={people}
       label={text(p.eyebrow) ?? base?.label ?? "The lineup"}
       heading={text(section.title) ?? base?.heading ?? "Who you'll hear"}
+      // Read off the venue beat rather than added to the lineup context — it is
+      // one line on a card, not a thing a church would ever set separately.
+      venueLabel={evt(context).venue?.name ?? null}
+    />
+  );
+}
+
+/* The trailer. Rides `video` because that section's editor is a real video
+   picker — a Customizer field would be a box to paste a URL into, which is a
+   worse control for the same value. The cost is small: an event page loses the
+   generic bordered 16:9 frame, and keeps the feature. */
+function EventTrailerSection({ section, props }: SectionComponentProps) {
+  const p = props as VideoProps;
+  if (!p.url) return null;
+  return (
+    <EventTrailer
+      anchor={anchorOf(section, "trailer")}
+      url={p.url}
+      poster={p.posterUrl ?? null}
+      label={text(section.subtitle) ?? "The trailer"}
+      heading={text(section.title)}
+      title={text(section.title) ?? "Trailer"}
+    />
+  );
+}
+
+/* The manifesto. Rides `features` — its `items[].title` are the words to strike
+   out, `props.heading` is the one left standing, and the section's subtitle is
+   the line under it. The cost: an event page can't have a plain three-column
+   feature grid. It is the most redundant generic on this page, since the lineup
+   and the run of show are both already numbered lists of their own. */
+function EventStrippingSection({ section, props }: SectionComponentProps) {
+  const p = props as FeaturesProps;
+  const noise = (p.items ?? []).map((i) => i.title).filter(Boolean);
+  if (noise.length === 0) return null;
+  return (
+    <EventStripping
+      anchor={anchorOf(section, "stripping")}
+      noise={noise}
+      kept={text(p.heading) ?? text(section.title)}
+      coda={text(section.subtitle)}
+      label={text(section.title) ?? "The stripping"}
+    />
+  );
+}
+
+/* Sharing. Rides `links` — its items are the social pills, falling back to the
+   church's own profile when a church leaves them empty. This is the priciest of
+   the three overrides: an event page can't have a plain link grid. If that trade
+   stops being worth it, delete this override and the Share button in the footer
+   still covers the actual feature. */
+function EventShareSection({ section, props, context }: SectionComponentProps) {
+  const base = evt(context).share;
+  const p = props as LinksProps;
+  const items = (p.items ?? [])
+    .map((i) => ({ label: i.label, href: i.href ?? i.url ?? "" }))
+    .filter((i) => i.label && i.href);
+  return (
+    <EventShare
+      anchor={anchorOf(section, "share")}
+      flyerUrl={base?.flyerUrl ?? null}
+      filename={base?.filename ?? "flyer.jpg"}
+      title={base?.title ?? "Share"}
+      text={base?.text ?? null}
+      socials={items.length ? items : (base?.socials ?? [])}
+      label={text(section.subtitle) ?? "Share it"}
+      heading={text(section.title) ?? text(p.heading) ?? "Tell someone"}
+      blurb={text(p.description)}
     />
   );
 }
@@ -246,6 +333,14 @@ function EventTicketsSection({ section, props, context }: SectionComponentProps)
       ctaLabel={base.ctaLabel}
       blurb={text(p.description) ?? base.blurb}
       note={base.note}
+      perks={base.perks}
+      phone={base.phone}
+      /* `ctas` is already on this section type and the renderer ignored it.
+         The event's own link stays the primary; anything a church adds here is
+         a second place to buy. Free — no new field, no new type. */
+      outlets={(p.ctas ?? [])
+        .map((c) => ({ label: c.label, href: c.href ?? c.url ?? "" }))
+        .filter((c) => c.label && c.href)}
     />
   );
 }
@@ -269,4 +364,7 @@ export const flameEventSections: SectionRegistry = {
   cta: EventTicketsSection,
   givingMethods: EventGiveSection,
   marquee: EventMarqueeSection,
+  video: EventTrailerSection,
+  features: EventStrippingSection,
+  links: EventShareSection,
 };

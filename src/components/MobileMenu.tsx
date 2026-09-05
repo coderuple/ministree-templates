@@ -93,10 +93,15 @@ export default function MobileMenu({
     return () => ctx.revert();
   }, [open]);
 
-  // Send focus back to the trigger when the menu closes, so keyboard users
-  // aren't dropped at the top of the document.
+  /* Send focus back to the trigger when the menu closes, so keyboard users
+     aren't dropped at the top of the document. This used to call blur(), which
+     does the opposite of what the line above it promised — it dropped focus to
+     <body> and the next Tab restarted from the top of the page. Guarded on a
+     real close, or the button would grab focus on first mount. */
+  const wasOpen = useRef(false);
   useEffect(() => {
-    if (!open) buttonRef.current?.blur();
+    if (!open && wasOpen.current) buttonRef.current?.focus({ preventScroll: true });
+    wasOpen.current = open;
   }, [open]);
 
   useEffect(

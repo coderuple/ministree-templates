@@ -3,6 +3,8 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "@/lib/gsap";
 import MagneticButton from "@/components/MagneticButton";
+import Countdown from "@/components/event/Countdown";
+import { revealsDisabled } from "@/lib/motion";
 
 /**
  * The opening lockup.
@@ -25,8 +27,14 @@ export default function EventHero({
   venueLabel,
   ticketsHref,
   ticketsLabel,
+  startAtMs,
+  endAtMs,
 }: {
   loaded: boolean;
+  /** The start instant, resolved server-side. Null when the church has turned
+   *  the countdown off, or the event has no start time to count to. */
+  startAtMs: number | null;
+  endAtMs: number | null;
   presenter: string | null;
   title: string;
   tagline: string | null;
@@ -39,6 +47,10 @@ export default function EventHero({
   const rootRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
+    /* Both halves gate together, and this one matters most: it is the effect
+       that HIDES the hero ahead of the entrance. Skip the entrance but keep the
+       hiding and the page opens on an empty screen forever. */
+    if (revealsDisabled()) return;
     const ctx = gsap.context(() => {
       gsap.set(".hero-lockup", {
         autoAlpha: 0,
@@ -52,7 +64,7 @@ export default function EventHero({
   }, []);
 
   useEffect(() => {
-    if (!loaded) return;
+    if (!loaded || revealsDisabled()) return;
     const ctx = gsap.context(() => {
       // The lockup breathes in from a soft blur; everything else follows it in,
       // overlapping so the section never reads as a sequence of separate cues.
@@ -122,6 +134,12 @@ export default function EventHero({
         </div>
       </div>
 
+      {startAtMs !== null ? (
+        <div className="hero-fade mt-14 flex justify-center">
+          <Countdown startAtMs={startAtMs} endAtMs={endAtMs} flood />
+        </div>
+      ) : null}
+
       <div className="mt-16 flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
         <div className="hero-fade flex flex-col gap-1">
           {dateLabel ? <span className="micro text-ink">{dateLabel}</span> : null}
@@ -131,7 +149,7 @@ export default function EventHero({
         <div className="hero-fade hidden flex-col items-center gap-3 md:flex">
           <span className="micro text-muted">Scroll</span>
           <span className="relative block h-14 w-px overflow-hidden bg-line">
-            <span className="absolute inset-x-0 top-0 h-1/2 animate-[scroll-hint_1.8s_ease-in-out_infinite] bg-ember" />
+            <span className="absolute inset-x-0 top-0 h-1/2 animate-[scroll-hint_1.8s_ease-in-out_infinite] bg-ember motion-reduce:animate-none" />
           </span>
         </div>
 

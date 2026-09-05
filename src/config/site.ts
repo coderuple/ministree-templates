@@ -157,6 +157,20 @@ export const site = {
    *
    * `evt-` ids so these can never collide with `homeSections`.
    */
+  /* Event-mode settings. Everything factual — lineup, times, tickets, venue —
+     comes from the event record itself; this is only what the template needs to
+     be told. Read in code as `!== false`, never `=== true`: a church's merged
+     defaults freeze the first time they edit anything, so a switch added later
+     never reaches an existing church and has to default to on by absence. */
+  event: {
+    countdown: true,
+    backdropVideo: "",
+    backdropPoster: "",
+    flyerUrl: "",
+    ticketPerks: "",
+    ticketsPhone: "",
+  },
+
   eventSections: {
     sections: [
       { id: "evt-marquee-open", type: "marquee", props: {} },

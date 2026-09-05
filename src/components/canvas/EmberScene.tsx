@@ -7,6 +7,7 @@ import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
 import { useMemo, useRef, useState } from "react";
 import { cssVar, introState } from "@/lib/state";
 import { BACKDROP_ELEMENTS, type BackdropElement } from "@/lib/backdrop";
+import { motionTier } from "@/lib/motion";
 
 const PARTICLE_COUNT_DESKTOP = 42000;
 const PARTICLE_COUNT_MOBILE = 18000;
@@ -312,11 +313,11 @@ export default function EmberScene({
    *  church that never touches the setting sees exactly what shipped. */
   element?: BackdropElement;
 }) {
-  // lighter scene on phones: fewer particles, lower pixel ratio
-  const [lite] = useState(
-    () => typeof window !== "undefined" &&
-      window.matchMedia("(max-width: 767px)").matches
-  );
+  // Lighter scene on phones and low-memory machines: fewer particles, lower
+  // pixel ratio. Screen width was only ever a proxy for "how much can this
+  // device take" — motionTier() asks the question directly, and asks it in the
+  // same place the video backdrop and the grain do.
+  const [lite] = useState(() => motionTier() !== "full");
   const [dpr, setDpr] = useState(lite ? 1 : 1.5);
 
   return (

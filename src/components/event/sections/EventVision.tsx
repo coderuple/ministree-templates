@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { gsap, SplitText } from "@/lib/gsap";
 import SectionHead from "@/components/SectionHead";
+import { revealsDisabled } from "@/lib/motion";
 
 /**
  * The manifesto — a tall sticky section whose words brighten as you scroll.
@@ -33,6 +34,10 @@ export default function EventVision({
   const textRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
+    /* The words are authored at full opacity — the 0.12 only ever exists as the
+       `from` of the scrub. So skipping the split IS the end state: a readable
+       paragraph, no pin fighting the scroll, nothing to set. */
+    if (revealsDisabled()) return;
     let split: SplitText | null = null;
     let cancelled = false;
 

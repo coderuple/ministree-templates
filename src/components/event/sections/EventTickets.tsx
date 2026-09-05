@@ -23,6 +23,9 @@ export default function EventTickets({
   ctaLabel,
   blurb,
   note,
+  perks = [],
+  outlets = [],
+  phone = null,
   anchor,
 }: {
   /** The id this section answers to — a church can rename it. */
@@ -34,6 +37,12 @@ export default function EventTickets({
   ctaLabel: string;
   blurb: string | null;
   note: string | null;
+  /** What a ticket includes. One per line in the Customizer. */
+  perks?: string[];
+  /** Other places to buy — VIP through a different seller, accessible seating. */
+  outlets?: Array<{ label: string; href: string }>;
+  /** A number to ring about tickets. Rendered as tap-to-call. */
+  phone?: string | null;
 }) {
   if (tiers.length === 0) return null;
   const [featured, ...rest] = tiers;
@@ -47,6 +56,34 @@ export default function EventTickets({
       >
         {heading}
       </AnimatedText>
+
+      {perks.length > 0 || phone ? (
+        <div className="mx-auto mt-12 max-w-5xl">
+          {perks.length > 0 ? (
+            <ul className="grid border-t border-line sm:grid-cols-2 sm:gap-x-10">
+              {perks.map((perk, i) => (
+                <li
+                  key={perk}
+                  className="flex items-baseline gap-5 border-b border-line py-5"
+                >
+                  <span className="font-display text-sm text-ember">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span className="leading-relaxed text-ink/90">{perk}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {phone ? (
+            <p className="micro mt-6 text-muted">
+              Ticket questions{" "}
+              <a href={`tel:${phone.replace(/\s+/g, "")}`} data-cursor className="text-ember">
+                {phone}
+              </a>
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="mx-auto mt-16 grid max-w-5xl gap-6 md:grid-cols-2">
         <div className="relative overflow-hidden rounded-flame p-px">
@@ -90,10 +127,18 @@ export default function EventTickets({
               </p>
             </>
           )}
-          <div className="mt-auto">
+          <div className="mt-auto flex flex-wrap gap-3">
             <MagneticButton href={href} variant="ghost">
               {ctaLabel} <span aria-hidden>→</span>
             </MagneticButton>
+            {/* A second seller — VIP on another platform, accessible seating on
+                a box-office line. Sits beside the main link rather than
+                competing with the featured card's button. */}
+            {outlets.map((o) => (
+              <MagneticButton key={o.href} href={o.href} external variant="outline">
+                {o.label} <span aria-hidden>→</span>
+              </MagneticButton>
+            ))}
           </div>
         </div>
       </div>

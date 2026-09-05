@@ -5,6 +5,7 @@ import { gsap } from "@/lib/gsap";
 import SectionHead from "@/components/SectionHead";
 import AnimatedText from "@/components/AnimatedText";
 import MagneticButton from "@/components/MagneticButton";
+import { revealsDisabled } from "@/lib/motion";
 
 /** Label on the left, tappable value on the right. Kept local rather than
  *  widened out of `copy-value` — that one is a bare value with no label, and
@@ -91,18 +92,21 @@ export default function EventGive({
   useEffect(() => {
     const els = gridRef.current?.querySelectorAll(".give-card");
     if (!els?.length) return;
-    const tween = gsap.from(els, {
-      y: 56,
-      autoAlpha: 0,
-      duration: 1,
-      stagger: 0.1,
-      ease: "expo.out",
-      scrollTrigger: { trigger: gridRef.current, start: "top 82%", once: true },
-    });
-    return () => {
-      tween.scrollTrigger?.kill();
-      tween.kill();
-    };
+    // A `from` tween: leaving it unbuilt already lands the cards where they belong.
+    if (revealsDisabled()) return;
+    // gsap.context, not a bare kill(): killing a `from` mid-flight leaves the
+    // cards at autoAlpha 0 on a strict-mode remount. Same fix as the lineup.
+    const ctx = gsap.context(() => {
+      gsap.from(els, {
+        y: 56,
+        autoAlpha: 0,
+        duration: 1,
+        stagger: 0.1,
+        ease: "expo.out",
+        scrollTrigger: { trigger: gridRef.current, start: "top 82%", once: true },
+      });
+    }, gridRef);
+    return () => ctx.revert();
   }, [cards.length]);
 
   if (cards.length === 0) return null;

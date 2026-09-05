@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { gsap } from "@/lib/gsap";
+import { reducedMotion } from "@/lib/motion";
 
 /**
  * Time remaining until the event starts.
@@ -22,9 +24,26 @@ function parts(msRemaining: number) {
   };
 }
 
-export default function Countdown({ startAt, label }: { startAt: string; label?: string }) {
-  const target = new Date(startAt).getTime();
+export default function Countdown({
+  startAtMs,
+  endAtMs = null,
+  label,
+  flood = false,
+}: {
+  /** Resolved on the server. A bare ISO string without an offset is parsed as
+   *  LOCAL time, so a visitor abroad would see a clock hours out — computing
+   *  the instant once, server-side, is what stops that. */
+  startAtMs: number;
+  /** When it finishes. After this the clock removes itself — "Happening now"
+   *  is true for the length of the event, and a lie for every day after it. */
+  endAtMs?: number | null;
+  label?: string;
+  /** Stack a second copy of the digits, clipped, for a scroll-driven fill. */
+  flood?: boolean;
+}) {
+  const target = startAtMs;
   const [now, setNow] = useState<number | null>(null);
+  const floodRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (Number.isNaN(target)) return;
@@ -37,6 +56,30 @@ export default function Countdown({ startAt, label }: { startAt: string; label?:
     return () => clearInterval(id);
   }, [target]);
 
+  /* The scrub lives here rather than in the hero because the digits only exist
+     after the first client tick — a trigger built in the parent would find
+     nothing to clip. Keyed off `ready` so it is created exactly once, when they
+     arrive; the wrapper is stable after that and the numbers change inside it. */
+  const ready = now !== null;
+  useEffect(() => {
+    const el = floodRef.current;
+    if (!el) return;
+    if (reducedMotion()) {
+      gsap.set(el, { clipPath: "inset(0 0% 0 0)" });
+      return;
+    }
+    const ctx = gsap.context(() => {
+      gsap.to(el, {
+        clipPath: "inset(0 0% 0 0)",
+        // Steps, not a smooth wipe: it reads as a level meter filling rather
+        // than as a gradient sliding across, which is the whole idea.
+        ease: "steps(14)",
+        scrollTrigger: { trigger: el, start: "top 92%", end: "top 38%", scrub: 0.3 },
+      });
+    }, floodRef);
+    return () => ctx.revert();
+  }, [ready]);
+
   if (Number.isNaN(target)) return null;
 
   // Reserve the space on the server pass so nothing shifts when the clock lands.
@@ -44,6 +87,11 @@ export default function Countdown({ startAt, label }: { startAt: string; label?:
 
   const remaining = target - now;
   if (remaining <= 0) {
+    /* Over. Not "happening now" — that read as a live event to anyone landing
+       on the page weeks later, which is exactly when an event page still gets
+       traffic. With no end time, treat the start as the end: better to say
+       nothing than to say something false. */
+    if (now > (endAtMs ?? target)) return null;
     return (
       <p className="micro text-ember" role="status">
         Happening now
@@ -59,6 +107,19 @@ export default function Countdown({ startAt, label }: { startAt: string; label?:
     { value: seconds, label: "sec" },
   ];
 
+  const grid = (
+    <div aria-hidden className="flex gap-6 tabular-nums">
+      {units.map((unit) => (
+        <div key={unit.label}>
+          <span className="font-display block text-4xl leading-none sm:text-6xl">
+            {String(unit.value).padStart(2, "0")}
+          </span>
+          <span className="micro mt-2 block text-muted">{unit.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div>
       {label ? <p className="micro mb-3 text-ember">{label}</p> : null}
@@ -67,16 +128,25 @@ export default function Countdown({ startAt, label }: { startAt: string; label?:
       <p className="sr-only" role="timer" aria-live="off">
         {days} days, {hours} hours and {minutes} minutes until it starts
       </p>
-      <div aria-hidden className="flex gap-6 tabular-nums">
-        {units.map((unit) => (
-          <div key={unit.label}>
-            <span className="font-display block text-4xl leading-none sm:text-6xl">
-              {String(unit.value).padStart(2, "0")}
-            </span>
-            <span className="micro mt-2 block text-muted">{unit.label}</span>
+      {flood ? (
+        /* Two copies of the same grid, the top one clipped and scrubbed by the
+           hero. Rendering it twice from one `now` is the whole point: a second
+           independent clock could tick a beat apart from the first, and the
+           fill would show a digit the layer underneath disagreed with. */
+        <div className="relative w-max">
+          {grid}
+          <div
+            ref={floodRef}
+            aria-hidden
+            className="absolute inset-0 text-ember [&_.micro]:text-ember"
+            style={{ clipPath: "inset(0 100% 0 0)" }}
+          >
+            {grid}
           </div>
-        ))}
-      </div>
+        </div>
+      ) : (
+        grid
+      )}
     </div>
   );
 }

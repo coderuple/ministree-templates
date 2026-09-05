@@ -2,6 +2,7 @@
 
 import { createElement, useEffect, useRef } from "react";
 import { gsap, SplitText } from "@/lib/gsap";
+import { revealsDisabled } from "@/lib/motion";
 
 type Props = {
   children: string;
@@ -22,6 +23,9 @@ export default function AnimatedText({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // Before the split, not after: an un-split element needs no end state, and
+    // `cancelled` stays meaningful because nothing async was ever started.
+    if (revealsDisabled()) return;
     let split: SplitText | null = null;
     let tween: gsap.core.Tween | null = null;
     let cancelled = false;
