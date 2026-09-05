@@ -55,7 +55,7 @@ card form — reads the same variables. One change in the admin recolours all of
 
 ## Effects
 
-`webglHero`, `preloader`, `grain`, `cursor` and `scrollReveals` are per-church
+`webglHero`, `preloader`, `grain`, `cursor`, `magneticButtons` and `scrollReveals` are per-church
 switches under the Customizer's **Effects** tab. Undefined means on. All of them
 respect `prefers-reduced-motion`, and the WebGL hero additionally requires a
 WebGL context and a screen wider than 768px before it loads.

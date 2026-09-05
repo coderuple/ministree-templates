@@ -18,7 +18,7 @@ export default defineMinistreeTemplate({
   },
 
   compatibility: {
-    sdk: "^0.4.1",
+    sdk: "^0.5.0",
     deploymentMode: "single",
     requiresModules: [],
   },
@@ -191,8 +191,9 @@ export default defineMinistreeTemplate({
 
   /* Looks this template ships with. The defaults above are "Original"; each of
      these swaps the whole palette, the type and the corners in one click.
-     Tokens only — a look never reaches a content field. Fonts are limited to
-     faces the picker already offers, because a preset cannot load a new one. */
+     Tokens only — a look never reaches a content field. A preset may name any
+     face in `fonts` above, since those are compiled in; anything else has to be
+     a system stack, because a preset still cannot load a font. */
   presets: [
     {
       id: "midnight",
@@ -229,8 +230,10 @@ export default defineMinistreeTemplate({
         "--crimson": { light: "#5c1d10", dark: "#571610" },
         "--panel": { light: "#2a1f16", dark: "#1a1410" },
         "--panel-ink": "#f7efe2",
-        "--font-display-face": 'Georgia, "Times New Roman", serif',
-        "--font-serif-face": '"Iowan Old Style", Palatino, serif',
+        /* Georgia was the compromise back when a preset could only name a
+           system face. Playfair is the one this look was always after. */
+        "--font-display-face": "var(--font-playfair), serif",
+        "--font-serif-face": "var(--font-eb-garamond), serif",
         "--radius": "0.25rem",
         "--radius-button": "0.25rem",
         "--backdrop-scrim": "0.35",
@@ -261,6 +264,24 @@ export default defineMinistreeTemplate({
         "--backdrop-scrim": "0.6",
       },
     },
+  ],
+
+  /* The faces this template compiled in. next/font/google resolves at build
+     time, so these are the only ones that can render — the Customizer's picker
+     offers exactly them, and a church cannot pick a font that would silently
+     fall back. `value` points at the variable layout.tsx defined; the bare
+     family name would name a font nobody loaded. The three flame ships are
+     listed too, or a church who switched away would have no way to name them
+     again — "The template's own" is the token default, not a choice. */
+  fonts: [
+    { family: "Anton", value: "var(--font-anton), sans-serif" },
+    { family: "Bebas Neue", value: "var(--font-bebas), sans-serif" },
+    { family: "Playfair Display", value: "var(--font-playfair), serif" },
+    { family: "Cormorant Garamond", value: "var(--font-cormorant), serif" },
+    { family: "EB Garamond", value: "var(--font-eb-garamond), serif" },
+    { family: "Archivo", value: "var(--font-archivo), sans-serif" },
+    { family: "Inter", value: "var(--font-inter), sans-serif" },
+    { family: "Manrope", value: "var(--font-manrope), sans-serif" },
   ],
 
   content: {
@@ -573,6 +594,11 @@ export default defineMinistreeTemplate({
           preloader: { kind: "boolean", label: "Intro preloader" },
           grain: { kind: "boolean", label: "Film grain + vignette" },
           cursor: { kind: "boolean", label: "Custom cursor" },
+          magneticButtons: {
+            kind: "boolean",
+            label: "Magnetic buttons",
+            help: "Buttons lean towards the pointer as it passes over them, then spring back. It needs a mouse, so a phone barely sees it either way.",
+          },
           scrollReveals: { kind: "boolean", label: "Scroll-reveal animations" },
         },
       },

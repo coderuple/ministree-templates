@@ -5,11 +5,14 @@
  *
  *   reducedMotion()    — has this person asked their OS for less movement?
  *                        Gates the things that move on their own: Lenis,
- *                        parallax, the magnetic buttons, the cursor's trail.
+ *                        parallax, the cursor's trail.
  *
  *   revealsDisabled()  — the above, OR the church has turned "Scroll-reveal
  *                        animations" off in the Customizer. Gates entrances:
  *                        text rising in, rails filling, rows fading up.
+ *
+ *   magneticDisabled() — the above, OR "Magnetic buttons" is off. Gates the
+ *                        one effect that switch names and nothing else.
  *
  * Keeping them apart is the whole point. The switch used to gate Lenis itself
  * (`smoothScrollOn` in app/layout.tsx), so turning off "reveals" killed smooth
@@ -30,6 +33,20 @@ export function revealsDisabled(): boolean {
   if (typeof window === "undefined") return false;
   return (
     reducedMotion() || document.documentElement.dataset.fxReveals === "off"
+  );
+}
+
+/**
+ * True when buttons should not lean towards the pointer.
+ *
+ * Its own reader rather than a second meaning for `revealsDisabled()`: a church
+ * turning off scroll reveals has said nothing about hover, and someone who
+ * finds the buttons gimmicky still wants their text to arrive.
+ */
+export function magneticDisabled(): boolean {
+  if (typeof window === "undefined") return false;
+  return (
+    reducedMotion() || document.documentElement.dataset.fxMagnetic === "off"
   );
 }
 

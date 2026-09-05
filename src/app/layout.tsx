@@ -1,5 +1,14 @@
 import type { Metadata } from "next";
-import { Anton, Cormorant_Garamond, Archivo } from "next/font/google";
+import {
+  Anton,
+  Archivo,
+  Bebas_Neue,
+  Cormorant_Garamond,
+  EB_Garamond,
+  Inter,
+  Manrope,
+  Playfair_Display,
+} from "next/font/google";
 import { resolveColorScheme, resolveThemeCss } from "@ministree/template-sdk";
 import { getPreviewToken } from "@ministree/template-sdk/next";
 import { PreviewBridge } from "@ministree/template-sdk/preview";
@@ -21,6 +30,37 @@ const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
 });
 const archivo = Archivo({ subsets: ["latin"], variable: "--font-archivo" });
+
+/* The alternatives a church can pick in the Customizer, declared in
+   `ministree.config.ts` under `fonts`. next/font resolves at build time, so a
+   face has to be compiled in to be offerable at all — there is no runtime loader.
+
+   `preload: false` is the load-bearing part: next/font preloads by default, and
+   eight preloaded families would have every visitor download all eight to render
+   the three above. With it off, a file is fetched only when something on the page
+   actually resolves to that face. apps/site does the same for the same reason. */
+const bebas = Bebas_Neue({ weight: "400", subsets: ["latin"], variable: "--font-bebas", preload: false });
+const playfair = Playfair_Display({
+  weight: ["400", "600", "700"],
+  style: ["normal", "italic"],
+  subsets: ["latin"],
+  variable: "--font-playfair",
+  preload: false,
+});
+const ebGaramond = EB_Garamond({
+  weight: ["400", "600"],
+  style: ["normal", "italic"],
+  subsets: ["latin"],
+  variable: "--font-eb-garamond",
+  preload: false,
+});
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", preload: false });
+const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope", preload: false });
+
+/** Every face on <html>; only the ones something resolves to get downloaded. */
+const fontVars = [anton, cormorant, archivo, bebas, playfair, ebGaramond, inter, manrope]
+  .map((f) => f.variable)
+  .join(" ");
 
 export async function generateMetadata(): Promise<Metadata> {
   const [settings, content] = await Promise.all([loadSettings(), loadContent()]);
@@ -96,6 +136,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
      in src/lib/motion.ts reads this attribute, so one flag reaches every
      animated component without threading a prop through the whole tree. */
   const revealsOff = fx.scrollReveals === false;
+  const magneticOff = fx.magneticButtons === false;
 
   // Dark mode follows the visitor's device preference WHEN the church enables it
   // (Settings → dark mode). Disabled → light only. A manual toggle is remembered.
@@ -106,10 +147,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html
       lang={locale ?? "en"}
-      className={`${anton.variable} ${cormorant.variable} ${archivo.variable} ${
-        forceDark || scheme === "dark" ? "dark" : ""
-      } antialiased`}
+      className={`${fontVars} ${forceDark || scheme === "dark" ? "dark" : ""} antialiased`}
       data-fx-reveals={revealsOff ? "off" : undefined}
+      data-fx-magnetic={magneticOff ? "off" : undefined}
       suppressHydrationWarning
     >
       <head>

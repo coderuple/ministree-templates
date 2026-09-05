@@ -27,7 +27,6 @@
      `--font-*-face` values are the next/font instances from layout.tsx —
      flame's own faces, and what a church keeps unless it changes them. */
   --font-display-face: var(--font-anton);
-  --font-heading-face: var(--font-anton);
   --font-serif-face: var(--font-cormorant);
   --font-sans-face: var(--font-archivo);
   --radius: 1rem;
@@ -69,7 +68,6 @@
   --color-panel-ink: var(--panel-ink);
 
   --font-display: var(--font-display-face);
-  --font-heading: var(--font-heading-face);
   --font-serif: var(--font-serif-face);
   --font-sans: var(--font-sans-face);
   --radius-flame: var(--radius);
