@@ -25,7 +25,6 @@ export function Nav({
   wordmark,
   socials,
   sticky = true,
-  issue,
 }: {
   links: NavLink[];
   ticketsHref: string;
@@ -34,8 +33,6 @@ export function Nav({
   wordmark: string;
   socials: Array<{ label: string; href: string }>;
   sticky?: boolean;
-  /** The masthead line under the nav — this concept's editorial furniture. */
-  issue?: string[];
 }) {
   const [open, setOpen] = useState(false);
 
