@@ -1,0 +1,903 @@
+/* ===========================================================================
+   FIRE — "Carried by the Wind"
+   Artistic, atmospheric, immersive. Dusk moving into golden hour — an
+   installation more than a webpage.
+
+   The core mechanic: ONE sticky backdrop layer behind the entire page. There
+   are no per-section backgrounds and no hard section breaks anywhere. The page
+   heats from smoke to gold in a single unbroken gradient as the reader
+   descends, driven by --pg.
+
+   Radius philosophy: circles and arcs. Pills for actions, 50% for portals,
+   arch crops for portraits, one organic blob. Nothing is a rectangle.
+   =========================================================================== */
+
+:root {
+  --bg: #100b0c;        /* smoke — the page ground */
+  --ink: #f5ede1;       /* warm ivory: the TEXT, on a dark ground */
+  --accent: #e2762c;    /* ember orange */
+  --gold: #e8c79a;      /* champagne */
+  --oxblood: #4a1721;
+
+  --crimson: color-mix(in oklab, var(--accent) 45%, var(--oxblood));
+  --deep: color-mix(in oklab, var(--bg) 82%, var(--oxblood));
+  --body: color-mix(in oklab, var(--ink) 70%, var(--bg));
+  --muted: color-mix(in oklab, var(--ink) 48%, var(--bg));
+  --label: color-mix(in oklab, var(--gold) 62%, var(--bg));
+  --hairline: color-mix(in oklab, var(--ink) 16%, transparent);
+  --hairline-strong: color-mix(in oklab, var(--ink) 40%, transparent);
+  --gold-bright: color-mix(in oklab, var(--gold) 70%, white);
+  --frame-tint: color-mix(in oklab, var(--oxblood) 60%, var(--bg));
+
+  --font-display: var(--font-instrument), "Instrument Serif", Georgia, serif;
+  --font-body: var(--font-schibsted), "Schibsted Grotesk", system-ui, sans-serif;
+
+  --radius-action: 999px;
+  --radius-frame: 50%;      /* portals */
+  --radius-arch: 999px 999px 24px 24px;
+  --radius-field: 10px;
+
+  /* Wind. The slowest of the three — drift, lift and curve. */
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur-opacity: 1.2s;
+  --dur-transform: 1.5s;
+
+  --gutter: clamp(18px, 4cqi, 72px);
+  --section-y: clamp(50px, 8cqi, 150px);
+  --section-y-lg: clamp(80px, 14cqi, 240px);
+  --measure: 44ch;
+
+  /* Fire's single ground IS dark. This is not a dark mode — there is no light
+     variant of this concept — so it is declared here, on :root, once. */
+  --scheme: dark;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-font-smoothing: antialiased;
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--chrome, 0px);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  /* 400 is Schibsted Grotesk's lightest cut; 300 would silently render as
+     this anyway. */
+  font-weight: 400;
+}
+
+[data-frame] {
+  container-type: inline-size;
+  position: relative;
+  overflow-x: clip;
+  background: var(--bg);
+}
+
+img { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; }
+
+::selection { background: color-mix(in oklab, var(--accent) 45%, transparent); }
+
+:where(a, button, input, summary):focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+/* --- The one continuous composition ------------------------------------ */
+/* Sticky, full-height, with a negative margin equal to its own height so it
+   occupies no space in the flow. Everything else scrolls above it at z-index
+   1. This is why the page has no section breaks: there is only one background
+   in the whole document, and it is this. */
+
+.backdrop {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  margin-bottom: -100svh;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.backdrop-smoke { position: absolute; inset: 0; background: var(--bg); }
+/* The ignited state, faded in over the smoke by page progress. */
+.backdrop-heat {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--accent) 70%, var(--gold)) 0%,
+    var(--crimson) 34%,
+    var(--oxblood) 66%,
+    var(--deep) 100%
+  );
+  opacity: calc(var(--pg, 0) * 0.9);
+}
+.backdrop-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(clamp(50px, 8cqi, 70px));
+  will-change: opacity, transform;
+}
+.backdrop-orb-a {
+  left: -10%;
+  top: 8%;
+  width: 60cqi;
+  aspect-ratio: 1;
+  background: radial-gradient(circle, color-mix(in oklab, var(--accent) 60%, transparent), transparent 70%);
+  opacity: calc(0.18 + var(--pg, 0) * 0.42);
+  animation: wd-drift-a 22s ease-in-out infinite;
+}
+.backdrop-orb-b {
+  right: -14%;
+  bottom: 4%;
+  width: 68cqi;
+  aspect-ratio: 1;
+  background: radial-gradient(circle, color-mix(in oklab, var(--gold) 50%, transparent), transparent 70%);
+  opacity: calc(0.12 + var(--pg, 0) * 0.38);
+  animation: wd-drift-b 28s ease-in-out infinite;
+}
+/* An inner vignette, so the atmosphere never reaches the edges flat. */
+.backdrop-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 90% at 50% 45%, transparent 40%, color-mix(in oklab, var(--bg) 75%, transparent) 100%);
+}
+
+/* The ribbon of light: one SVG path drawing itself down the whole page. The
+   engine measures it once into --len; the draw is entirely CSS off --pg. */
+.thread {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+.thread path {
+  fill: none;
+  stroke: url(#thread-gradient);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: var(--len, 2000);
+  stroke-dashoffset: calc(var(--len, 2000) * (1 - min(1, var(--pg, 0) * 1.15)));
+  filter: drop-shadow(0 0 12px color-mix(in oklab, var(--accent) 60%, transparent));
+}
+
+/* Everything that is not the backdrop rides above it. */
+.above { position: relative; z-index: 1; }
+
+/* --- Type -------------------------------------------------------------- */
+
+.eyebrow {
+  margin: 0;
+  font-size: clamp(9px, 0.85cqi, 11px);
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.display {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(30px, 5.4cqi, 110px);
+  line-height: 0.96;
+  letter-spacing: -0.01em;
+}
+.display em { font-style: italic; color: var(--gold); }
+
+.lede {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.1cqi, 32px);
+  line-height: 1.4;
+  color: color-mix(in oklab, var(--ink) 92%, var(--gold));
+}
+
+.body {
+  margin: 0;
+  font-size: clamp(13px, 1.15cqi, 16px);
+  line-height: 1.85;
+  color: var(--body);
+  text-wrap: pretty;
+}
+
+.small { font-size: clamp(12px, 1.05cqi, 14px); line-height: 1.8; color: var(--body); }
+
+/* --- Actions ----------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-action);
+  padding: clamp(13px, 1.3cqi, 18px) clamp(24px, 3cqi, 44px);
+  font-size: clamp(9px, 0.85cqi, 11px);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.55s var(--ease), color 0.55s var(--ease),
+    border-color 0.55s var(--ease);
+}
+.btn-primary { background: var(--accent); color: #1a0d0f; }
+.btn-primary:hover { background: var(--gold); }
+.btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn-outline { border-color: color-mix(in oklab, var(--ink) 40%, transparent); color: var(--ink); }
+.btn-outline:hover { border-color: var(--ink); background: color-mix(in oklab, var(--ink) 10%, transparent); }
+.btn-light { background: var(--ink); color: #1a0d0f; }
+.btn-light:hover { background: var(--gold-bright); }
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  background: none;
+  padding: 0 0 8px;
+  border-bottom: 1px solid color-mix(in oklab, var(--gold) 40%, transparent);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--gold);
+  cursor: pointer;
+  transition: color 0.45s var(--ease), border-color 0.45s var(--ease);
+}
+.link:hover { color: var(--gold-bright); border-color: var(--gold-bright); }
+
+.chip {
+  border: 1px solid color-mix(in oklab, var(--ink) 24%, transparent);
+  border-radius: var(--radius-action);
+  padding: 9px 16px;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--body);
+}
+
+/* --- Sections ---------------------------------------------------------- */
+/* No section has a background of its own — that is the whole concept. */
+
+.section { position: relative; z-index: 1; padding: var(--section-y) var(--gutter); }
+.section-lg { padding: var(--section-y-lg) var(--gutter); }
+.inner { max-width: 1440px; margin: 0 auto; }
+
+/* --- Media frames: portals and arches ---------------------------------- */
+
+.media-frame {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in oklab, var(--frame-tint) 55%, transparent);
+}
+.media-frame img { width: 100%; height: 100%; object-fit: cover; }
+.media-frame-empty {
+  display: grid;
+  place-items: center;
+  padding: clamp(14px, 2.4cqi, 32px);
+  background:
+    radial-gradient(circle at 50% 60%, color-mix(in oklab, var(--accent) 22%, transparent), transparent 68%),
+    color-mix(in oklab, var(--frame-tint) 60%, transparent);
+  border: 1px solid color-mix(in oklab, var(--gold) 18%, transparent);
+}
+.media-frame-brief {
+  max-width: 24ch;
+  text-align: center;
+  font-size: clamp(10px, 0.95cqi, 12px);
+  line-height: 1.6;
+  letter-spacing: 0.08em;
+  color: color-mix(in oklab, var(--gold) 62%, transparent);
+}
+
+/* The three shapes this concept crops to. Nothing is a rectangle. */
+.portal { border-radius: 50%; }
+.arch { border-radius: var(--radius-arch); }
+.blob { border-radius: 50% 50% 46% 46% / 42% 42% 12% 12%; }
+
+/* --- Reveals ----------------------------------------------------------- */
+
+[data-reveal] {
+  opacity: 0;
+  transition:
+    opacity var(--dur-opacity) var(--ease) var(--reveal-delay, 0ms),
+    transform var(--dur-transform) var(--ease) var(--reveal-delay, 0ms),
+    filter var(--dur-transform) var(--ease) var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+[data-reveal="up"] { transform: translateY(46px); }
+[data-reveal="blur"] { transform: scale(1.04); filter: blur(20px); }
+[data-reveal][data-seen] { opacity: 1; transform: none; filter: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  [data-reveal] { opacity: 1; transform: none; filter: none; transition: none; }
+  .backdrop-orb, .scroll-cue span:last-child { animation: none !important; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}
+
+@keyframes wd-drift-a {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(6%, -4%, 0); }
+}
+@keyframes wd-drift-b {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(-5%, 5%, 0); }
+}
+@keyframes wd-cue {
+  0%, 100% { transform: translateY(0); opacity: 0.35; }
+  50% { transform: translateY(9px); opacity: 0.85; }
+}
+
+/* --- Nav --------------------------------------------------------------- */
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: clamp(14px, 1.6cqi, 24px) clamp(18px, 3cqi, 56px);
+  background: color-mix(in oklab, var(--bg) 62%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid color-mix(in oklab, var(--ink) 10%, transparent);
+}
+.nav-static { position: relative; }
+.nav-logo img { height: clamp(26px, 2.9cqi, 44px); width: auto; }
+.nav-wordmark { font-family: var(--font-display); font-size: clamp(16px, 1.8cqi, 26px); }
+.nav-links { display: flex; gap: clamp(14px, 2cqi, 34px); align-items: center; }
+.nav-links a {
+  font-size: clamp(9px, 0.85cqi, 11px);
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--muted);
+  transition: color 0.45s var(--ease);
+}
+.nav-links a:hover { color: var(--ink); }
+.nav-cta { background: var(--gold); color: #1a0d0f; padding: 11px clamp(12px, 1.6cqi, 24px); border-radius: var(--radius-action); }
+.nav-cta:hover { background: var(--gold-bright); color: #1a0d0f; }
+.nav-mobile { display: none; gap: 8px; align-items: center; }
+.nav-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid color-mix(in oklab, var(--ink) 20%, transparent);
+  border-radius: var(--radius-action);
+  background: transparent;
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.nav-toggle-bars { display: flex; flex-direction: column; gap: 4px; }
+.nav-toggle-bars span { width: 16px; height: 1px; background: currentColor; }
+
+.menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: calc(100svh - var(--navh, 0px));
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(20px, 5cqi, 32px) clamp(18px, 5cqi, 28px) clamp(24px, 6cqi, 36px);
+  background: color-mix(in oklab, var(--bg) 94%, transparent);
+  backdrop-filter: blur(16px);
+  overflow-y: auto;
+}
+.menu-links { display: flex; flex-direction: column; }
+.menu-links a {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid color-mix(in oklab, var(--ink) 14%, transparent);
+  font-family: var(--font-display);
+  font-size: clamp(34px, 11cqi, 56px);
+  line-height: 1.05;
+  transition: color 0.45s var(--ease);
+}
+.menu-links a:hover { color: var(--gold); }
+.menu-links span { font-family: var(--font-body); font-size: 9px; letter-spacing: 0.3em; color: var(--accent); }
+.menu-foot { display: flex; flex-direction: column; gap: 18px; margin-top: 28px; }
+.menu-socials { display: flex; justify-content: space-between; gap: 12px; font-size: 9px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--muted); }
+
+@container (max-width: 760px) {
+  .nav-links { display: none; }
+  .nav-mobile { display: flex; }
+}
+@container (min-width: 760.01px) {
+  .menu { display: none; }
+}
+
+/* --- Sticky ticket bar ------------------------------------------------- */
+
+.ticket-bar { position: sticky; bottom: 0; z-index: 70; display: flex; justify-content: center; padding: 0 0 clamp(12px, 1.4cqi, 20px); pointer-events: none; }
+.ticket-bar a {
+  pointer-events: auto;
+  transform: translateY(calc(-1 * clamp(4px, 0.6cqi, 10px)));
+  background: var(--accent);
+  color: #1a0d0f;
+  padding: 13px 26px;
+  border-radius: var(--radius-action);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  box-shadow: 0 10px 40px color-mix(in oklab, var(--accent) 40%, transparent);
+  transition: background-color 0.55s var(--ease);
+}
+.ticket-bar a:hover { background: var(--gold); }
+
+/* --- Hero: the portal --------------------------------------------------- */
+
+.hero { position: relative; height: 280vh; }
+.hero-pin {
+  position: sticky;
+  top: var(--chrome, 0px);
+  height: calc(100svh - var(--chrome, 0px));
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.hero-portal {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(66cqi, 720px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%) translateY(calc(var(--p, 0) * -6cqi)) scale(calc(0.86 + var(--p, 0) * 0.3));
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 0 clamp(100px, 14cqi, 120px) color-mix(in oklab, var(--accent) 30%, transparent);
+  will-change: transform;
+}
+.hero-portal .media-frame { width: 100%; height: 100%; border-radius: 50%; }
+/* A champagne hairline locked at the portal's REST size, so the ring stays
+   put while the picture inside it grows. */
+.hero-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(66cqi, 720px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border: 1px solid color-mix(in oklab, var(--gold) 40%, transparent);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.hero-copy { position: relative; z-index: 2; text-align: center; padding: 0 clamp(18px, 4cqi, 60px); }
+.hero-title {
+  margin: clamp(16px, 2.4cqi, 34px) 0 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(52px, 16cqi, 250px);
+  line-height: 0.82;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 60px color-mix(in oklab, var(--accent) 35%, transparent);
+}
+.hero-title i { font-style: normal; color: var(--accent); }
+.hero-sub {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(20px, 3.4cqi, 52px);
+  color: var(--gold);
+  margin-top: clamp(8px, 1.2cqi, 18px);
+}
+.hero-dates {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 1.4cqi, 20px);
+  margin-top: clamp(18px, 2.6cqi, 38px);
+  font-size: clamp(10px, 0.95cqi, 13px);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--body);
+}
+.hero-dates::before, .hero-dates::after {
+  content: "";
+  width: clamp(20px, 3cqi, 54px);
+  height: 1px;
+  background: color-mix(in oklab, var(--gold) 55%, transparent);
+}
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: clamp(22px, 3cqi, 44px); }
+.hero-quote { position: absolute; left: clamp(18px, 3cqi, 56px); bottom: clamp(20px, 3cqi, 48px); max-width: 30ch; text-align: left; z-index: 2; }
+.hero-quote p { margin: 0; font-family: var(--font-display); font-style: italic; font-size: clamp(13px, 1.3cqi, 19px); line-height: 1.5; color: var(--body); }
+.hero-quote cite { display: block; margin-top: 8px; font-family: var(--font-body); font-style: normal; font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--label); }
+.scroll-cue { position: absolute; right: clamp(18px, 3cqi, 56px); bottom: clamp(20px, 3cqi, 48px); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 2; }
+.scroll-cue span:first-child { font-size: 8px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--label); writing-mode: vertical-rl; }
+.scroll-cue span:last-child { width: 1px; height: clamp(28px, 4cqi, 56px); background: linear-gradient(var(--gold), transparent); animation: wd-cue 2.6s ease-in-out infinite; }
+
+@container (max-width: 760px) {
+  .scroll-cue { display: none; }
+  .hero-quote { right: clamp(18px, 3cqi, 56px); max-width: none; }
+}
+
+/* --- Manifesto: the blob ------------------------------------------------ */
+
+.manifesto-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: clamp(30px, 5cqi, 90px);
+  align-items: center;
+}
+.manifesto-figure .media-frame {
+  aspect-ratio: 3 / 4;
+  border-radius: 50% 50% 46% 46% / 42% 42% 12% 12%;
+  transform: translateY(calc(var(--p, 0) * -5cqi));
+}
+.manifesto-copy { margin-top: clamp(24px, 3cqi, 48px); display: flex; flex-direction: column; gap: clamp(14px, 1.6cqi, 24px); max-width: var(--measure); }
+.manifesto-close { margin: clamp(6px, 1cqi, 14px) 0 0; font-family: var(--font-display); font-style: italic; font-size: clamp(20px, 2.2cqi, 34px); line-height: 1.35; color: var(--gold); }
+
+/* --- Portal crossfade --------------------------------------------------- */
+/* Three stacked circular portals in a 440vh pin. Each drifts sideways, scales
+   a little larger than the last, and rotates as it settles — the fire visibly
+   grows across the three states. */
+
+.stages { position: relative; height: 440vh; }
+.stages-pin {
+  position: sticky;
+  top: var(--chrome, 0px);
+  height: calc(100svh - var(--chrome, 0px));
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.orb {
+  position: absolute;
+  width: min(60cqi, 640px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  opacity: calc(var(--o, 0) * 0.92);
+  box-shadow: 0 0 clamp(100px, 12cqi, 120px) color-mix(in oklab, var(--accent) 25%, transparent);
+  will-change: opacity, transform;
+}
+.orb .media-frame { width: 100%; height: 100%; border-radius: 50%; }
+/* Each drifts a different way and settles a touch larger than the last. */
+.orb-1 { transform: translateX(calc((1 - var(--o, 0)) * -12cqi)) scale(calc(0.82 + var(--o, 0) * 0.2)) rotate(calc((1 - var(--o, 0)) * 6deg)); }
+.orb-2 { transform: translateX(calc((1 - var(--o, 0)) * 7.2cqi)) scale(calc(0.82 + var(--o, 0) * 0.26)) rotate(calc((1 - var(--o, 0)) * 6deg)); }
+.orb-3 { transform: translateX(calc((1 - var(--o, 0)) * 12cqi)) scale(calc(0.82 + var(--o, 0) * 0.32)) rotate(calc((1 - var(--o, 0)) * 6deg)); }
+
+.stage {
+  position: absolute;
+  z-index: 2;
+  text-align: center;
+  max-width: 34ch;
+  padding: clamp(20px, 4cqi, 60px);
+  opacity: var(--o, 0);
+  transform: translateY(calc((1 - var(--o, 0)) * 30px));
+  will-change: opacity, transform;
+}
+/* A radial scrim so the words stay legible over whatever the portal holds. */
+.stage::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  z-index: -1;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--bg) 72%, transparent), transparent 100%);
+}
+.stage-word {
+  margin: clamp(12px, 1.6cqi, 22px) 0 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(40px, 10cqi, 196px);
+  line-height: 0.88;
+}
+.stage-phrase { font-family: var(--font-display); font-style: italic; font-size: clamp(18px, 2.4cqi, 38px); color: var(--gold); margin-top: 6px; }
+.stage-body { margin: clamp(14px, 1.8cqi, 26px) auto 0; font-size: clamp(13px, 1.15cqi, 16px); line-height: 1.8; color: var(--body); }
+
+/* --- Scripture ---------------------------------------------------------- */
+
+.scripture { text-align: center; }
+.scripture .inner { max-width: 1100px; }
+.scripture blockquote {
+  margin: clamp(28px, 4cqi, 64px) 0 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(30px, 5.6cqi, 94px);
+  line-height: 1.1;
+  color: color-mix(in oklab, var(--ink) 96%, var(--gold));
+}
+.scripture blockquote em { font-style: italic; color: var(--gold-bright); }
+.scripture-rule { display: block; width: clamp(40px, 6cqi, 110px); height: 1px; margin: clamp(30px, 4cqi, 60px) auto 0; background: color-mix(in oklab, var(--gold) 60%, transparent); }
+
+/* --- Speakers: arch crops ----------------------------------------------- */
+
+.speakers-grid {
+  margin-top: clamp(36px, 5cqi, 80px);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: clamp(16px, 2.4cqi, 44px);
+  align-items: start;
+}
+/* Staggered tops, so nothing sits on a hard baseline. */
+.speakers-grid > :nth-child(even) { margin-top: clamp(16px, 3cqi, 64px); }
+.speaker .media-frame { aspect-ratio: 3 / 4; border-radius: var(--radius-arch); }
+.speaker-name { margin: clamp(14px, 1.8cqi, 24px) 0 0; font-family: var(--font-display); font-size: clamp(21px, 2.2cqi, 34px); line-height: 1.05; }
+.speaker-role { margin-top: 8px; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--label); }
+.speaker p { margin: 12px 0 0; }
+/* The fourth cell: an outlined arch rather than a photograph. */
+.speaker-soon {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  aspect-ratio: 3 / 4;
+  padding: clamp(20px, 3cqi, 40px);
+  border: 1px solid color-mix(in oklab, var(--gold) 30%, transparent);
+  border-radius: var(--radius-arch);
+  text-align: center;
+}
+.speaker-soon h3 { margin: 0; font-family: var(--font-display); font-style: italic; font-size: clamp(20px, 2.4cqi, 34px); line-height: 1.2; color: var(--gold); }
+.speaker-soon .link { align-self: center; }
+
+/* --- Three days: portals ------------------------------------------------ */
+
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: clamp(24px, 4cqi, 72px);
+  margin-top: clamp(36px, 5cqi, 80px);
+  text-align: center;
+}
+/* The middle column drops, so the three drift rather than line up. */
+.days-grid > :nth-child(2) { margin-top: clamp(16px, 3.4cqi, 72px); }
+.day .media-frame { aspect-ratio: 1; border-radius: 50%; margin-bottom: clamp(16px, 2.4cqi, 32px); }
+.day-numeral { margin: 0; font-family: var(--font-display); font-size: clamp(48px, 7cqi, 110px); line-height: 0.8; }
+.day:last-child .day-numeral { color: var(--gold-bright); }
+.day-weekday { margin-top: clamp(10px, 1.4cqi, 18px); font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--label); }
+.day-time { font-size: clamp(13px, 1.2cqi, 17px); color: var(--accent); margin-top: 4px; }
+.day-beat { margin-top: clamp(12px, 1.6cqi, 22px); font-family: var(--font-display); font-style: italic; font-size: clamp(19px, 1.9cqi, 28px); }
+.day p { margin: 8px auto 0; max-width: 30ch; }
+
+/* --- Venue -------------------------------------------------------------- */
+
+.venue-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: clamp(24px, 4cqi, 72px); align-items: center; margin-top: clamp(30px, 4cqi, 64px); }
+.venue-name { margin: 0; font-family: var(--font-display); font-size: clamp(26px, 3.4cqi, 54px); line-height: 1.05; }
+.venue-address { margin: clamp(12px, 1.6cqi, 22px) 0 0; font-style: normal; }
+.venue-images { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: clamp(12px, 2cqi, 28px); }
+.venue-images .media-frame { aspect-ratio: 1; border-radius: 50%; }
+
+/* --- Experience: circular frames ---------------------------------------- */
+
+.experience-head { max-width: 40ch; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: clamp(18px, 2.4cqi, 32px); }
+.experience-frames {
+  margin-top: clamp(36px, 5cqi, 80px);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: clamp(14px, 2.4cqi, 40px);
+}
+.experience-frames > * { display: flex; flex-direction: column; gap: 12px; align-items: center; text-align: center; }
+.experience-frames .media-frame { width: 100%; aspect-ratio: 1; border-radius: 50%; }
+.experience-frames > :nth-child(even) { margin-top: clamp(16px, 3cqi, 64px); }
+.experience-caption { font-size: 10px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--label); }
+
+/* --- Different stories: the overlapping group --------------------------- */
+
+.stories { text-align: center; }
+.stories h2 { margin: 0; font-family: var(--font-display); font-size: clamp(34px, 6.4cqi, 104px); line-height: 0.98; }
+.stories-em { margin: clamp(6px, 0.8cqi, 14px) 0 0; font-style: italic; color: var(--accent); }
+.stories p { margin: clamp(20px, 2.6cqi, 40px) auto 0; max-width: 52ch; }
+/* Negative margins so the four read as one connected group, not four cells. */
+.stories-frames {
+  margin-top: clamp(30px, 4cqi, 64px);
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.stories-frames .media-frame {
+  width: clamp(90px, 16cqi, 200px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid var(--bg);
+}
+.stories-frames > :not(:first-child) { margin-left: clamp(-40px, -5cqi, -14px); }
+.stories-frames > :nth-child(2) { margin-top: clamp(10px, 2cqi, 34px); }
+.stories-frames > :nth-child(4) { margin-top: clamp(14px, 2.6cqi, 44px); }
+
+/* --- Final CTA: the bloom ----------------------------------------------- */
+/* The brightest point on the page. */
+
+.cta { position: relative; overflow: hidden; text-align: center; }
+.cta-bloom {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 130cqi;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in oklab, var(--gold) 55%, var(--accent)) 0%, transparent 62%);
+  opacity: 0.42;
+  filter: blur(clamp(40px, 6cqi, 80px));
+  pointer-events: none;
+}
+.cta .inner { position: relative; max-width: 1000px; }
+.cta h2 { margin: clamp(20px, 2.6cqi, 40px) 0 0; font-family: var(--font-display); font-size: clamp(34px, 7cqi, 120px); line-height: 1; }
+.cta h2 em { font-style: italic; color: var(--gold-bright); }
+.cta p { margin: clamp(20px, 2.4cqi, 36px) auto 0; max-width: 44ch; font-size: clamp(14px, 1.25cqi, 18px); line-height: 1.8; color: color-mix(in oklab, var(--ink) 88%, var(--gold)); }
+.cta-actions { margin-top: clamp(26px, 3.4cqi, 50px); display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; align-items: center; }
+.cta-date { font-size: clamp(10px, 0.9cqi, 12px); letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); }
+
+/* --- FAQ ---------------------------------------------------------------- */
+
+.faq-list { margin-top: clamp(30px, 4cqi, 64px); border-top: 1px solid var(--hairline); max-width: 900px; }
+.faq-item { border-bottom: 1px solid var(--hairline); }
+.faq-item summary { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; padding: clamp(18px, 2cqi, 28px) 0; cursor: pointer; list-style: none; font-family: var(--font-display); font-size: clamp(19px, 2cqi, 30px); transition: color 0.45s var(--ease); }
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary:hover { color: var(--gold); }
+.faq-item summary::after { content: "+"; font-family: var(--font-body); font-size: 18px; color: var(--accent); transition: transform 0.45s var(--ease); }
+.faq-item[open] summary::after { transform: rotate(45deg); }
+.faq-item p { margin: 0 0 clamp(18px, 2cqi, 28px); max-width: 62ch; }
+
+/* --- Footer -------------------------------------------------------------- */
+/* Translucent, so the atmosphere continues through it. */
+
+.footer {
+  position: relative;
+  z-index: 1;
+  background: color-mix(in oklab, var(--bg) 72%, transparent);
+  backdrop-filter: blur(8px);
+  color: var(--body);
+  padding: clamp(40px, 6cqi, 100px) var(--gutter) clamp(24px, 3cqi, 48px);
+}
+.footer-grid { max-width: 1440px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: clamp(24px, 3cqi, 56px); align-items: start; }
+.footer-logo img { height: clamp(32px, 3.4cqi, 52px); width: auto; }
+.footer-org { margin-top: 10px; font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--label); }
+.footer p { margin: 16px 0 0; font-size: 12px; line-height: 1.8; max-width: 30ch; }
+.footer-col { display: flex; flex-direction: column; gap: 10px; }
+.footer-col > span { font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+.footer-col a { font-size: 12px; transition: color 0.45s var(--ease); }
+.footer-col a:hover { color: var(--ink); }
+.footer-socials { max-width: 1440px; margin: clamp(26px, 3.2cqi, 52px) auto 0; display: flex; flex-wrap: wrap; gap: clamp(8px, 1cqi, 14px); }
+/* Pill tiles — the concept has no square anywhere. */
+.footer-socials a {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: clamp(130px, 15cqi, 190px);
+  padding: clamp(11px, 1.2cqi, 16px) clamp(18px, 2cqi, 28px);
+  border: 1px solid color-mix(in oklab, var(--ink) 18%, transparent);
+  border-radius: clamp(18px, 2.4cqi, 32px);
+  transition: border-color 0.45s var(--ease), color 0.45s var(--ease);
+}
+.footer-socials a:hover { border-color: var(--gold); color: var(--ink); }
+.footer-socials span:first-child { font-size: 9px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--accent); }
+.footer-socials span:last-child { font-family: var(--font-display); font-size: clamp(13px, 1.15cqi, 16px); }
+.footer-legal {
+  max-width: 1440px;
+  margin: clamp(28px, 3.4cqi, 56px) auto 0;
+  padding-top: 20px;
+  border-top: 1px solid color-mix(in oklab, var(--ink) 12%, transparent);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* --- Checkout ---------------------------------------------------------- */
+/* event-kit ships the markup; the concept ships the look. */
+
+.checkout { max-width: 720px; margin: 0 auto; }
+.checkout-heading {
+  margin: clamp(14px, 1.8cqi, 26px) 0 clamp(24px, 3cqi, 44px);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(32px, 5.4cqi, 84px);
+  line-height: 1;
+}
+.checkout-body { margin: 0 0 clamp(20px, 2.4cqi, 32px); font-size: clamp(14px, 1.2cqi, 17px); line-height: 1.85; color: var(--body); }
+.checkout-note { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+.checkout-error {
+  margin: 0 0 20px;
+  padding: 14px 18px;
+  border-left: 2px solid var(--accent);
+  background: color-mix(in oklab, var(--accent) 6%, transparent);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--accent);
+}
+.checkout-tiers { list-style: none; margin: 0 0 clamp(24px, 3cqi, 40px); padding: 0; border-top: 1px solid var(--hairline); }
+.checkout-tier {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: clamp(12px, 2cqi, 28px);
+  padding: clamp(18px, 2cqi, 26px) 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.checkout-tier-copy h3 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(18px, 1.9cqi, 26px); }
+.checkout-tier-copy p { margin: 6px 0 0; font-size: 13px; line-height: 1.7; color: var(--body); }
+.checkout-tier-price { font-family: var(--font-display); font-size: clamp(17px, 1.8cqi, 24px); color: var(--accent); }
+.checkout-stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-action);
+  padding: 4px;
+}
+.checkout-stepper button {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition: background-color 0.3s var(--ease);
+}
+.checkout-stepper button:hover:not(:disabled) { background: color-mix(in oklab, var(--ink) 6%, transparent); }
+.checkout-stepper button:disabled { opacity: 0.3; cursor: not-allowed; }
+.checkout-stepper > span { min-width: 24px; text-align: center; font-variant-numeric: tabular-nums; }
+.checkout-details { display: grid; gap: clamp(14px, 2cqi, 20px); margin-bottom: clamp(20px, 2.4cqi, 32px); }
+.checkout-details label { display: flex; flex-direction: column; gap: 7px; }
+.checkout-details label > span { font-size: 10px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--muted); }
+.checkout-details input {
+  padding: 13px 16px;
+  border: 1px solid color-mix(in oklab, var(--ink) 22%, transparent);
+  border-radius: var(--radius-field);
+  background: color-mix(in oklab, var(--ink) 6%, transparent);
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--ink);
+}
+.checkout-details input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.checkout-details small { font-size: 12px; color: var(--muted); }
+.checkout-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: clamp(16px, 2cqi, 22px) 0;
+  border-top: 1px solid var(--hairline-strong);
+  margin-bottom: clamp(20px, 2.4cqi, 30px);
+}
+.checkout-total span { font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--muted); }
+.checkout-total strong { font-family: var(--font-display); font-weight: 400; font-size: clamp(26px, 3cqi, 40px); }
+.checkout .btn-primary { width: 100%; }
+.checkout-stripe { display: flex; flex-direction: column; gap: clamp(20px, 2.4cqi, 28px); }
+.checkout-transfer {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px 24px;
+  margin: 0 0 24px;
+  padding: clamp(18px, 2cqi, 26px);
+  border: 1px solid var(--hairline);
+  background: color-mix(in oklab, var(--oxblood) 30%, transparent);
+}
+.checkout-transfer dt { font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--muted); }
+.checkout-transfer dd { margin: 0; font-family: var(--font-display); font-size: 18px; }
+.checkout-seated { margin-top: clamp(30px, 4cqi, 52px); padding-top: clamp(20px, 2.4cqi, 30px); border-top: 1px solid var(--hairline); }
+.checkout-seated ul { list-style: none; margin: 12px 0 18px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.checkout-success { text-align: center; padding: clamp(30px, 5cqi, 80px) 0; }
+
+@container (max-width: 760px) {
+  .checkout-tier { grid-template-columns: 1fr auto; }
+  .checkout-stepper { grid-column: 1 / -1; justify-self: start; }
+}
+
+/* --- The tickets page -------------------------------------------------- */
+
+.tickets-page { padding: clamp(40px, 8cqi, 120px) var(--gutter) clamp(60px, 10cqi, 140px); min-height: 70svh; }
+.tickets-back { display: inline-flex; align-items: center; gap: 10px; margin-bottom: clamp(24px, 3cqi, 48px); font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--muted); }
+.tickets-back:hover { color: var(--ink); }
