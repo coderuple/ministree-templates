@@ -1,0 +1,22 @@
+{
+  "name": "@ministree-templates/event-kit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./*": "./src/*.ts",
+    "./scroll-engine": "./src/scroll-engine.tsx",
+    "./checkout-ui": "./src/checkout-ui.tsx",
+    "./stripe-panel": "./src/stripe-panel.tsx",
+    "./media-frame": "./src/media-frame.tsx"
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --test src/*.test.ts"
+  },
+  "peerDependencies": {
+    "@ministree/template-sdk": "*",
+    "@stripe/react-stripe-js": "*",
+    "@stripe/stripe-js": "*",
+    "react": ">=19"
+  }
+}
