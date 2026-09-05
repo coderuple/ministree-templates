@@ -32,6 +32,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...but .env.example is part of the template contract: `ministree-template
+# validate` requires the env vars documented there, and `.env*` meant the one
+# file that documents them could never be committed.
+!.env.example
 
 # vercel
 .vercel
