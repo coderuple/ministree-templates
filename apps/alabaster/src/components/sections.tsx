@@ -587,18 +587,24 @@ export function Experience({
           ) : null}
         </div>
 
+        {/* The wrapper carries the reveal, not the frame: MediaFrame passes
+            `style` to the frame itself, so a delay set there had nothing to
+            delay and the pictures simply appeared. */}
         <div className="experience-frames">
           {(briefs ?? []).map((brief, i) => (
-            <MediaFrame
+            <div
               key={brief}
-              src={images[i]}
-              brief={brief}
-              alt=""
-              aspect="3 / 4"
-              className=""
-              sizes="(max-width: 760px) 50vw, 22vw"
+              data-reveal="up"
               style={{ "--reveal-delay": `${i * 80}ms` } as React.CSSProperties}
-            />
+            >
+              <MediaFrame
+                src={images[i]}
+                brief={brief}
+                alt=""
+                aspect="3 / 4"
+                sizes="(max-width: 760px) 50vw, 22vw"
+              />
+            </div>
           ))}
         </div>
       </div>
