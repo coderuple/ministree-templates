@@ -469,6 +469,25 @@ export default defineMinistreeTemplate({
             optional: true,
             help: "Anything that has to be said under the tiers \u2014 age limits, refunds, door times.",
           },
+          socialLinks: {
+            kind: "repeatable",
+            label: "Social links",
+            help: "Leave empty to use the accounts on your church profile. Add rows when the event has its own \u2014 any platform, in the order you want them shown.",
+            fields: {
+              label: {
+                kind: "text",
+                label: "Which one",
+                width: "half",
+                help: "Instagram, TikTok, WhatsApp \u2014 whatever it is. This is the wording people see.",
+              },
+              href: {
+                kind: "url",
+                label: "Address",
+                width: "half",
+                help: "Paste the page's address. instagram.com/yourname is fine.",
+              },
+            },
+          },
         },
       },
 

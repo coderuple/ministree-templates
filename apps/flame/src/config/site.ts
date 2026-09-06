@@ -115,11 +115,9 @@ export const site = {
     phone: "(555) 010-1234",
   },
 
-  socials: [
-    { label: "Instagram", href: "#" },
-    { label: "YouTube", href: "#" },
-    { label: "Facebook", href: "#" },
-  ],
+  /* Empty, not "#". A dead link is worse than no link, and with nothing here
+     the site falls back to the church's own accounts from its profile. */
+  socials: [] as Array<{ label: string; href: string }>,
 
   // Fallback navigation when a church has no menu configured.
   nav: [

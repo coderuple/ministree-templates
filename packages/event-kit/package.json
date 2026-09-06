@@ -13,6 +13,7 @@
     "./media-frame": "./src/media-frame.tsx",
     "./ministree": "./src/ministree.ts",
     "./scroll-engine": "./src/scroll-engine.tsx",
+    "./socials": "./src/socials.ts",
     "./stripe-panel": "./src/stripe-panel.tsx"
   },
   "scripts": {

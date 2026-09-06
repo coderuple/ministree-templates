@@ -217,6 +217,12 @@ export const site = {
     soldOutMessage: "Tickets for this one have all gone.",
   },
 
+  /* Left empty on purpose. With no rows here the site falls back to the
+     church's own four from its Ministree profile, which is the right answer
+     for a church running its first conference. A conference with its own
+     handles adds them and they win outright. */
+  socialLinks: [] as Array<{ label: string; href: string }>,
+
   footer: {
     organisation: "Esther's Ministry",
     description:

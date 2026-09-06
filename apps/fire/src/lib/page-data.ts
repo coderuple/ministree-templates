@@ -1,4 +1,5 @@
 import { loadFeaturedEvent, toEventView, type EventView } from "@ministree-templates/event-kit/event";
+import { resolveSocials, type SocialLink } from "@ministree-templates/event-kit/socials";
 import { formatDateRange } from "@ministree-templates/event-kit/format";
 import { loadContent, loadLocale, loadProfile, loadSettings, siteName } from "@/lib/ministree";
 import type { SiteContent } from "@/config/site";
@@ -19,21 +20,10 @@ export interface PageData {
   /** The event's name, or the demo's. Sits ABOVE the headline, as the eyebrow. */
   eventTitle: string;
   dateLabel: string;
-  socials: Array<{ label: string; href: string; handle: string }>;
+  socials: SocialLink[];
   email: string | null;
   logoLight: string;
   logoDark: string;
-}
-
-/** Turns a social URL into the @handle the footer tiles print. */
-function handleFrom(url: string): string {
-  try {
-    const path = new URL(url).pathname.replace(/\/$/, "");
-    const last = path.split("/").filter(Boolean).pop() ?? "";
-    return last.startsWith("@") ? last : `@${last}`;
-  } catch {
-    return url;
-  }
 }
 
 export async function loadPageData(): Promise<PageData> {
@@ -48,16 +38,13 @@ export async function loadPageData(): Promise<PageData> {
   const event = record ? toEventView(record, locale) : null;
 
   const church = siteName(settings);
-  const social = profile?.socials ?? null;
-  const socials = [
-    { label: "Instagram", href: social?.instagram },
-    { label: "Facebook", href: social?.facebook },
-    { label: "YouTube", href: social?.youtube },
-    { label: "TikTok", href: (social as { tiktok?: string } | null)?.tiktok },
-    { label: "X", href: social?.x },
-  ]
-    .filter((s): s is { label: string; href: string } => Boolean(s.href))
-    .map((s) => ({ ...s, handle: handleFrom(s.href) }));
+  /* The church's own four are the fallback. A conference usually has its own
+     handles — and lives on platforms the church profile has no field for — so
+     the Customizer's list wins whenever it has anything in it. */
+  const socials = resolveSocials(
+    content.socialLinks as Array<{ label?: string; href?: string }> | undefined,
+    (profile?.socials ?? null) as Record<string, string | null | undefined> | null,
+  );
 
   /* The demo dates are only ever a stand-in. A connected event brings its own,
      and they win — a church should never see last year's dates because the

@@ -9,6 +9,7 @@ import { defaults } from "@/lib/ministree";
 import { flameEventSections, type EventSectionContext } from "@/sections/event";
 import { backdropElement, backdropEnabled, loadContent, loadSettings, loadSlugs, siteName } from "@/lib/ministree";
 import { formatDateRange, type Locale } from "@/lib/format";
+import { resolveSocials } from "@/lib/socials";
 import EventExperience, { type EventExperienceProps } from "@/components/event/EventExperience";
 import type { LineupPerson } from "@/components/event/sections/EventLineup";
 import type { TimelineEntry } from "@/components/event/sections/EventTimeline";
@@ -183,13 +184,14 @@ export default async function EventSite({
 
   const givingHref = hrefFor(slugs, "giving");
 
-  const social = profile?.socials ?? null;
-  const socials = [
-    { label: "Instagram", href: social?.instagram },
-    { label: "Facebook", href: social?.facebook },
-    { label: "YouTube", href: social?.youtube },
-    { label: "X", href: social?.x },
-  ].filter((s): s is { label: string; href: string } => Boolean(s.href));
+  /* The event's own handles when it has them, else the church's four. A
+     conference on TikTok or WhatsApp had nowhere to say so before: the church
+     profile stores exactly four platforms and nothing else. */
+  const socials = resolveSocials(
+    (content as { event?: { socialLinks?: Array<{ label?: string; href?: string }> } }).event
+      ?.socialLinks,
+    (profile?.socials ?? null) as Record<string, string | null | undefined> | null,
+  );
 
   /* The running order the church arranged. `loadContent` has already merged the
      manifest defaults underneath, so this is normally present; the `??` covers

@@ -432,6 +432,26 @@ export default defineMinistreeTemplate({
         },
       },
 
+      socialLinks: {
+        kind: "repeatable",
+        label: "Social links",
+        help: "Leave empty to use the accounts on your church profile. Add rows here when the event has its own — any platform, in the order you want them shown.",
+        fields: {
+          label: {
+            kind: "text",
+            label: "Which one",
+            width: "half",
+            help: "Instagram, TikTok, WhatsApp \u2014 whatever it is. This is the wording people see.",
+          },
+          href: {
+            kind: "url",
+            label: "Address",
+            width: "half",
+            help: "Paste the page's address. instagram.com/yourname is fine.",
+          },
+        },
+      },
+
       footer: {
         kind: "group",
         label: "Footer",
@@ -518,7 +538,7 @@ export default defineMinistreeTemplate({
         {
           id: "chrome",
           title: "Footer & menu",
-          groups: [{ fields: ["footer", "nav", "effects"] }],
+          groups: [{ title: "Social links", fields: ["socialLinks"] }, { fields: ["footer", "nav", "effects"] }],
         },
       ],
     },
