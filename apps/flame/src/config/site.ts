@@ -119,6 +119,10 @@ export const site = {
      the site falls back to the church's own accounts from its profile. */
   socials: [] as Array<{ label: string; href: string }>,
 
+  /* Empty by design — the footer falls back to the contact card in Site
+     settings, which is where a church's own accounts belong. */
+  socialLinks: [] as Array<{ label: string; href: string }>,
+
   // Fallback navigation when a church has no menu configured.
   nav: [
     { label: "Visit", href: "/locations" },

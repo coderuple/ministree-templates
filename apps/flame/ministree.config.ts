@@ -556,6 +556,26 @@ export default defineMinistreeTemplate({
         },
       },
 
+      socialLinks: {
+        kind: "repeatable",
+        label: "Social links",
+        help: "Leave empty to use the accounts on your Site settings contact card. Add rows here to override them, on any platform.",
+        fields: {
+          label: {
+            kind: "text",
+            label: "Which one",
+            width: "half",
+            help: "Instagram, TikTok, WhatsApp \u2014 whatever it is. This is the wording people see.",
+          },
+          href: {
+            kind: "url",
+            label: "Address",
+            width: "half",
+            help: "Paste the page's address. instagram.com/yourname is fine.",
+          },
+        },
+      },
+
       // Header + footer chrome.
       chrome: {
         kind: "group",
@@ -653,6 +673,7 @@ export default defineMinistreeTemplate({
           title: "Brand",
           groups: [
             { title: "Tagline", fields: ["tagline"] },
+            { title: "Social links", fields: ["socialLinks"] },
             { title: "Header & footer", fields: ["chrome"] },
           ],
         },

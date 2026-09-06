@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { resolveSocials } from "@/lib/socials";
 import type { NavNode } from "@ministree/template-sdk";
 import { loadContent, loadNav, loadSettings, siteName } from "@/lib/ministree";
 import { Container } from "@/components/ui";
@@ -18,14 +19,21 @@ export default async function Footer() {
   const email = contact?.email ?? content.contact.email;
   const phone = contact?.phone ?? content.contact.phone;
 
-  const socials: Array<{ label: string; href: string }> = contact
-    ? [
-        contact.instagramUrl && { label: "Instagram", href: contact.instagramUrl },
-        contact.youtubeUrl && { label: "YouTube", href: contact.youtubeUrl },
-        contact.facebookUrl && { label: "Facebook", href: contact.facebookUrl },
-        contact.xUrl && { label: "X", href: contact.xUrl },
-      ].filter(Boolean as unknown as (v: unknown) => v is { label: string; href: string })
-    : content.socials;
+  /* Three sources, most specific first: the church's own list in the
+     Customizer, then the four URLs on Site Settings' contact card, then
+     whatever the template shipped with. `resolveSocials` also repairs a pasted
+     bare domain, which the contact card does not validate. */
+  const socials = resolveSocials(
+    (content as { socialLinks?: Array<{ label?: string; href?: string }> }).socialLinks?.length
+      ? (content as { socialLinks?: Array<{ label?: string; href?: string }> }).socialLinks
+      : [
+          { label: "Instagram", href: contact?.instagramUrl ?? undefined },
+          { label: "YouTube", href: contact?.youtubeUrl ?? undefined },
+          { label: "Facebook", href: contact?.facebookUrl ?? undefined },
+          { label: "X", href: contact?.xUrl ?? undefined },
+        ],
+    null,
+  );
 
   return (
     <footer className="relative mt-28 border-t border-line bg-surface/40">
