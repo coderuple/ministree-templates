@@ -18,7 +18,7 @@ export default defineMinistreeTemplate({
   },
 
   compatibility: {
-    sdk: "^0.5.0",
+    sdk: "^0.6.0",
     deploymentMode: "single",
     requiresModules: [],
   },
@@ -175,9 +175,11 @@ export default defineMinistreeTemplate({
     {
       name: "--backdrop-scrim",
       type: "length",
+      control: "opacity",
       default: "0.45",
       label: "Backdrop dimming",
-      description: "How much the moving backdrop is dimmed behind text. 0 shows it at full strength; higher keeps headings readable over it.",
+      description:
+        "How much the moving backdrop is dimmed behind text. Drag it left to show the backdrop at full strength, right to keep headings readable over it.",
     },
     {
       name: "--radius-button",
