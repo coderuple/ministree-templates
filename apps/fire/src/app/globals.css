@@ -22,11 +22,16 @@
   --crimson: color-mix(in oklab, var(--accent) 45%, var(--oxblood));
   --deep: color-mix(in oklab, var(--bg) 82%, var(--oxblood));
   --body: color-mix(in oklab, var(--ink) 70%, var(--bg));
-  --muted: color-mix(in oklab, var(--ink) 48%, var(--bg));
-  --label: color-mix(in oklab, var(--gold) 62%, var(--bg));
+  /* 48% measured 3.79:1 on smoke, before the ground warms at all. */
+  --muted: color-mix(in oklab, var(--ink) 68%, var(--bg));
+  --label: color-mix(in oklab, var(--gold) 88%, var(--bg));
   --hairline: color-mix(in oklab, var(--ink) 16%, transparent);
   --hairline-strong: color-mix(in oklab, var(--ink) 40%, transparent);
   --gold-bright: color-mix(in oklab, var(--gold) 70%, white);
+  /* Ember stays the accent for fills and glows. As small text it measured
+     4.21:1 once the ground warms, so eyebrows take this cut, lifted toward
+     champagne just far enough to clear 4.5 without losing the ember read. */
+  --ember-text: color-mix(in oklab, var(--accent) 68%, var(--gold));
   --frame-tint: color-mix(in oklab, var(--oxblood) 60%, var(--bg));
 
   --font-display: var(--font-instrument), "Instrument Serif", Georgia, serif;
@@ -109,14 +114,18 @@ button { font: inherit; color: inherit; }
 .backdrop-heat {
   position: absolute;
   inset: 0;
+  /* Every stop is a DARK warm, not a bright one, and the layer is capped at
+     0.6 rather than 0.9. Measured at full heat: body copy 5.0:1, headings
+     11.1:1. The previous top stop composited to rgb(209,130,75) and put the
+     ivory body text at 1.17:1. */
   background: linear-gradient(
     180deg,
-    color-mix(in oklab, var(--accent) 70%, var(--gold)) 0%,
-    var(--crimson) 34%,
-    var(--oxblood) 66%,
+    color-mix(in oklab, var(--accent) 35%, var(--oxblood)) 0%,
+    color-mix(in oklab, var(--crimson) 60%, var(--bg)) 34%,
+    color-mix(in oklab, var(--oxblood) 70%, var(--bg)) 66%,
     var(--deep) 100%
   );
-  opacity: calc(var(--pg, 0) * 0.9);
+  opacity: calc(var(--pg, 0) * 0.6);
 }
 .backdrop-orb {
   position: absolute;
@@ -130,7 +139,7 @@ button { font: inherit; color: inherit; }
   width: 60cqi;
   aspect-ratio: 1;
   background: radial-gradient(circle, color-mix(in oklab, var(--accent) 60%, transparent), transparent 70%);
-  opacity: calc(0.18 + var(--pg, 0) * 0.42);
+  opacity: calc(0.14 + var(--pg, 0) * 0.26);
   animation: wd-drift-a 22s ease-in-out infinite;
 }
 .backdrop-orb-b {
@@ -139,7 +148,7 @@ button { font: inherit; color: inherit; }
   width: 68cqi;
   aspect-ratio: 1;
   background: radial-gradient(circle, color-mix(in oklab, var(--gold) 50%, transparent), transparent 70%);
-  opacity: calc(0.12 + var(--pg, 0) * 0.38);
+  opacity: calc(0.10 + var(--pg, 0) * 0.24);
   animation: wd-drift-b 28s ease-in-out infinite;
 }
 /* An inner vignette, so the atmosphere never reaches the edges flat. */
@@ -180,7 +189,7 @@ button { font: inherit; color: inherit; }
   font-size: clamp(9px, 0.85cqi, 11px);
   letter-spacing: 0.42em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ember-text);
 }
 
 .display {
@@ -293,7 +302,7 @@ button { font: inherit; color: inherit; }
   font-size: clamp(10px, 0.95cqi, 12px);
   line-height: 1.6;
   letter-spacing: 0.08em;
-  color: color-mix(in oklab, var(--gold) 62%, transparent);
+  color: color-mix(in oklab, var(--gold) 92%, transparent);
 }
 
 /* The three shapes this concept crops to. Nothing is a rectangle. */
@@ -358,10 +367,15 @@ button { font: inherit; color: inherit; }
   font-size: clamp(9px, 0.85cqi, 11px);
   letter-spacing: 0.26em;
   text-transform: uppercase;
-  color: var(--muted);
   transition: color 0.45s var(--ease);
 }
-.nav-links a:hover { color: var(--ink); }
+/* Colour only — NOT the typography. `.nav-links a` outranks `.nav-cta`
+   (0,1,1 beats 0,1,0), so the ticket pill was inheriting the muted link colour
+   onto its own dark fill at roughly 1.1:1. Excluding the CTA from the whole
+   rule instead cost it its size, tracking and uppercase, so the exclusion
+   belongs here and nowhere else. */
+.nav-links a:not(.nav-cta) { color: var(--muted); }
+.nav-links a:not(.nav-cta):hover { color: var(--ink); }
 .nav-cta { background: var(--gold); color: #1a0d0f; padding: 11px clamp(12px, 1.6cqi, 24px); border-radius: var(--radius-action); }
 .nav-cta:hover { background: var(--gold-bright); color: #1a0d0f; }
 .nav-mobile { display: none; gap: 8px; align-items: center; }
@@ -410,7 +424,7 @@ button { font: inherit; color: inherit; }
   transition: color 0.45s var(--ease);
 }
 .menu-links a:hover { color: var(--gold); }
-.menu-links span { font-family: var(--font-body); font-size: 9px; letter-spacing: 0.3em; color: var(--accent); }
+.menu-links span { font-family: var(--font-body); font-size: 9px; letter-spacing: 0.3em; color: var(--ember-text); }
 .menu-foot { display: flex; flex-direction: column; gap: 18px; margin-top: 28px; }
 .menu-socials { display: flex; justify-content: space-between; gap: 12px; font-size: 9px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--muted); }
 
@@ -722,7 +736,7 @@ button { font: inherit; color: inherit; }
   transform: translate(-50%, -50%);
   border-radius: 50%;
   background: radial-gradient(circle, color-mix(in oklab, var(--gold) 55%, var(--accent)) 0%, transparent 62%);
-  opacity: 0.42;
+  opacity: 0.22;
   filter: blur(clamp(40px, 6cqi, 80px));
   pointer-events: none;
 }
@@ -760,7 +774,7 @@ button { font: inherit; color: inherit; }
 .footer-org { margin-top: 10px; font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--label); }
 .footer p { margin: 16px 0 0; font-size: 12px; line-height: 1.8; max-width: 30ch; }
 .footer-col { display: flex; flex-direction: column; gap: 10px; }
-.footer-col > span { font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+.footer-col > span { font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--ember-text); margin-bottom: 4px; }
 .footer-col a { font-size: 12px; transition: color 0.45s var(--ease); }
 .footer-col a:hover { color: var(--ink); }
 .footer-socials { max-width: 1440px; margin: clamp(26px, 3.2cqi, 52px) auto 0; display: flex; flex-wrap: wrap; gap: clamp(8px, 1cqi, 14px); }
@@ -776,7 +790,7 @@ button { font: inherit; color: inherit; }
   transition: border-color 0.45s var(--ease), color 0.45s var(--ease);
 }
 .footer-socials a:hover { border-color: var(--gold); color: var(--ink); }
-.footer-socials span:first-child { font-size: 9px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--accent); }
+.footer-socials span:first-child { font-size: 9px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ember-text); }
 .footer-socials span:last-child { font-family: var(--font-display); font-size: clamp(13px, 1.15cqi, 16px); }
 .footer-legal {
   max-width: 1440px;

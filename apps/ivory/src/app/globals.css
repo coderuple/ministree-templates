@@ -25,6 +25,9 @@
   --on-accent: color-mix(in oklab, var(--bg) 96%, var(--gold));
   --on-accent-muted: color-mix(in oklab, var(--bg) 82%, var(--accent));
   --gold-light: color-mix(in oklab, var(--gold) 55%, white);
+  /* Small caps set in gold measured 2.09:1 on bone. Gold keeps its job as a
+     fill and a rule; text in it takes this darker cut. */
+  --gold-text: color-mix(in oklab, var(--gold) 42%, var(--ink));
   --frame-tint: color-mix(in oklab, var(--ink) 26%, var(--bg));
 
   --font-display: var(--font-bodoni), "Bodoni Moda", Didot, serif;
@@ -94,7 +97,7 @@ button { font: inherit; color: inherit; }
   font-size: clamp(8px, 0.8cqi, 10px);
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--gold-text);
 }
 
 .display {
@@ -202,6 +205,7 @@ button { font: inherit; color: inherit; }
 .section-lg { padding: var(--section-y-lg) var(--gutter); }
 .section-ink { background: var(--ink); color: var(--on-ink); }
 .section-ink .eyebrow { color: var(--gold); }
+.section-crimson .eyebrow { color: var(--gold-light); }
 .section-ink .body, .section-ink .small { color: var(--on-ink-muted); }
 .section-crimson { background: var(--accent); color: var(--on-accent); }
 .section-crimson .eyebrow { color: var(--gold-light); }
@@ -221,7 +225,8 @@ button { font: inherit; color: inherit; }
   color: var(--muted);
 }
 .section-ink .marker { border-color: color-mix(in oklab, var(--on-ink) 22%, transparent); }
-.marker span:first-child { color: var(--gold); }
+.marker span:first-child { color: var(--gold-text); }
+.section-ink .marker span:first-child { color: var(--gold); }
 
 /* --- Media frames ------------------------------------------------------ */
 
@@ -247,7 +252,7 @@ button { font: inherit; color: inherit; }
   line-height: 1.6;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: color-mix(in oklab, var(--ink) 45%, var(--bg));
+  color: color-mix(in oklab, var(--ink) 72%, var(--bg));
 }
 .section-ink .media-frame-empty,
 .section-crimson .media-frame-empty {
@@ -315,10 +320,15 @@ button { font: inherit; color: inherit; }
   font-size: clamp(8px, 0.8cqi, 10px);
   letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: var(--on-ink-muted);
   transition: color 0.4s var(--ease);
 }
-.nav-links a:hover { color: var(--on-ink); }
+/* Colour only — NOT the typography. `.nav-links a` outranks `.nav-cta`
+   (0,1,1 beats 0,1,0), so the ticket pill was inheriting the muted link colour
+   onto its own dark fill at roughly 1.1:1. Excluding the CTA from the whole
+   rule instead cost it its size, tracking and uppercase, so the exclusion
+   belongs here and nowhere else. */
+.nav-links a:not(.nav-cta) { color: var(--on-ink-muted); }
+.nav-links a:not(.nav-cta):hover { color: var(--on-ink); }
 .nav-cta {
   background: var(--gold);
   color: var(--ink);
@@ -652,7 +662,9 @@ button { font: inherit; color: inherit; }
 .stage-1 .stage-phrase, .stage-1 .eyebrow { color: var(--gold); }
 .stage-2 .stage-phrase, .stage-2 .eyebrow { color: var(--gold-light); }
 .stage-3 .stage-phrase { color: #401b0a; }
-.stage-3 .eyebrow { color: #401b0a; }
+/* #401b0a measured 3.94:1 on the burnt-orange panel — fine for the display
+   line above it, under the 4.5 this 9px label needs. */
+.stage-3 .eyebrow { color: var(--ink); }
 .stage-figure { height: 100%; max-height: 70cqmin; }
 .stage-figure .media-frame { width: 100%; height: 100%; }
 
@@ -774,7 +786,8 @@ button { font: inherit; color: inherit; }
   font-size: clamp(8px, 0.8cqi, 10px);
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  opacity: 0.75;
+  /* Was 0.75, which dropped the label on the burnt-orange panel under 4.5. */
+  opacity: 1;
 }
 .day-numeral {
   margin: clamp(10px, 1.4cqi, 20px) 0 0;
@@ -793,7 +806,7 @@ button { font: inherit; color: inherit; }
   font-weight: 400;
   font-size: clamp(17px, 2.2cqi, 32px);
 }
-.day-beat p { margin: 0; font-size: clamp(11px, 1cqi, 14px); line-height: 1.7; opacity: 0.85; }
+.day-beat p { margin: 0; font-size: clamp(11px, 1cqi, 14px); line-height: 1.7; opacity: 1; }
 
 /* --- Venue ------------------------------------------------------------- */
 
@@ -953,7 +966,8 @@ button { font: inherit; color: inherit; }
   font-size: 9px;
   letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: color-mix(in oklab, var(--on-ink) 45%, var(--ink));
+  /* 45% measured 3.4:1 on ink. */
+  color: color-mix(in oklab, var(--on-ink) 62%, var(--ink));
 }
 
 /* --- Checkout ---------------------------------------------------------- */

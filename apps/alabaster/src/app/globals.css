@@ -23,12 +23,21 @@
   --champagne: color-mix(in oklab, var(--bg) 85%, var(--gold));
   --accent-warm: color-mix(in oklab, var(--accent) 62%, #e08a3c);  /* terracotta */
   --body: color-mix(in oklab, var(--ink) 74%, var(--bg));
-  --muted: color-mix(in oklab, var(--ink) 58%, var(--bg));
+  /* 58% measured 4.28:1 on ivory and 3.97:1 on parchment — under the 4.5 a
+     body-sized secondary line needs. Darkened until the worst ground passes. */
+  --muted: color-mix(in oklab, var(--ink) 72%, var(--bg));
   --hairline: color-mix(in oklab, var(--ink) 12%, transparent);
   --hairline-strong: color-mix(in oklab, var(--ink) 28%, transparent);
   --on-dark: color-mix(in oklab, var(--bg) 94%, var(--gold));
-  --on-dark-muted: color-mix(in oklab, var(--bg) 62%, var(--dark));
+  --on-dark-muted: color-mix(in oklab, var(--bg) 72%, var(--dark));
+  /* The muted tone for the dark ground. `--muted` is mixed toward the page and
+     lands at 3.73:1 down here, which is the wrong direction entirely. */
+  --muted-on-dark: color-mix(in oklab, var(--bg) 66%, var(--dark));
   --gold-on-dark: color-mix(in oklab, var(--gold) 88%, white);
+  /* Eyebrows and small caps set in gold measured 2.87:1 on ivory. Gold stays
+     the light source for rules and glows; small TEXT gets this darker cut so
+     the label above a heading is actually readable. */
+  --gold-text: color-mix(in oklab, var(--gold) 58%, var(--ink));
   --frame-tint: color-mix(in oklab, var(--gold) 34%, var(--bg));
 
   --font-display: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
@@ -97,7 +106,7 @@ button { font: inherit; color: inherit; }
   font-size: clamp(9px, 0.85cqi, 11px);
   letter-spacing: 0.42em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--gold-text);
 }
 
 .label {
@@ -227,7 +236,7 @@ button { font: inherit; color: inherit; }
   font-size: clamp(10px, 0.95cqi, 12px);
   line-height: 1.6;
   letter-spacing: 0.06em;
-  color: color-mix(in oklab, var(--ink) 42%, var(--bg));
+  color: color-mix(in oklab, var(--ink) 72%, var(--bg));
 }
 
 /* --- Reveals ----------------------------------------------------------- */
@@ -300,10 +309,15 @@ button { font: inherit; color: inherit; }
   font-size: clamp(9px, 0.85cqi, 11px);
   letter-spacing: 0.26em;
   text-transform: uppercase;
-  color: var(--body);
   transition: color 0.4s var(--ease);
 }
-.nav-links a:hover { color: var(--ink); }
+/* Colour only — NOT the typography. `.nav-links a` outranks `.nav-cta`
+   (0,1,1 beats 0,1,0), so the ticket pill was inheriting the muted link colour
+   onto its own dark fill at roughly 1.1:1. Excluding the CTA from the whole
+   rule instead cost it its size, tracking and uppercase, so the exclusion
+   belongs here and nowhere else. */
+.nav-links a:not(.nav-cta) { color: var(--body); }
+.nav-links a:not(.nav-cta):hover { color: var(--ink); }
 .nav-cta {
   background: var(--accent);
   color: var(--bg);
@@ -361,7 +375,7 @@ button { font: inherit; color: inherit; }
   font-family: var(--font-body);
   font-size: 9px;
   letter-spacing: 0.3em;
-  color: var(--gold);
+  color: var(--gold-text);
 }
 .menu-foot { display: flex; flex-direction: column; gap: 18px; margin-top: 28px; }
 .menu-socials {
@@ -789,7 +803,7 @@ button { font: inherit; color: inherit; }
   font-size: clamp(20px, 2.1cqi, 32px);
   line-height: 1.1;
 }
-.speaker-index { font-size: 9px; letter-spacing: 0.24em; color: var(--gold); }
+.speaker-index { font-size: 9px; letter-spacing: 0.24em; color: var(--gold-text); }
 .speaker-role {
   margin-top: 6px;
   font-size: 10px;
@@ -1017,7 +1031,7 @@ button { font: inherit; color: inherit; }
   align-items: start;
 }
 .footer-logo img { height: clamp(32px, 3.4cqi, 52px); width: auto; }
-.footer-org { margin-top: 10px; font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--muted); }
+.footer-org { margin-top: 10px; font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--muted-on-dark); }
 .footer p { margin: 16px 0 0; font-size: 12px; line-height: 1.8; max-width: 30ch; }
 .footer-col { display: flex; flex-direction: column; gap: 10px; }
 .footer-col > span {
@@ -1060,7 +1074,7 @@ button { font: inherit; color: inherit; }
   font-size: 10px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: color-mix(in oklab, var(--on-dark) 50%, var(--dark));
+  color: var(--muted-on-dark);
 }
 .footer-legal-links { display: flex; flex-wrap: wrap; gap: 18px; }
 
