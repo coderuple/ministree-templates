@@ -137,3 +137,4 @@ Card payments on a **Stripe Connect** deployment need the API-side fix on
 `fix/events-stripe-connect-account` in the ministree repo — the events adapter
 dropped `stripeAccount`, so `confirmPayment` answered "No such payment_intent".
 Direct Stripe accounts were never affected.
+# ministree-templates
