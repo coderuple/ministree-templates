@@ -14,7 +14,7 @@ import { site } from "./src/config/site";
 export default defineMinistreeTemplate({
   meta: {
     name: "Ivory",
-    author: "Ministree",
+    author: "{{app_name}}",
     version: "1.0.0",
     description:
       "A conference template set like a fashion title's March issue. Didone display type, hard colour blocking, and three panels that move sideways as you scroll down.",
@@ -465,10 +465,59 @@ export default defineMinistreeTemplate({
           note: { kind: "textarea", label: "Small print", optional: true, help: "Age limits, refunds, door times." },
           phone: { kind: "text", label: "A number to ring", optional: true, width: "half" },
           soldOutMessage: { kind: "text", label: "When they've all gone", width: "half" },
-          usePaypal: {
-            kind: "boolean",
-            label: "Take payment through PayPal",
-            help: "Off means card payment. Turning this on needs your site's address allowed on the Ministree API first — ask your administrator.",
+          ticketing: {
+            kind: "group",
+            label: "Where people buy",
+            help: "Change this and every ticket button on the site follows \u2014 the header, the hero, the bar at the bottom, all of them.",
+            fields: {
+              mode: {
+                kind: "select",
+                label: "Tickets are sold",
+                options: [
+                  { value: "onSite", label: "On this site" },
+                  { value: "eventPage", label: "On your {{app_name}} event page" },
+                  { value: "external", label: "Somewhere else" },
+                ],
+                help: "On this site takes payment here. Your event page sends people to the ticket page {{app_name}} already hosts. Somewhere else links out to whoever is selling.",
+              },
+              eventPageUrl: {
+                kind: "url",
+                label: "Your event page",
+                optional: true,
+                visibleWhen: { field: "mode", equals: "eventPage" },
+                help: "Leave empty to use the events page on your church website.",
+              },
+              sellerName: {
+                kind: "text",
+                label: "Who sells them",
+                width: "half",
+                optional: true,
+                visibleWhen: { field: "mode", equals: "external" },
+                help: "Eventbrite, the venue box office \u2014 the name on the button.",
+              },
+              sellerUrl: {
+                kind: "url",
+                label: "\u2026and where",
+                width: "half",
+                optional: true,
+                visibleWhen: { field: "mode", equals: "external" },
+              },
+              secondSellerName: {
+                kind: "text",
+                label: "A second outlet",
+                width: "half",
+                optional: true,
+                visibleWhen: { field: "mode", equals: "external" },
+                help: "For VIP or accessible seating sold separately. Leave empty if there is only one.",
+              },
+              secondSellerUrl: {
+                kind: "url",
+                label: "\u2026and where",
+                width: "half",
+                optional: true,
+                visibleWhen: { field: "mode", equals: "external" },
+              },
+            },
           },
         },
       },

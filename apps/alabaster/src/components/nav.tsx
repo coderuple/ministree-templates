@@ -27,7 +27,8 @@ export function Nav({
   sticky = true,
 }: {
   links: NavLink[];
-  ticketsHref: string;
+  /** Null when tickets have nowhere to be bought — the CTA hides. */
+  ticketsHref: string | null;
   ticketsLabel: string;
   logo: string | null;
   wordmark: string;
@@ -66,15 +67,19 @@ export function Nav({
             {l.label}
           </a>
         ))}
-        <a href={ticketsHref} className="nav-cta">
-          {ticketsLabel}
-        </a>
+        {ticketsHref ? (
+          <a href={ticketsHref} className="nav-cta">
+            {ticketsLabel}
+          </a>
+        ) : null}
       </div>
 
       <div className="nav-mobile">
-        <a href={ticketsHref} className="nav-cta">
-          Tickets
-        </a>
+        {ticketsHref ? (
+          <a href={ticketsHref} className="nav-cta">
+            Tickets
+          </a>
+        ) : null}
         <button
           type="button"
           className="nav-toggle"
@@ -101,9 +106,11 @@ export function Nav({
             ))}
           </div>
           <div className="menu-foot">
-            <a href={ticketsHref} className="btn btn-primary" onClick={() => setOpen(false)}>
-              {ticketsLabel}
-            </a>
+            {ticketsHref ? (
+              <a href={ticketsHref} className="btn btn-primary" onClick={() => setOpen(false)}>
+                {ticketsLabel}
+              </a>
+            ) : null}
             {socials.length > 0 ? (
               <div className="menu-socials">
                 {socials.map((s) => (

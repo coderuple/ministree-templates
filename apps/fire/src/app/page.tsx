@@ -24,11 +24,11 @@ import {
 export const revalidate = 300;
 
 export default async function Home() {
-  const { content, event, church, eventTitle, dateLabel, socials, email, logoLight, logoDark } =
+  const { content, event, church, eventTitle, dateLabel, socials, ticketing, email, logoLight, logoDark } =
     await loadPageData();
 
   const c = content;
-  const ticketsHref = "/tickets";
+  const ticketsHref = ticketing.href;
 
   /* The event's own people, or the demo lineup while nobody is connected. A
      church that connects an event with no speakers on it yet gets the "still
@@ -198,7 +198,7 @@ export default async function Home() {
         year={new Date().getFullYear()}
       />
 
-      {c.nav.showTicketBar !== false ? (
+      {c.nav.showTicketBar !== false && ticketsHref ? (
         <div className="ticket-bar">
           <a href={ticketsHref}>
             {c.tickets.stickyLabel} · {dateLabel}

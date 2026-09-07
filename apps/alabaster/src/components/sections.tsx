@@ -72,7 +72,8 @@ export function Hero({
   subhead?: string;
   dateLabel: string;
   ctaLabel: string;
-  ctaHref: string;
+  /** Null when there is nowhere to buy — the button hides. */
+  ctaHref: string | null;
   secondaryLabel?: string;
   secondaryHref?: string;
   pullQuote?: string;
@@ -101,9 +102,11 @@ export function Hero({
           {subhead ? <p className="hero-sub">{subhead}</p> : null}
           {dateLabel ? <p className="hero-dates">{dateLabel}</p> : null}
           <div className="hero-actions">
-            <a href={ctaHref} className="btn btn-primary">
-              {ctaLabel}
-            </a>
+            {ctaHref ? (
+              <a href={ctaHref} className="btn btn-primary">
+                {ctaLabel}
+              </a>
+            ) : null}
             {secondaryLabel ? (
               <a href={secondaryHref || "#about"} className="btn btn-outline">
                 {secondaryLabel}
@@ -653,7 +656,8 @@ export function FinalCta({
   headingB: string;
   body: string;
   ctaLabel: string;
-  ctaHref: string;
+  /** Null when there is nowhere to buy — the button hides. */
+  ctaHref: string | null;
   dateLabel: string;
   embers: boolean;
 }) {
@@ -673,9 +677,11 @@ export function FinalCta({
           {body}
         </p>
         <div className="cta-actions" data-reveal="up" style={{ "--reveal-delay": "280ms" } as React.CSSProperties}>
-          <a href={ctaHref} className="btn btn-light">
-            {ctaLabel}
-          </a>
+          {ctaHref ? (
+            <a href={ctaHref} className="btn btn-light">
+              {ctaLabel}
+            </a>
+          ) : null}
           {dateLabel ? <span className="cta-date">{dateLabel}</span> : null}
         </div>
       </div>

@@ -1,5 +1,10 @@
 import { loadFeaturedEvent, toEventView, type EventView } from "@ministree-templates/event-kit/event";
 import { resolveSocials, type SocialLink } from "@ministree-templates/event-kit/socials";
+import {
+  resolveTicketing,
+  eventPageBaseFrom,
+  type ResolvedTicketing,
+} from "@ministree-templates/event-kit/ticketing";
 import { formatDateRange } from "@ministree-templates/event-kit/format";
 import { loadContent, loadLocale, loadProfile, loadSettings, siteName } from "@/lib/ministree";
 import type { SiteContent } from "@/config/site";
@@ -21,6 +26,8 @@ export interface PageData {
   eventTitle: string;
   dateLabel: string;
   socials: SocialLink[];
+  /** Where every ticket button on the site points, resolved once. */
+  ticketing: ResolvedTicketing;
   email: string | null;
   logoLight: string | null;
   logoDark: string | null;
@@ -53,6 +60,19 @@ export async function loadPageData(): Promise<PageData> {
     event?.dateLabel ||
     formatDateRange("2027-03-18T19:30:00Z", "2027-03-20T18:00:00Z", locale);
 
+  /* One answer for the whole site. Resolved here rather than at each button
+     so the header, the hero, the closing call and the bar at the bottom can
+     never disagree about where tickets are sold. */
+  const ticketing = resolveTicketing(content.tickets.ticketing, {
+    tickets: event?.tickets ?? [],
+    eventSlug: event?.slug ?? "",
+    /* This template is the conference's site, not the church's, so a relative
+       /events path would 404. The church profile's website is the only thing
+       that knows where their event pages live. */
+    eventPageBase: eventPageBaseFrom(profile?.website ?? null),
+    paymentMethods: event?.paymentMethods,
+  });
+
   return {
     content,
     event,
@@ -61,6 +81,7 @@ export async function loadPageData(): Promise<PageData> {
     eventTitle: event?.title || content.name,
     dateLabel,
     socials,
+    ticketing,
     email: profile?.email ?? null,
     /* The church's own logo, or nothing. The Church Profile is the source of
        truth for identity; Site Settings only carries the website's override.

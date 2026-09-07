@@ -22,19 +22,26 @@ import type { Locale } from './format.ts';
 export function Checkout({
   event,
   locale,
-  usePaypal = false,
   soldOutMessage = 'Tickets for this one have all gone.',
   seatedMessage = 'Reserved seating — get in touch and we will place you.',
   contactHref,
 }: {
   event: EventView;
   locale: Locale;
-  usePaypal?: boolean;
   soldOutMessage?: string;
   seatedMessage?: string;
   /** Where "get in touch" points for reserved-seating tiers. */
   contactHref?: string | null;
 }) {
+  /* This used to be a question in the Customizer, which asked a church to know
+     something about their own payment setup that Ministree already knows. The
+     event now says how it can take money, so: PayPal only when it is the only
+     way — otherwise the API picks a card provider, which is what a card-and-
+     PayPal church wants by default and what every other church has to have.
+     A method picker would be the richer answer; nobody has asked for one. */
+  const methods = event.paymentMethods;
+  const usePaypal = methods?.includes('paypal') === true && !methods.includes('card');
+
   const c = useCheckout({ eventSlug: event.slug, tiers: event.tickets, usePaypal });
   const money = (minor: number) => formatPrice(minor, event.currency, locale) ?? '';
 

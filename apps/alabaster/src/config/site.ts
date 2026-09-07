@@ -200,7 +200,14 @@ export const site = {
     perks: "",
     note: "",
     phone: "",
-    usePaypal: false,
+    ticketing: {
+      mode: "onSite",
+      eventPageUrl: "",
+      sellerName: "",
+      sellerUrl: "",
+      secondSellerName: "",
+      secondSellerUrl: "",
+    },
     soldOutMessage: "Tickets for this one have all gone.",
   },
 

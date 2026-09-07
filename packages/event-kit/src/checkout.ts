@@ -63,9 +63,9 @@ export function useCheckout({
   eventSlug: string;
   tiers: TicketTier[];
   /**
-   * Send `paymentMethod: 'paypal'`. The public event payload carries no signal
-   * for whether a church has PayPal on, so this has to be a template setting
-   * rather than something we can detect.
+   * Send `paymentMethod: 'paypal'` instead of letting the API pick a card
+   * provider. Derived from the event's own `paymentMethods` by `Checkout`, and
+   * only when PayPal is the ONLY way this event can take money — see there.
    */
   usePaypal?: boolean;
 }) {

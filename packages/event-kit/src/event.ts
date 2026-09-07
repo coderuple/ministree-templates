@@ -83,6 +83,13 @@ export interface EventView {
   venue: EventVenue | null;
   /** True when at least one tier can actually be bought right now. */
   onSale: boolean;
+  /**
+   * How this event's checkout can take money — 'card', 'paypal', 'bank_transfer'
+   * and so on, derived by Ministree from the providers the church has switched
+   * on. Undefined on an older API build, which means "unknown", not "none".
+   * Empty means no provider is wired up and nothing can be sold here.
+   */
+  paymentMethods?: string[];
 }
 
 /** The event a single-event site is built around, or null. */
@@ -122,6 +129,9 @@ export function toEventView(event: EventDetail, locale: Locale, fallbackCurrency
     tickets,
     venue: toVenue(e),
     onSale: tickets.some((t) => t.onSale && !t.soldOut),
+    paymentMethods: Array.isArray(e.paymentMethods)
+      ? (e.paymentMethods as string[])
+      : undefined,
   };
 }
 

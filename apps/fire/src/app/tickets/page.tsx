@@ -20,7 +20,7 @@ export const metadata: Metadata = {
  * containing block that would trap anything `position: fixed` inside it.
  */
 export default async function TicketsPage() {
-  const { content, event, locale, eventTitle, dateLabel } = await loadPageData();
+  const { content, event, locale, eventTitle, dateLabel, ticketing } = await loadPageData();
   const c = content;
   const perks = lines(c.tickets.perks);
 
@@ -31,11 +31,43 @@ export default async function TicketsPage() {
           <span aria-hidden>←</span> {eventTitle}
         </Link>
 
-        {event ? (
+        {ticketing.mode !== "onSite" ? (
+          /* Tickets are sold somewhere else — either because the church said so
+             or because this checkout cannot handle the event (reserved seating,
+             or no payment provider switched on). Nothing on the site links here
+             in that case, but the route still exists, so say where to go rather
+             than showing a form that cannot take an order. */
+          <div className="checkout">
+            <p className="eyebrow">Tickets</p>
+            <h2 className="checkout-heading">Not sold here.</h2>
+            <p className="checkout-body">
+              {ticketing.outlets.length > 0
+                ? "Tickets for this one are handled by:"
+                : `Tickets for ${eventTitle} are handled on another page.`}
+            </p>
+            {ticketing.outlets.length > 0 ? (
+              <ul className="checkout-tiers">
+                {ticketing.outlets.map((outlet) => (
+                  <li key={outlet.href} className="checkout-tier">
+                    <div className="checkout-tier-copy">
+                      <h3>{outlet.label}</h3>
+                    </div>
+                    <a href={outlet.href} className="btn btn-primary">
+                      {c.tickets.ctaLabel}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : ticketing.href ? (
+              <a href={ticketing.href} className="btn btn-primary">
+                {c.tickets.ctaLabel}
+              </a>
+            ) : null}
+          </div>
+        ) : event ? (
           <Checkout
             event={event}
             locale={locale}
-            usePaypal={c.tickets.usePaypal === true}
             soldOutMessage={c.tickets.soldOutMessage}
             contactHref={c.tickets.phone ? `tel:${c.tickets.phone.replace(/\s+/g, "")}` : null}
           />

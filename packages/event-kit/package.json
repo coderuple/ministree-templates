@@ -4,17 +4,18 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./checkout-ui": "./src/checkout-ui.tsx",
     "./checkout": "./src/checkout.ts",
-    "./embers-canvas": "./src/embers-canvas.tsx",
+    "./checkout-ui": "./src/checkout-ui.tsx",
     "./embers": "./src/embers.ts",
+    "./embers-canvas": "./src/embers-canvas.tsx",
     "./event": "./src/event.ts",
     "./format": "./src/format.ts",
     "./media-frame": "./src/media-frame.tsx",
     "./ministree": "./src/ministree.ts",
     "./scroll-engine": "./src/scroll-engine.tsx",
     "./socials": "./src/socials.ts",
-    "./stripe-panel": "./src/stripe-panel.tsx"
+    "./stripe-panel": "./src/stripe-panel.tsx",
+    "./ticketing": "./src/ticketing.ts"
   },
   "scripts": {
     "test": "node --experimental-strip-types --test src/*.test.ts"

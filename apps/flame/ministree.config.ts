@@ -11,7 +11,7 @@ import { site } from "./src/config/site";
 export default defineMinistreeTemplate({
   meta: {
     name: "Flame",
-    author: "Ministree",
+    author: "{{app_name}}",
     version: "1.0.0",
     description:
       "A clean, general-purpose multi-page church template: home, pages, sermons, events, blog, giving and forms — light + dark, fully driven by your church's own content.",
@@ -471,6 +471,53 @@ export default defineMinistreeTemplate({
             optional: true,
             help: "Anything that has to be said under the tiers \u2014 age limits, refunds, door times.",
           },
+          /* Where the ticket buttons go. Every one of them — the header, the
+             hero, the sticky bar — reads this, so a church that moves ticket
+             sales moves all of them at once and never leaves a stray button
+             pointing at a page that no longer sells anything.
+
+             No "on this site" option, unlike the conference templates: this
+             site's own event page IS the {{app_name}} one, so the two would be
+             the same choice under two names. And no second seller, because the
+             Tickets section already takes extra buttons. */
+          ticketing: {
+            kind: "group",
+            label: "Where people buy",
+            fields: {
+              mode: {
+                kind: "select",
+                label: "Tickets are sold",
+                options: [
+                  { value: "eventPage", label: "On this site's event page" },
+                  { value: "external", label: "Somewhere else" },
+                ],
+                help: "Somewhere else points every ticket button at whoever is actually selling \u2014 Eventbrite, a venue box office. To list more than one, add them as extra buttons on the Tickets section.",
+              },
+              eventPageUrl: {
+                kind: "url",
+                label: "A different page",
+                optional: true,
+                visibleWhen: { field: "mode", equals: "eventPage" },
+                help: "Leave empty to use this site's own page for the event, which is almost always what you want.",
+              },
+              sellerName: {
+                kind: "text",
+                label: "Who sells them",
+                width: "half",
+                optional: true,
+                visibleWhen: { field: "mode", equals: "external" },
+                help: "Eventbrite, the venue box office \u2014 the name on the button.",
+              },
+              sellerUrl: {
+                kind: "url",
+                label: "\u2026and where",
+                width: "half",
+                optional: true,
+                visibleWhen: { field: "mode", equals: "external" },
+              },
+            },
+          },
+
           socialLinks: {
             kind: "repeatable",
             label: "Social links",

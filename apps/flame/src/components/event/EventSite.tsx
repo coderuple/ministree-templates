@@ -10,6 +10,7 @@ import { flameEventSections, type EventSectionContext } from "@/sections/event";
 import { backdropElement, backdropEnabled, loadContent, loadSettings, loadSlugs, siteName } from "@/lib/ministree";
 import { formatDateRange, type Locale } from "@/lib/format";
 import { resolveSocials } from "@/lib/socials";
+import { resolveTicketsHref, ticketsCtaLabel, type TicketingConfig } from "@/lib/ticketing";
 import EventExperience, { type EventExperienceProps } from "@/components/event/EventExperience";
 import type { LineupPerson } from "@/components/event/sections/EventLineup";
 import type { TimelineEntry } from "@/components/event/sections/EventTimeline";
@@ -184,6 +185,8 @@ export default async function EventSite({
 
   const givingHref = hrefFor(slugs, "giving");
 
+  const ticketing = (content as { event?: { ticketing?: TicketingConfig } }).event?.ticketing;
+
   /* The event's own handles when it has them, else the church's four. A
      conference on TikTok or WhatsApp had nowhere to say so before: the church
      profile stores exactly four platforms and nothing else. */
@@ -299,8 +302,12 @@ export default async function EventSite({
       tiers,
       label: "Tickets",
       heading: "Be in the room",
-      href: `${hrefFor(slugs, "events")}/${e.slug as string}`,
-      ctaLabel: str("ticketsCta") ?? "Get tickets",
+      /* One answer for every ticket button on the site — header, hero, sticky
+         bar, this section. A church selling through Eventbrite moves all of
+         them at once instead of leaving one pointing at a page that no longer
+         takes orders. */
+      href: resolveTicketsHref(ticketing, `${hrefFor(slugs, "events")}/${e.slug as string}`),
+      ctaLabel: ticketsCtaLabel(ticketing, str("ticketsCta") ?? "Get tickets"),
       blurb: null,
       note: str("ticketsNote"),
       // One per line, the way it is typed. Blank lines dropped so a stray

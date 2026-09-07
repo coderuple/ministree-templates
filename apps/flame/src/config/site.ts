@@ -171,6 +171,12 @@ export const site = {
     flyerUrl: "",
     ticketPerks: "",
     ticketsPhone: "",
+    ticketing: {
+      mode: "eventPage",
+      eventPageUrl: "",
+      sellerName: "",
+      sellerUrl: "",
+    },
   },
 
   eventSections: {
