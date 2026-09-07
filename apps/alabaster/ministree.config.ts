@@ -186,7 +186,12 @@ export default defineMinistreeTemplate({
           secondaryLabel: { kind: "text", label: "Second button", width: "half", optional: true },
           pullQuote: { kind: "textarea", label: "Corner quote", optional: true },
           pullQuoteRef: { kind: "text", label: "…where it's from", optional: true },
-          image: { kind: "media", label: "Behind the words", optional: true },
+          image: {
+            kind: "media",
+            label: "Behind the words",
+            optional: true,
+            help: "Soft-lit portrait, eyes closed, warm rim light. It sits behind the words and fades up as the page scrolls, so leave room around the face.",
+          },
         },
       },
 
@@ -207,8 +212,18 @@ export default defineMinistreeTemplate({
           },
           closingA: { kind: "text", label: "Closing line", optional: true },
           closingB: { kind: "text", label: "…and its italic half", optional: true },
-          image: { kind: "media", label: "Picture", optional: true },
-          insetImage: { kind: "media", label: "The small overlapping one", optional: true },
+          image: {
+            kind: "media",
+            label: "Picture",
+            optional: true,
+            help: "Close-up — hands cupped around a single point of light.",
+          },
+          insetImage: {
+            kind: "media",
+            label: "The small overlapping one",
+            optional: true,
+            help: "A detail: linen texture, warm shadow.",
+          },
         },
       },
 
@@ -248,7 +263,12 @@ export default defineMinistreeTemplate({
               body: { kind: "textarea", label: "Who it's for" },
             },
           },
-          image: { kind: "media", label: "Behind all three", optional: true },
+          image: {
+            kind: "media",
+            label: "Behind all three",
+            optional: true,
+            help: "A woman in profile, low warm light. It sits behind all three words, so nothing important near the middle.",
+          },
         },
       },
 
@@ -309,7 +329,12 @@ export default defineMinistreeTemplate({
             fields: {
               name: { kind: "text", label: "Name", width: "half" },
               description: { kind: "textarea", label: "What happens" },
-              image: { kind: "media", label: "Picture", optional: true },
+              image: {
+                kind: "media",
+                label: "Picture",
+                optional: true,
+                help: "Something from that day \u2014 doors opening, hands raised in low light, the room full in daylight.",
+              },
             },
           },
         },
@@ -324,7 +349,14 @@ export default defineMinistreeTemplate({
           eyebrow: { kind: "text", label: "Small label", width: "half" },
           heading: { kind: "text", label: "Heading", width: "half" },
           blurb: { kind: "textarea", label: "Anything worth knowing", optional: true },
-          images: { kind: "media", multiple: true, max: 3, label: "Pictures", optional: true },
+          images: {
+            kind: "media",
+            multiple: true,
+            max: 3,
+            label: "Pictures",
+            optional: true,
+            help: "The room \u2014 wide, warm, filling up.",
+          },
         },
       },
 
@@ -338,7 +370,14 @@ export default defineMinistreeTemplate({
           headingEm: { kind: "text", label: "…its italic word", width: "half", optional: true },
           headingB: { kind: "text", label: "…and the rest", optional: true },
           chips: { kind: "textarea", label: "The words around it", help: "One per line." },
-          images: { kind: "media", multiple: true, max: 4, label: "Pictures", optional: true },
+          images: {
+            kind: "media",
+            multiple: true,
+            max: 4,
+            label: "Pictures",
+            optional: true,
+            help: "Four pictures, in this order: 1) worship, close crop, eyes closed. 2) two people talking, natural laughter. 3) hands open on an open Bible. 4) light moving across a face.",
+          },
         },
       },
 
@@ -350,7 +389,14 @@ export default defineMinistreeTemplate({
           headingA: { kind: "text", label: "Heading", width: "half" },
           headingB: { kind: "text", label: "…and its italic second line", width: "half" },
           body: { kind: "textarea", label: "The paragraph" },
-          images: { kind: "media", multiple: true, max: 4, label: "Faces", optional: true },
+          images: {
+            kind: "media",
+            multiple: true,
+            max: 4,
+            label: "Faces",
+            optional: true,
+            help: "Four portraits, in this order: 1) someone in their twenties. 2) someone in their sixties. 3) a teenager, natural light. 4) two generations together.",
+          },
         },
       },
 

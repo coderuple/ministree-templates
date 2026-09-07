@@ -66,7 +66,6 @@ export function Hero({
   pullQuoteRef,
   scrollLabel,
   image,
-  imageBrief,
 }: {
   eyebrow: string;
   headline: string;
@@ -81,7 +80,6 @@ export function Hero({
   pullQuoteRef?: string;
   scrollLabel?: string;
   image?: string | null;
-  imageBrief?: string;
 }) {
   return (
     <section id="top" data-track="pin" className="hero">
@@ -89,7 +87,7 @@ export function Hero({
         {/* The portal grows and rises as you scroll; the ring stays put at the
             portal's rest size, so the picture appears to swell inside it. */}
         <div className="hero-portal">
-          <MediaFrame src={image} brief={imageBrief} alt="" priority sizes="70vw" />
+          <MediaFrame src={image} alt="" priority sizes="70vw" />
         </div>
         <div aria-hidden className="hero-ring" />
 
@@ -140,7 +138,6 @@ export function Manifesto({
   closingA,
   closingB,
   image,
-  imageBrief,
 }: {
   eyebrow: string;
   headingA: string;
@@ -150,7 +147,6 @@ export function Manifesto({
   closingA?: string;
   closingB?: string;
   image?: string | null;
-  imageBrief?: string;
 }) {
   const paras = paragraphs(body);
   if (!lede && paras.length === 0) return null;
@@ -161,7 +157,7 @@ export function Manifesto({
         {/* The blob leads, on the left — this concept opens on a shape, not
             on a headline. */}
         <div className="manifesto-figure" data-reveal="blur">
-          <MediaFrame src={image} brief={imageBrief} alt="" sizes="(max-width: 760px) 100vw, 45vw" />
+          <MediaFrame src={image} alt="" size="1200 × 1600" sizes="(max-width: 760px) 100vw, 45vw" />
         </div>
 
         <div>
@@ -227,11 +223,12 @@ export interface Stage {
 export function Stages({
   stages,
   images,
-  briefs,
+  slots = 0,
 }: {
   stages: Stage[];
   images: string[];
-  briefs?: string[];
+  /** How many frames this section draws. Fixed by the design. */
+  slots?: number;
 }) {
   if (stages.length === 0) return null;
 
@@ -243,7 +240,7 @@ export function Stages({
             across the three. --o comes from the engine; the rest is CSS. */}
         {stages.map((stage, i) => (
           <div key={`orb-${stage.word}`} data-stage={i} className={`orb orb-${i + 1}`} aria-hidden>
-            <MediaFrame src={images[i]} brief={briefs?.[i]} alt="" sizes="60vw" />
+            <MediaFrame src={images[i]} alt="" size="1600 × 1600" sizes="60vw" />
           </div>
         ))}
 
@@ -299,15 +296,15 @@ export function Speakers({
   headingA,
   headingB,
   speakers,
-  briefs,
+  slots = 0,
   placeholder,
 }: {
   eyebrow: string;
   headingA: string;
   headingB?: string;
   speakers: Speaker[];
-  /** Art direction for portraits a church has not uploaded yet. */
-  briefs?: string[];
+  /** How many frames this section draws. Fixed by the design. */
+  slots?: number;
   placeholder?: {
     show: boolean;
     label: string;
@@ -347,8 +344,8 @@ export function Speakers({
           >
             <MediaFrame
               src={person.image}
-              brief={briefs?.[i]}
               alt={person.name}
+              size="1200 × 1600"
               sizes="(max-width: 760px) 100vw, 25vw"
             />
             <h3 className="speaker-name">{person.name}</h3>
@@ -384,7 +381,6 @@ export interface DayBeat {
   name?: string;
   description?: string;
   image?: string | null;
-  imageBrief?: string;
 }
 
 export function Days({
@@ -428,8 +424,8 @@ export function Days({
               <div key={day.id} className="day">
                 <MediaFrame
                   src={beat?.image}
-                  brief={beat?.imageBrief}
                   alt=""
+                  size="1600 × 1600"
                   sizes="(max-width: 760px) 100vw, 30vw"
                 />
                 <p className="day-numeral">{day.numeral}</p>
@@ -454,14 +450,12 @@ export function Venue({
   blurb,
   venue,
   images,
-  imageBrief,
 }: {
   eyebrow: string;
   heading: string;
   blurb?: string;
   venue: EventVenue | null;
   images: string[];
-  imageBrief?: string;
 }) {
   if (!venue && images.length === 0) return null;
 
@@ -498,8 +492,8 @@ export function Venue({
               <MediaFrame
                 key={src ?? i}
                 src={src}
-                brief={src ? undefined : imageBrief}
                 alt=""
+                size="1600 × 1600"
                 sizes="(max-width: 760px) 100vw, 25vw"
               />
             ))}
@@ -519,7 +513,7 @@ export function Experience({
   headingB,
   chips,
   images,
-  briefs,
+  slots = 0,
 }: {
   eyebrow: string;
   headingA: string;
@@ -527,7 +521,8 @@ export function Experience({
   headingB?: string;
   chips: string[];
   images: string[];
-  briefs?: string[];
+  /** How many frames this section draws. Fixed by the design. */
+  slots?: number;
 }) {
   return (
     <section id="experience" data-track="cover" className="section">
@@ -543,13 +538,13 @@ export function Experience({
 
         {/* Circular frames, each carrying the word it stands for. */}
         <div className="experience-frames">
-          {(briefs ?? []).map((brief, i) => (
+          {Array.from({ length: slots }, (_, i) => (
             <div
-              key={brief}
+              key={i}
               data-reveal="blur"
               style={{ "--reveal-delay": `${i * 80}ms` } as React.CSSProperties}
             >
-              <MediaFrame src={images[i]} brief={brief} alt="" sizes="(max-width: 760px) 50vw, 18vw" />
+              <MediaFrame src={images[i]} alt="" size="1600 × 1600" sizes="(max-width: 760px) 50vw, 18vw" />
               {chips[i] ? <span className="experience-caption">{chips[i]}</span> : null}
             </div>
           ))}
@@ -566,13 +561,14 @@ export function Stories({
   headingB,
   body,
   images,
-  briefs,
+  slots = 0,
 }: {
   headingA: string;
   headingB: string;
   body: string;
   images: string[];
-  briefs?: string[];
+  /** How many frames this section draws. Fixed by the design. */
+  slots?: number;
 }) {
   return (
     <section data-track="cover" className="section stories">
@@ -587,8 +583,8 @@ export function Stories({
         {/* Overlapping circles with a ground-coloured border, so four
             portraits read as one connected group. */}
         <div className="stories-frames" data-reveal="blur">
-          {(briefs ?? []).map((brief, i) => (
-            <MediaFrame key={brief} src={images[i]} brief={brief} alt="" sizes="18vw" />
+          {Array.from({ length: slots }, (_, i) => (
+            <MediaFrame key={i} src={images[i]} alt="" size="1600 × 1600" sizes="18vw" />
           ))}
         </div>
       </div>

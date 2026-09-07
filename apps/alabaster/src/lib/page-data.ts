@@ -22,8 +22,8 @@ export interface PageData {
   dateLabel: string;
   socials: SocialLink[];
   email: string | null;
-  logoLight: string;
-  logoDark: string;
+  logoLight: string | null;
+  logoDark: string | null;
 }
 
 export async function loadPageData(): Promise<PageData> {
@@ -62,16 +62,17 @@ export async function loadPageData(): Promise<PageData> {
     dateLabel,
     socials,
     email: profile?.email ?? null,
-    /* The church's own logo once they have one. The Church Profile is the
-       source of truth for identity; Site Settings only carries the website's
-       override of it. The demo mark ships so the template does not open on an
-       empty header.
+    /* The church's own logo, or nothing. The Church Profile is the source of
+       truth for identity; Site Settings only carries the website's override.
 
-       Two variants because the header sits on ivory and the footer on the dark
-       ground — a single white logo disappears into one of them. */
-    logoLight: profile?.logoUrl ?? settings?.logoUrl ?? "/images/uwc-logo-ink.png",
-    logoDark:
-      profile?.logoUrlDark ?? profile?.logoUrl ?? settings?.logoUrl ?? "/images/uwc-logo-white.png",
+       No bundled mark to fall back on: the template ships no images at all, and
+       a placeholder logo is the one asset a church would never want left in by
+       accident. `Nav` and `Footer` print the event name instead.
+
+       Two variants because the header sits on the light ground and the footer
+       on the dark one, and a single white mark disappears into one of them. */
+    logoLight: profile?.logoUrl ?? settings?.logoUrl ?? null,
+    logoDark: profile?.logoUrlDark ?? profile?.logoUrl ?? settings?.logoUrl ?? null,
   };
 }
 

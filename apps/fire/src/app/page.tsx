@@ -87,7 +87,6 @@ export default async function Home() {
         pullQuoteRef={c.hero.pullQuoteRef}
         scrollLabel={c.hero.scrollLabel}
         image={c.hero.image || event?.heroImage}
-        imageBrief={c.hero.imageBrief}
       />
 
       {c.manifesto.enabled !== false ? (
@@ -102,7 +101,6 @@ export default async function Home() {
           closingA={c.manifesto.closingA}
           closingB={c.manifesto.closingB}
           image={c.manifesto.image}
-          imageBrief={c.manifesto.imageBrief}
         />
       ) : null}
 
@@ -110,7 +108,7 @@ export default async function Home() {
         <Stages
           stages={stages}
           images={[...(c.stages.images ?? [])]}
-          briefs={[...c.stages.imageBriefs]}
+          slots={c.stages.slots}
         />
       ) : null}
 
@@ -128,7 +126,6 @@ export default async function Home() {
           headingA={c.speakers.headingA}
           headingB={c.speakers.headingB}
           speakers={speakers}
-          briefs={c.speakers.demo.map((s) => s.imageBrief)}
           placeholder={c.speakers.placeholder}
         />
       ) : null}
@@ -151,7 +148,6 @@ export default async function Home() {
           blurb={c.venue.blurb}
           venue={event?.venue ?? null}
           images={[...(c.venue.images ?? [])]}
-          imageBrief={c.venue.imageBrief}
         />
       ) : null}
 
@@ -163,7 +159,7 @@ export default async function Home() {
           headingB={c.experience.headingB}
           chips={lines(c.experience.chips)}
           images={[...(c.experience.images ?? [])]}
-          briefs={[...c.experience.imageBriefs]}
+          slots={c.experience.slots}
         />
       ) : null}
 
@@ -173,7 +169,7 @@ export default async function Home() {
           headingB={c.stories.headingB}
           body={c.stories.body}
           images={[...(c.stories.images ?? [])]}
-          briefs={[...c.stories.imageBriefs]}
+          slots={c.stories.slots}
         />
       ) : null}
 

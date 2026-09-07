@@ -57,7 +57,6 @@ export function Hero({
   secondaryHref,
   scriptureRef,
   image,
-  imageBrief,
 }: {
   eyebrow: string;
   headline: string;
@@ -71,7 +70,6 @@ export function Hero({
   secondaryHref?: string;
   scriptureRef?: string;
   image?: string | null;
-  imageBrief?: string;
 }) {
   return (
     <section id="top" data-track="pin" className="hero">
@@ -79,7 +77,7 @@ export function Hero({
         <div aria-hidden className="hero-block" />
 
         <div className="hero-portrait">
-          <MediaFrame src={image} brief={imageBrief} alt="" priority sizes="40vw" />
+          <MediaFrame src={image} alt="" priority sizes="40vw" />
         </div>
 
         <div className="hero-eyebrow">
@@ -154,9 +152,7 @@ export function Manifesto({
   body,
   pullLine,
   image,
-  imageBrief,
   insetImage,
-  insetBrief,
 }: {
   marker?: string;
   eyebrow: string;
@@ -166,9 +162,7 @@ export function Manifesto({
   body?: string;
   pullLine?: string;
   image?: string | null;
-  imageBrief?: string;
   insetImage?: string | null;
-  insetBrief?: string;
 }) {
   const paras = paragraphs(body);
   if (!lede && paras.length === 0) return null;
@@ -203,7 +197,6 @@ export function Manifesto({
 
           <MediaFrame
             src={image}
-            brief={imageBrief}
             alt=""
             aspect="4 / 5"
             sizes="(max-width: 760px) 100vw, 33vw"
@@ -212,7 +205,6 @@ export function Manifesto({
           <div className="manifesto-stack">
             <MediaFrame
               src={insetImage}
-              brief={insetBrief}
               alt=""
               aspect="1 / 1"
               sizes="(max-width: 760px) 100vw, 33vw"
@@ -237,11 +229,12 @@ export interface Stage {
 export function Stages({
   stages,
   images,
-  briefs,
+  slots = 0,
 }: {
   stages: Stage[];
   images: string[];
-  briefs?: string[];
+  /** How many frames this section draws. Fixed by the design. */
+  slots?: number;
 }) {
   if (stages.length === 0) return null;
 
@@ -266,7 +259,7 @@ export function Stages({
                 <p className="stage-body">{stage.body}</p>
               </div>
               <div className="stage-figure">
-                <MediaFrame src={images[i]} brief={briefs?.[i]} alt="" sizes="50vw" />
+                <MediaFrame src={images[i]} alt="" size="1600 × 1200" sizes="50vw" />
               </div>
             </article>
           ))}
@@ -310,7 +303,7 @@ export function Speakers({
   headingA,
   headingB,
   speakers,
-  briefs,
+  slots = 0,
   note,
 }: {
   marker?: string;
@@ -318,7 +311,8 @@ export function Speakers({
   headingA: string;
   headingB?: string;
   speakers: Speaker[];
-  briefs?: string[];
+  /** How many frames this section draws. Fixed by the design. */
+  slots?: number;
   note?: string;
 }) {
   if (speakers.length === 0) return null;
@@ -346,8 +340,8 @@ export function Speakers({
               <div className="speaker-figure">
                 <MediaFrame
                   src={person.image}
-                  brief={briefs?.[i]}
                   alt={person.name}
+                  size="1280 × 1600"
                   sizes="(max-width: 760px) 100vw, 30vw"
                 />
               </div>
@@ -375,7 +369,6 @@ export interface DayBeat {
   name?: string;
   description?: string;
   image?: string | null;
-  imageBrief?: string;
 }
 
 export function Days({
@@ -438,14 +431,12 @@ export function Venue({
   blurb,
   venue,
   images,
-  imageBrief,
 }: {
   eyebrow: string;
   heading: string;
   blurb?: string;
   venue: EventVenue | null;
   images: string[];
-  imageBrief?: string;
 }) {
   if (!venue && images.length === 0) return null;
 
@@ -475,7 +466,6 @@ export function Venue({
               <MediaFrame
                 key={src ?? i}
                 src={src}
-                brief={src ? undefined : imageBrief}
                 alt=""
                 aspect="4 / 3"
                 sizes="(max-width: 760px) 100vw, 25vw"
@@ -498,7 +488,7 @@ export function Experience({
   headingB,
   chips,
   images,
-  briefs,
+  slots = 0,
 }: {
   marker?: string;
   eyebrow: string;
@@ -507,7 +497,8 @@ export function Experience({
   headingB?: string;
   chips: string[];
   images: string[];
-  briefs?: string[];
+  /** How many frames this section draws. Fixed by the design. */
+  slots?: number;
 }) {
   return (
     <section id="experience" data-track="cover" className="section section-ink">
@@ -529,8 +520,8 @@ export function Experience({
         </div>
 
         <div className="experience-strip" data-reveal="up">
-          {(briefs ?? []).map((brief, i) => (
-            <MediaFrame key={brief} src={images[i]} brief={brief} alt="" sizes="20vw" />
+          {Array.from({ length: slots }, (_, i) => (
+            <MediaFrame key={i} src={images[i]} alt="" size="1070 × 1600" sizes="20vw" />
           ))}
         </div>
       </div>
@@ -545,13 +536,14 @@ export function Stories({
   headingB,
   body,
   images,
-  briefs,
+  slots = 0,
 }: {
   headingA: string;
   headingB: string;
   body: string;
   images: string[];
-  briefs?: string[];
+  /** How many frames this section draws. Fixed by the design. */
+  slots?: number;
 }) {
   return (
     <section data-track="cover" className="section">
@@ -566,8 +558,8 @@ export function Stories({
         {/* Four portraits and, in the fifth cell, the paragraph — bottom
             aligned, so the text reads as one more column of the contact sheet. */}
         <div className="stories-row" data-reveal="up">
-          {(briefs ?? []).map((brief, i) => (
-            <MediaFrame key={brief} src={images[i]} brief={brief} alt="" sizes="20vw" />
+          {Array.from({ length: slots }, (_, i) => (
+            <MediaFrame key={i} src={images[i]} alt="" size="1070 × 1600" sizes="20vw" />
           ))}
           <p className="body stories-note">{body}</p>
         </div>

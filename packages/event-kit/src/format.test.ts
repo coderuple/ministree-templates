@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  suggestedSize,
   toMinorUnits,
   formatPrice,
   formatDateRange,
@@ -79,5 +80,20 @@ test('exactly one stage is legible at a time', () => {
   // Nothing is ever fully legible in two places at once.
   for (const p of [0.33, 0.65]) {
     assert.ok([0, 1, 2].filter((i) => stageOpacity(p, i, seg) > 0.5).length <= 1);
+  }
+});
+
+test('an empty slot suggests a size from its shape', () => {
+  assert.equal(suggestedSize('3 / 4'), '1200 × 1600');
+  assert.equal(suggestedSize('4 / 5'), '1280 × 1600');
+  assert.equal(suggestedSize('1 / 1'), '1600 × 1600');
+  assert.equal(suggestedSize('4 / 3'), '1600 × 1200');
+  assert.equal(suggestedSize('16 / 9'), '1600 × 900');
+});
+
+test('a frame sized in CSS has nothing to suggest', () => {
+  // Most of fire; those slots pass their own `size` instead.
+  for (const bad of [undefined, '', 'cover', '0 / 4']) {
+    assert.equal(suggestedSize(bad), null);
   }
 });

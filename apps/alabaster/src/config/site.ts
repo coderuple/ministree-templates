@@ -25,7 +25,6 @@ export const site = {
     pullQuote: "I am fully able to do anything through Christ, who empowers me.",
     pullQuoteRef: "Philippians 4:13 TPT",
     image: "",
-    imageBrief: "Hero portrait — soft-lit, eyes closed, warm rim light",
   },
 
   manifesto: {
@@ -38,9 +37,7 @@ export const site = {
     closingA: "This is Uncommon Woman 2027.",
     closingB: "Unstoppable. Living Emboldened.",
     image: "",
-    imageBrief: "Close-up — hands cupped around a single point of light",
     insetImage: "",
-    insetBrief: "Detail — linen texture, warm shadow",
   },
 
   stages: {
@@ -64,7 +61,6 @@ export const site = {
       body: "For the woman already serving, already faithful, and sensing that God is asking for more. What burns in you was never meant to stay this size.",
     },
     image: "",
-    imageBrief: "Stage backdrop — woman in profile, low warm light",
   },
 
   scripture: {
@@ -83,22 +79,19 @@ export const site = {
        church connects one, and match the design's placeholder lineup. */
     demo: [
       {
-        name: "Pastor Adaeze Okafor",
+        name: "Elena Marsh",
         role: "Host · Esther's Ministry",
         bio: "Founder of Esther's Ministry and the voice behind Uncommon Woman since its first gathering of forty women in a borrowed hall.",
-        imageBrief: "Speaker portrait 01 — editorial, warm ivory backdrop",
       },
       {
-        name: "Dr. Marianne Castell",
+        name: "Dr. Priya Raman",
         role: "Teaching · Saturday",
         bio: "Theologian and author writing on courage, vocation and the interior life of women in ministry.",
-        imageBrief: "Speaker portrait 02 — three-quarter turn, soft shadow",
       },
       {
-        name: "Naomi Ferreira",
+        name: "Sofia Lindqvist",
         role: "Worship",
-        bio: "Leads worship across three nights, drawing on hymnody, gospel and the songs of her Cape Town childhood.",
-        imageBrief: "Speaker portrait 03 — worship leader, candid",
+        bio: "Leads worship across three nights, drawing on hymnody, gospel and the songs she grew up singing.",
       },
     ],
     /* The fourth cell. A conference announces its bill in waves, and an empty
@@ -127,21 +120,18 @@ export const site = {
         name: "The Spark",
         description:
           "Opening night. Worship, welcome and the first word — why now, why us, why this.",
-        imageBrief: "Thursday — doors opening, warm lobby light",
         image: "",
       },
       {
         name: "The Breath",
         description:
           "An evening of prayer and honesty. Space to bring what is weary and let it be met.",
-        imageBrief: "Friday — hands raised in low light, shot from behind",
         image: "",
       },
       {
         name: "The Sending",
         description:
           "A full day: teaching, workshops, lunch together, and a closing gathering that sends everyone out carrying something.",
-        imageBrief: "Saturday — room full of women, wide daylight",
         image: "",
       },
     ],
@@ -159,7 +149,6 @@ export const site = {
     heading: "Where we gather.",
     blurb: "",
     images: [] as string[],
-    imageBrief: "The room — wide, warm, filling up",
   },
 
   experience: {
@@ -170,12 +159,11 @@ export const site = {
     headingB: "for a year.",
     chips: "Worship\nTeaching\nPrayer\nEncounter\nCommunity\nPurpose\nSisterhood\nRenewal",
     images: [] as string[],
-    imageBriefs: [
-      "Worship — close crop, eyes closed",
-      "Two women talking, natural laughter",
-      "Hands open, resting on an open Bible",
-      "Cinematic loop — light moving across a face",
-    ],
+    /* How many frames this section draws. The shot list for them
+
+       lives on the matching field in the Customizer. */
+
+    slots: 4,
   },
 
   stories: {
@@ -184,12 +172,11 @@ export const site = {
     headingB: "One fire.",
     body: "Sixteen and sixty. First time and fifteenth. Women from a dozen cultures and every stage of faith, in one room, on the same three evenings. Nobody here is a category. Everybody here is carrying something.",
     images: [] as string[],
-    imageBriefs: [
-      "Portrait — young woman, 20s",
-      "Portrait — woman in her 60s",
-      "Portrait — teenager, natural light",
-      "Portrait — mother and daughter together",
-    ],
+    /* How many frames this section draws. The shot list for them
+
+       lives on the matching field in the Customizer. */
+
+    slots: 4,
   },
 
   finalCta: {

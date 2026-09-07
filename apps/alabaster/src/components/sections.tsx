@@ -64,7 +64,6 @@ export function Hero({
   pullQuote,
   pullQuoteRef,
   image,
-  imageBrief,
   embers,
 }: {
   eyebrow: string;
@@ -79,7 +78,6 @@ export function Hero({
   pullQuote?: string;
   pullQuoteRef?: string;
   image?: string | null;
-  imageBrief?: string;
   embers: boolean;
 }) {
   return (
@@ -88,7 +86,7 @@ export function Hero({
         <div aria-hidden className="ember-bloom" />
 
         <div className="hero-portrait">
-          <MediaFrame src={image} brief={imageBrief} alt="" priority sizes="100vw" />
+          <MediaFrame src={image} alt="" priority sizes="100vw" />
           <div aria-hidden className="hero-scrim" />
         </div>
 
@@ -141,9 +139,7 @@ export function Manifesto({
   closingA,
   closingB,
   image,
-  imageBrief,
   insetImage,
-  insetBrief,
 }: {
   eyebrow: string;
   headingA: string;
@@ -153,9 +149,7 @@ export function Manifesto({
   closingA?: string;
   closingB?: string;
   image?: string | null;
-  imageBrief?: string;
   insetImage?: string | null;
-  insetBrief?: string;
 }) {
   const paras = paragraphs(body);
   if (!lede && paras.length === 0) return null;
@@ -211,10 +205,10 @@ export function Manifesto({
         </div>
 
         <div className="manifesto-figure" data-reveal="blur">
-          <MediaFrame src={image} brief={imageBrief} alt="" aspect="3 / 4" sizes="(max-width: 760px) 100vw, 45vw" />
-          {insetImage || insetBrief ? (
+          <MediaFrame src={image} alt="" aspect="3 / 4" sizes="(max-width: 760px) 100vw, 45vw" />
+          {insetImage !== undefined ? (
             <div className="manifesto-inset">
-              <MediaFrame src={insetImage} brief={insetBrief} alt="" sizes="20vw" />
+              <MediaFrame src={insetImage} alt="" size="1280 × 1600" sizes="20vw" />
             </div>
           ) : null}
         </div>
@@ -235,12 +229,10 @@ export interface Stage {
 export function Stages({
   stages,
   image,
-  imageBrief,
   embers,
 }: {
   stages: Stage[];
   image?: string | null;
-  imageBrief?: string;
   embers: boolean;
 }) {
   if (stages.length === 0) return null;
@@ -252,7 +244,7 @@ export function Stages({
         <div aria-hidden className="stages-dim" />
 
         <div className="stages-backdrop">
-          <MediaFrame src={image} brief={imageBrief} alt="" sizes="80vw" />
+          <MediaFrame src={image} alt="" size="1600 × 1600" sizes="80vw" />
         </div>
 
         {embers ? <EmbersCanvas className="stages-embers" /> : null}
@@ -318,15 +310,15 @@ export function Speakers({
   headingA,
   headingB,
   speakers,
-  briefs,
+  slots = 0,
   placeholder,
 }: {
   eyebrow: string;
   headingA: string;
   headingB?: string;
   speakers: Speaker[];
-  /** Art direction for portraits a church has not uploaded yet. */
-  briefs?: string[];
+  /** How many frames this section draws. Fixed by the design. */
+  slots?: number;
   placeholder?: {
     show: boolean;
     label: string;
@@ -366,7 +358,6 @@ export function Speakers({
           >
             <MediaFrame
               src={person.image}
-              brief={briefs?.[i]}
               alt={person.name}
               aspect="3 / 4"
               sizes="(max-width: 760px) 100vw, 25vw"
@@ -409,7 +400,6 @@ export interface DayBeat {
   name?: string;
   description?: string;
   image?: string | null;
-  imageBrief?: string;
 }
 
 export function Days({
@@ -460,7 +450,6 @@ export function Days({
                 </div>
                 <MediaFrame
                   src={beat?.image}
-                  brief={beat?.imageBrief}
                   alt=""
                   aspect="4 / 3"
                   sizes="(max-width: 760px) 100vw, 33vw"
@@ -488,14 +477,12 @@ export function Venue({
   blurb,
   venue,
   images,
-  imageBrief,
 }: {
   eyebrow: string;
   heading: string;
   blurb?: string;
   venue: EventVenue | null;
   images: string[];
-  imageBrief?: string;
 }) {
   if (!venue && images.length === 0) return null;
 
@@ -532,7 +519,6 @@ export function Venue({
               <MediaFrame
                 key={src ?? i}
                 src={src}
-                brief={src ? undefined : imageBrief}
                 alt=""
                 aspect="4 / 3"
                 sizes="(max-width: 760px) 100vw, 25vw"
@@ -554,7 +540,7 @@ export function Experience({
   headingB,
   chips,
   images,
-  briefs,
+  slots = 0,
 }: {
   eyebrow: string;
   headingA: string;
@@ -562,7 +548,8 @@ export function Experience({
   headingB?: string;
   chips: string[];
   images: string[];
-  briefs?: string[];
+  /** How many frames this section draws. Fixed by the design. */
+  slots?: number;
 }) {
   return (
     <section id="experience" data-track="cover" className="section">
@@ -591,15 +578,14 @@ export function Experience({
             `style` to the frame itself, so a delay set there had nothing to
             delay and the pictures simply appeared. */}
         <div className="experience-frames">
-          {(briefs ?? []).map((brief, i) => (
+          {Array.from({ length: slots }, (_, i) => (
             <div
-              key={brief}
+              key={i}
               data-reveal="up"
               style={{ "--reveal-delay": `${i * 80}ms` } as React.CSSProperties}
             >
               <MediaFrame
                 src={images[i]}
-                brief={brief}
                 alt=""
                 aspect="3 / 4"
                 sizes="(max-width: 760px) 50vw, 22vw"
@@ -619,13 +605,14 @@ export function Stories({
   headingB,
   body,
   images,
-  briefs,
+  slots = 0,
 }: {
   headingA: string;
   headingB: string;
   body: string;
   images: string[];
-  briefs?: string[];
+  /** How many frames this section draws. Fixed by the design. */
+  slots?: number;
 }) {
   return (
     <section data-track="cover" className="section stories">
@@ -640,8 +627,8 @@ export function Stories({
           </p>
         </div>
         <div className="stories-frames" data-reveal="blur">
-          {(briefs ?? []).map((brief, i) => (
-            <MediaFrame key={brief} src={images[i]} brief={brief} alt="" aspect="3 / 4" sizes="(max-width: 760px) 50vw, 22vw" />
+          {Array.from({ length: slots }, (_, i) => (
+            <MediaFrame key={i} src={images[i]} alt="" aspect="3 / 4" sizes="(max-width: 760px) 50vw, 22vw" />
           ))}
         </div>
       </div>

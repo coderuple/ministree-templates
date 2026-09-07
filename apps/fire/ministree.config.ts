@@ -191,7 +191,12 @@ export default defineMinistreeTemplate({
           pullQuote: { kind: "textarea", label: "Corner quote", optional: true },
           scrollLabel: { kind: "text", label: "The sideways scroll cue", optional: true },
           pullQuoteRef: { kind: "text", label: "…where it's from", optional: true },
-          image: { kind: "media", label: "Behind the words", optional: true },
+          image: {
+            kind: "media",
+            label: "Behind the words",
+            optional: true,
+            help: "A loop or a still of fabric lifting in wind, backlit. It fills a circle at the centre of the screen, so keep the subject central.",
+          },
         },
       },
 
@@ -254,11 +259,11 @@ export default defineMinistreeTemplate({
           },
           images: {
             kind: "media",
+              help: "One picture each, in order: CATCH \u2014 a single point of light in the dark. REKINDLE \u2014 embers breathed back to life. FAN \u2014 flame carried on the wind, wide.",
             multiple: true,
             max: 3,
             label: "One picture each",
             optional: true,
-            help: "Cropped to circles, in the same order as the three above.",
           },
         },
       },
@@ -320,7 +325,12 @@ export default defineMinistreeTemplate({
             fields: {
               name: { kind: "text", label: "Name", width: "half" },
               description: { kind: "textarea", label: "What happens" },
-              image: { kind: "media", label: "Picture", optional: true },
+              image: {
+                kind: "media",
+                label: "Picture",
+                optional: true,
+                help: "Something from that day, cropped to a circle \u2014 doors opening, hands raised in low light, the room full in daylight.",
+              },
             },
           },
         },
@@ -335,7 +345,14 @@ export default defineMinistreeTemplate({
           eyebrow: { kind: "text", label: "Small label", width: "half" },
           heading: { kind: "text", label: "Heading", width: "half" },
           blurb: { kind: "textarea", label: "Anything worth knowing", optional: true },
-          images: { kind: "media", multiple: true, max: 3, label: "Pictures", optional: true },
+          images: {
+            kind: "media",
+            multiple: true,
+            max: 3,
+            label: "Pictures",
+            optional: true,
+            help: "The room \u2014 wide, warm, filling up. Cropped to a circle.",
+          },
         },
       },
 
@@ -349,7 +366,14 @@ export default defineMinistreeTemplate({
           headingEm: { kind: "text", label: "…its italic word", width: "half", optional: true },
           headingB: { kind: "text", label: "…and the rest", optional: true },
           chips: { kind: "textarea", label: "The words around it", help: "One per line." },
-          images: { kind: "media", multiple: true, max: 4, label: "Pictures", optional: true },
+          images: {
+            kind: "media",
+            multiple: true,
+            max: 4,
+            label: "Pictures",
+            optional: true,
+            help: "Five circles, one per word: worship, prayer, sisterhood, encounter, renewal.",
+          },
         },
       },
 
@@ -361,7 +385,14 @@ export default defineMinistreeTemplate({
           headingA: { kind: "text", label: "Heading", width: "half" },
           headingB: { kind: "text", label: "…and its italic second line", width: "half" },
           body: { kind: "textarea", label: "The paragraph" },
-          images: { kind: "media", multiple: true, max: 4, label: "Faces", optional: true },
+          images: {
+            kind: "media",
+            multiple: true,
+            max: 4,
+            label: "Faces",
+            optional: true,
+            help: "Four portraits, in this order: 1) someone in their twenties. 2) someone in their sixties. 3) a teenager, natural light. 4) two generations together. They overlap into one group, so plain backgrounds work best.",
+          },
         },
       },
 

@@ -79,7 +79,6 @@ export default async function Home() {
         secondaryHref={c.hero.secondaryHref}
         scriptureRef={c.hero.pullQuoteRef}
         image={c.hero.image || event?.heroImage}
-        imageBrief={c.hero.imageBrief}
       />
 
       {c.marquee.enabled !== false ? <Marquee phrases={lines(c.marquee.phrases)} /> : null}
@@ -94,9 +93,7 @@ export default async function Home() {
           body={c.manifesto.body || event?.description || ""}
           pullLine={c.manifesto.pullLine}
           image={c.manifesto.image}
-          imageBrief={c.manifesto.imageBrief}
           insetImage={c.manifesto.insetImage}
-          insetBrief={c.manifesto.insetBrief}
         />
       ) : null}
 
@@ -104,7 +101,7 @@ export default async function Home() {
         <Stages
           stages={stages}
           images={[...(c.stages.images ?? [])]}
-          briefs={[...c.stages.imageBriefs]}
+          slots={c.stages.slots}
         />
       ) : null}
 
@@ -123,7 +120,6 @@ export default async function Home() {
           headingA={c.speakers.headingA}
           headingB={c.speakers.headingB}
           speakers={speakers}
-          briefs={c.speakers.demo.map((s) => s.imageBrief)}
           note={c.speakers.note}
         />
       ) : null}
@@ -147,7 +143,6 @@ export default async function Home() {
           blurb={c.venue.blurb}
           venue={event?.venue ?? null}
           images={[...(c.venue.images ?? [])]}
-          imageBrief={c.venue.imageBrief}
         />
       ) : null}
 
@@ -160,7 +155,7 @@ export default async function Home() {
           headingB={c.experience.headingB}
           chips={lines(c.experience.chips)}
           images={[...(c.experience.images ?? [])]}
-          briefs={[...c.experience.imageBriefs]}
+          slots={c.experience.slots}
         />
       ) : null}
 
@@ -170,7 +165,7 @@ export default async function Home() {
           headingB={c.stories.headingB}
           body={c.stories.body}
           images={[...(c.stories.images ?? [])]}
-          briefs={[...c.stories.imageBriefs]}
+          slots={c.stories.slots}
         />
       ) : null}
 

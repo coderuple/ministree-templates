@@ -170,3 +170,18 @@ export function stageOpacity(
     index === segments.length - 1 ? 1 : Math.min(1, Math.max(0, (b + lead - p) / ramp));
   return Math.min(fadeIn, fadeOut);
 }
+
+/**
+ * The pixel size to suggest for an empty image slot of this shape.
+ *
+ * Long edge 1600, short edge derived and rounded to ten. One formula rather
+ * than a lookup table: a table is six rows to keep in step with arithmetic that
+ * fits on a line. Returns null when the caller gave no usable ratio — those
+ * frames are sized in CSS and pass their own label instead.
+ */
+export function suggestedSize(aspect?: string): string | null {
+  const [w, h] = (aspect ?? '').split('/').map((n) => Number(n.trim()));
+  if (!w || !h || !Number.isFinite(w) || !Number.isFinite(h)) return null;
+  const round = (n: number) => Math.round(n / 10) * 10;
+  return w >= h ? `1600 × ${round((1600 * h) / w)}` : `${round((1600 * w) / h)} × 1600`;
+}
