@@ -1192,6 +1192,26 @@ button { font: inherit; color: inherit; }
 }
 .checkout-details input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .checkout-details small { font-size: 12px; color: var(--muted); }
+
+/* The People opt-in under the purchaser details: invitation + fixed consent line. */
+.checkout-optin {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0 0 clamp(20px, 2.4cqi, 32px);
+  font-size: 13px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+.checkout-optin input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  accent-color: var(--accent);
+}
+.checkout-optin strong { display: block; font-weight: 500; color: inherit; }
+.checkout-optin small { display: block; font-size: 12px; color: var(--muted); }
 .checkout-total {
   display: flex;
   align-items: baseline;

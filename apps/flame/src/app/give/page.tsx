@@ -1,4 +1,4 @@
-import { getGiving } from "@ministree/template-sdk";
+import { getChurchProfile, getGiving } from "@ministree/template-sdk";
 import { loadContent } from "@/lib/ministree";
 import { Container } from "@/components/ui";
 import GivingExperience, { type GivingContent } from "@/components/giving/GivingExperience";
@@ -8,7 +8,9 @@ export const metadata = { title: "Give" };
 
 /** Full native giving experience — funds, amount, frequency, gift aid, card. */
 export default async function GivePage() {
-  const [giving, content] = await Promise.all([getGiving(), loadContent()]);
+  const [giving, content, church] = await Promise.all([getGiving(), loadContent(), getChurchProfile()]);
+  // Resolved by the API in the church's own words (or "stay connected with <name>").
+  const optInInvite = (church as { peopleOptInInvite?: string | null } | null)?.peopleOptInInvite ?? null;
   const givingContent = ((content as { giving?: GivingContent }).giving ?? {}) as GivingContent;
 
   if (!giving) {
@@ -24,5 +26,5 @@ export default async function GivePage() {
     );
   }
 
-  return <GivingExperience giving={giving} content={givingContent} />;
+  return <GivingExperience giving={giving} content={givingContent} optInInvite={optInInvite} />;
 }

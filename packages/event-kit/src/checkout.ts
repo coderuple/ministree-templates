@@ -48,6 +48,26 @@ export type CheckoutStep = 'tickets' | 'details' | 'payment' | 'success';
 export interface Purchaser {
   name: string;
   email: string;
+  /** Ticked the People opt-in: Ministree keeps their details and may get in touch. */
+  optIn: boolean;
+}
+
+/**
+ * The fixed consent line under the opt-in tick. Mirrors PEOPLE_OPT_IN_CONSENT
+ * in Ministree's contracts (packages/contracts/src/people/opt-in.ts) — it is
+ * what makes the tick valid consent, so it is not a Customizer field.
+ */
+export const PEOPLE_OPT_IN_CONSENT =
+  "We'll keep your details and get in touch about church life and events. Unsubscribe any time.";
+
+/** The invitation above it, in the church's own words when they set one. */
+function optInInviteFor(profile: { name?: string | null; peopleOptInInvite?: string | null } | null) {
+  const own = profile?.peopleOptInInvite?.trim();
+  if (own) return own;
+  const name = profile?.name?.trim();
+  return name
+    ? `Would you like to stay connected with ${name}?`
+    : 'Would you like to stay connected with your church?';
 }
 
 const POLL_INTERVAL_MS = 5_000;
@@ -73,12 +93,29 @@ export function useCheckout({
 
   const [step, setStep] = useState<CheckoutStep>('tickets');
   const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const [purchaser, setPurchaser] = useState<Purchaser>({ name: '', email: '' });
+  const [purchaser, setPurchaser] = useState<Purchaser>({ name: '', email: '', optIn: false });
+  const [optInInvite, setOptInInvite] = useState(() => optInInviteFor(null));
   const [order, setOrder] = useState<OrderResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [polling, setPolling] = useState(false);
   const [pollTimedOut, setPollTimedOut] = useState(false);
+
+  /* The church's invitation line comes from its public profile (resolved
+     server-side with their name); the generic fallback covers a slow or
+     unreachable API. */
+  useEffect(() => {
+    let cancelled = false;
+    client
+      .get<{ name?: string | null; peopleOptInInvite?: string | null }>('/church-profile')
+      .then((profile) => {
+        if (!cancelled && profile) setOptInInvite(optInInviteFor(profile));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [client]);
 
   const buyable = useMemo(
     () => tiers.filter((t) => t.onSale && !t.soldOut && !t.requiresSeat),
@@ -131,6 +168,7 @@ export function useCheckout({
         })),
         purchaserName: purchaser.name.trim(),
         purchaserEmail: purchaser.email.trim(),
+        ...(purchaser.optIn ? { marketingOptIn: true } : {}),
       };
       if (usePaypal) {
         body.paymentMethod = 'paypal';
@@ -238,6 +276,7 @@ export function useCheckout({
     setQuantity,
     purchaser,
     setPurchaser,
+    optInInvite,
     lines,
     buyable,
     totalMinor,

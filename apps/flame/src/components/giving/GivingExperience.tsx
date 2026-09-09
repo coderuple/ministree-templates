@@ -78,12 +78,20 @@ const inputClass =
 
 /* ─── Main experience ──────────────────────────────────────────────────── */
 
+/** Mirrors PEOPLE_OPT_IN_CONSENT in Ministree's contracts — the fixed line
+ *  that makes the tick valid consent, so it is not editable here. */
+const PEOPLE_OPT_IN_CONSENT =
+  "We'll keep your details and get in touch about church life and events. Unsubscribe any time.";
+
 export default function GivingExperience({
   giving,
   content,
+  optInInvite,
 }: {
   giving: MinistreeGiving;
   content: GivingContent;
+  /** The church's stay-in-touch invitation (resolved by the API with their name). */
+  optInInvite?: string | null;
 }) {
   const currency = giving.defaultCurrency ?? "GBP";
   const glyph = currencyGlyph(currency);
@@ -110,6 +118,7 @@ export default function GivingExperience({
   const [donorName, setDonorName] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [optIn, setOptIn] = useState(false);
   const [saveCard, setSaveCard] = useState(false);
   const [giftAidOn, setGiftAidOn] = useState(false);
   const [ga, setGa] = useState({ title: "", firstName: "", lastName: "", address: "", postcode: "" });
@@ -188,6 +197,8 @@ export default function GivingExperience({
       donorEmail: donorEmail.trim() || undefined,
       isAnonymous,
       saveCard,
+      // Only meaningful with an email to hold and a named giver.
+      ...(optIn && donorEmail.trim() && !isAnonymous ? { marketingOptIn: true } : {}),
       paymentReturnUrl: `${origin}/give?success=1`,
       ...(giftAidOn
         ? {
@@ -417,6 +428,25 @@ export default function GivingExperience({
           Give anonymously
         </label>
       </div>
+      {!isAnonymous ? (
+        <label className="mt-5 flex items-start gap-3 text-sm">
+          <input
+            type="checkbox"
+            className="mt-1 accent-ember"
+            checked={optIn}
+            disabled={!donorEmail.trim()}
+            onChange={(e) => setOptIn(e.target.checked)}
+          />
+          <span className="leading-snug">
+            <span className="block font-medium text-ink">
+              {optInInvite?.trim() || "Would you like to stay connected with us?"}
+            </span>
+            <span className="block text-muted">
+              {donorEmail.trim() ? PEOPLE_OPT_IN_CONSENT : "Add your email above first."}
+            </span>
+          </span>
+        </label>
+      ) : null}
     </div>
   );
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useCheckout } from './checkout.ts';
+import { PEOPLE_OPT_IN_CONSENT, useCheckout } from './checkout.ts';
 import { StripePanel } from './stripe-panel.tsx';
 import { formatPrice } from './format.ts';
 import type { EventView } from './event.ts';
@@ -191,6 +191,21 @@ export function Checkout({
               <small>We send the tickets here.</small>
             </label>
           </div>
+
+          {/* The People opt-in: the same two lines as Ministree's own checkout —
+              the church's invitation, then the fixed consent line. */}
+          <label className="checkout-optin">
+            <input
+              type="checkbox"
+              name="optIn"
+              checked={c.purchaser.optIn}
+              onChange={(e) => c.setPurchaser({ ...c.purchaser, optIn: e.target.checked })}
+            />
+            <span>
+              <strong>{c.optInInvite}</strong>
+              <small>{PEOPLE_OPT_IN_CONSENT}</small>
+            </span>
+          </label>
 
           {c.error ? <p className="checkout-error">{c.error}</p> : null}
 
