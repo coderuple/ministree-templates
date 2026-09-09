@@ -105,7 +105,12 @@ export function ScrollEngine({
 
       if (stageHost && stages.length) {
         const p = Number(stageHost.style.getPropertyValue('--p')) || 0;
-        stages.forEach((el, i) => {
+        stages.forEach((el, order) => {
+          // data-stage="n" names the crossfade slot; several elements may share
+          // one (fire pairs an orb with its copy). Fall back to DOM order for
+          // bare data-stage attributes.
+          const n = Number(el.dataset.stage);
+          const i = Number.isInteger(n) ? n : order;
           const o = stageOpacity(p, i, stageSegments, ramp);
           el.style.setProperty('--o', o.toFixed(3));
           stageHost.style.setProperty(`--s${i}`, o.toFixed(3));

@@ -494,6 +494,22 @@ button { font: inherit; color: inherit; }
   pointer-events: none;
 }
 .hero-copy { position: relative; z-index: 2; text-align: center; padding: 0 clamp(18px, 4cqi, 60px); }
+/* The portal sits straight behind the copy; a smoke pool keeps the title,
+   sub and dates readable whatever photo it holds (the dates line measured
+   1.1:1 without it). */
+.hero-copy::before {
+  content: "";
+  position: absolute;
+  inset: -18% -8%;
+  z-index: -1;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--bg) 88%, transparent) 0%,
+    color-mix(in oklab, var(--bg) 78%, transparent) 60%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
 .hero-title {
   margin: clamp(16px, 2.4cqi, 34px) 0 0;
   font-family: var(--font-display);
@@ -601,13 +617,21 @@ button { font: inherit; color: inherit; }
   transform: translateY(calc((1 - var(--o, 0)) * 30px));
   will-change: opacity, transform;
 }
-/* A radial scrim so the words stay legible over whatever the portal holds. */
+/* A radial scrim so the words stay legible over whatever the portal holds.
+   Measured at 72% the bright orbs still left the copy at 1.2–2.6:1; this
+   depth clears 4.5:1 for the label and body, not just the display word. */
 .stage::before {
   content: "";
   position: absolute;
-  inset: -20%;
+  inset: -24%;
   z-index: -1;
-  background: radial-gradient(closest-side, color-mix(in oklab, var(--bg) 72%, transparent), transparent 100%);
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--bg) 90%, transparent) 0%,
+    color-mix(in oklab, var(--bg) 82%, transparent) 55%,
+    color-mix(in oklab, var(--bg) 60%, transparent) 80%,
+    transparent 100%
+  );
 }
 .stage-word {
   margin: clamp(12px, 1.6cqi, 22px) 0 0;
@@ -617,7 +641,7 @@ button { font: inherit; color: inherit; }
   line-height: 0.88;
 }
 .stage-phrase { font-family: var(--font-display); font-style: italic; font-size: clamp(18px, 2.4cqi, 38px); color: var(--gold); margin-top: 6px; }
-.stage-body { margin: clamp(14px, 1.8cqi, 26px) auto 0; max-width: 32ch; font-size: clamp(13px, 1.15cqi, 16px); line-height: 1.8; color: var(--body); }
+.stage-body { margin: clamp(14px, 1.8cqi, 26px) auto 0; max-width: 32ch; font-size: clamp(13px, 1.15cqi, 16px); line-height: 1.8; color: color-mix(in oklab, var(--ink) 84%, var(--bg)); }
 
 /* --- Scripture ---------------------------------------------------------- */
 

@@ -659,8 +659,9 @@ button { font: inherit; color: inherit; }
   inset: 0;
   background: linear-gradient(
     180deg,
-    transparent 0%,
-    color-mix(in oklab, var(--dark) 55%, transparent) 100%
+    color-mix(in oklab, var(--dark) 22%, transparent) 0%,
+    color-mix(in oklab, var(--dark) 40%, transparent) 50%,
+    color-mix(in oklab, var(--dark) 62%, transparent) 100%
   );
   opacity: var(--p, 0);
 }
@@ -697,12 +698,33 @@ button { font: inherit; color: inherit; }
     color-mix(in oklab, var(--bg) 66%, transparent) 52%,
     transparent 100%
   );
-  opacity: calc(1 - var(--p, 0));
+  /* Gone by the time stage one hands over (the engine crossfades at --p 0.32). */
+  opacity: clamp(0, calc((0.31 - var(--p, 0)) * 14), 1);
   pointer-events: none;
+  z-index: 0;
+}
+/* Stages two and three read as ivory on oxblood, so the same pool returns in
+   the dark ground once stage one has left. Measured: without it the copy sat
+   on a mid-tone photo at 1.1–3.3:1; with it the word and phrase clear 4.5:1. */
+.stages-copy::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    68% 74% at 50% 48%,
+    color-mix(in oklab, var(--dark) 86%, transparent) 0%,
+    color-mix(in oklab, var(--dark) 76%, transparent) 50%,
+    color-mix(in oklab, var(--dark) 56%, transparent) 76%,
+    transparent 100%
+  );
+  opacity: clamp(0, calc((var(--p, 0) - 0.25) * 12), 1);
+  pointer-events: none;
+  z-index: 0;
 }
 /* --o comes from the engine. Everything it means is decided here. */
 .stage {
   position: absolute;
+  z-index: 1; /* above both pools */
   text-align: center;
   width: min(88cqi, 940px);
   opacity: var(--o, 0);
@@ -734,13 +756,13 @@ button { font: inherit; color: inherit; }
 /* Stage one reads on cream; two and three read on the oxblood the room has
    become by then. */
 .stage-1 { color: var(--ink); }
-.stage-1 .eyebrow { color: color-mix(in oklab, var(--gold) 60%, var(--ink)); }
+.stage-1 .eyebrow { color: color-mix(in oklab, var(--gold) 45%, var(--ink)); }
 .stage-1 .stage-phrase { color: var(--accent); }
 .stage-1 .stage-body { color: color-mix(in oklab, var(--ink) 94%, var(--bg)); }
 .stage-2, .stage-3 { color: var(--bg); }
-.stage-2 .eyebrow, .stage-3 .eyebrow { color: color-mix(in oklab, var(--gold) 70%, white); }
-.stage-2 .stage-phrase, .stage-3 .stage-phrase { color: color-mix(in oklab, var(--gold) 55%, white); }
-.stage-2 .stage-body, .stage-3 .stage-body { color: color-mix(in oklab, var(--bg) 88%, var(--gold)); }
+.stage-2 .eyebrow, .stage-3 .eyebrow { color: color-mix(in oklab, var(--gold) 40%, white); }
+.stage-2 .stage-phrase, .stage-3 .stage-phrase { color: color-mix(in oklab, var(--gold) 38%, white); }
+.stage-2 .stage-body, .stage-3 .stage-body { color: color-mix(in oklab, var(--bg) 92%, var(--gold)); }
 
 /* Three hairline dashes, lighting gold as each stage takes the room. They
    read --s0/--s1/--s2 off the host section, so JS never touches them. */
