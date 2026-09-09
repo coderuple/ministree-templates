@@ -25,7 +25,7 @@ export const site = {
     secondaryHref: "#about",
     pullQuote: "I am fully able to do anything through Christ, who empowers me.",
     pullQuoteRef: "Philippians 4:13 TPT",
-    image: "",
+    image: "/images/hero-3.webp",
   },
 
   manifesto: {
@@ -37,7 +37,7 @@ export const site = {
     body: "A fire does not spread because it is loud. It spreads because the wind carries it.\n\nSome will catch the fire. Some will rediscover embers they thought had disappeared. Others will find that what already burns within them can burn brighter still.",
     closingA: "",
     closingB: "This is Uncommon Woman 2027.",
-    image: "",
+    image: "/images/manifesto.webp",
   },
 
   stages: {
@@ -60,7 +60,7 @@ export const site = {
       phrase: "Fan the Flames",
       body: "For the woman already serving, already faithful, and sensing that God is asking for more. What burns in you was never meant to stay this size.",
     },
-    images: [] as string[],
+    images: ["/images/stage-1.webp", "/images/stage-2.webp", "/images/stage-3.webp"],
     /* How many frames this section draws. The shot list for them
 
        lives on the matching field in the Customizer. */
@@ -86,16 +86,19 @@ export const site = {
       {
         name: "Clara Nakamura",
         role: "Host · Esther's Ministry",
+        image: "/images/speaker-2.webp",
         bio: "Founder of Esther's Ministry and the voice behind Uncommon Woman since its first gathering of forty women in a borrowed hall.",
       },
       {
         name: "Rev. Joanna Whitfield",
         role: "Teaching · Saturday",
+        image: "/images/speaker-4.webp",
         bio: "Theologian and author writing on courage, vocation and the interior life of women in ministry.",
       },
       {
         name: "Leila Haddad",
         role: "Worship",
+        image: "/images/speaker-6.webp",
         bio: "Leads worship across three nights, drawing on hymnody, gospel and the songs she grew up singing.",
       },
     ],
@@ -125,19 +128,19 @@ export const site = {
         name: "The Spark",
         description:
           "Opening night. Worship, welcome and the first word — why now, why us, why this.",
-        image: "",
+        image: "/images/day-1.webp",
       },
       {
         name: "The Breath",
         description:
           "An evening of prayer and honesty. Space to bring what is weary and let it be met.",
-        image: "",
+        image: "/images/day-2.webp",
       },
       {
         name: "The Sending",
         description:
           "A full day: teaching, workshops, lunch together, and a closing gathering that sends everyone out carrying something.",
-        image: "",
+        image: "/images/day-3.webp",
       },
     ],
     /* Only used when no church is connected — a real event brings its own. */
@@ -153,7 +156,7 @@ export const site = {
     eyebrow: "The Venue",
     heading: "Where we gather.",
     blurb: "",
-    images: [] as string[],
+    images: ["/images/venue-1.webp", "/images/venue-2.webp", "/images/venue-3.webp"],
   },
 
   experience: {
@@ -163,7 +166,7 @@ export const site = {
     headingEm: "feel",
     headingB: "for a year.",
     chips: "Worship\nPrayer\nSisterhood\nEncounter",
-    images: [] as string[],
+    images: ["/images/exp-1.webp", "/images/exp-2.webp", "/images/exp-3.webp", "/images/exp-4.webp"],
     /* How many frames this section draws. The shot list for them
 
        lives on the matching field in the Customizer. */
@@ -176,7 +179,7 @@ export const site = {
     headingA: "Different stories.",
     headingB: "One fire.",
     body: "Sixteen and sixty. First time and fifteenth. Women from a dozen cultures and every stage of faith, in one room, on the same three evenings. Nobody here is a category. Everybody here is carrying something.",
-    images: [] as string[],
+    images: ["/images/story-1.webp", "/images/story-2.webp", "/images/story-3.webp"],
     /* How many frames this section draws. The shot list for them
 
        lives on the matching field in the Customizer. */

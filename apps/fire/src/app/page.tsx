@@ -41,7 +41,7 @@ export default async function Home() {
         slug: String(i),
         name: s.name,
         role: s.role,
-        image: null,
+        image: s.image ?? null,
         bio: s.bio,
       }));
 

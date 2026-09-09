@@ -19,7 +19,7 @@ export const site = {
     subtitle: "",
     primaryCta: { label: "Plan your visit", href: "/about", variant: "primary" },
     secondaryCta: { label: "Watch a message", href: "/sermons", variant: "outline" },
-    imageUrl: "",
+    imageUrl: "/images/flame-hero.webp",
     imageFocalPoint: "center",
   },
 
@@ -169,7 +169,8 @@ export const site = {
   event: {
     countdown: true,
     backdropVideo: "",
-    backdropPoster: "",
+    backdropPoster: "/images/flame-poster.webp",
+    venueImages: ["/images/venue-1.webp", "/images/venue-2.webp"],
     flyerUrl: "",
     ticketPerks: "",
     ticketsPhone: "",

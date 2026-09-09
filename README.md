@@ -33,7 +33,9 @@ NEXT_PUBLIC_ORG_SLUG=your-church
 ```
 
 With neither set, every data call returns null and the manifest defaults render
-— so a template builds, runs and demos with no Ministree at all.
+— so a template builds, runs and demos with no Ministree at all. The defaults
+include a set of demo photos each template ships under `public/images`, so a
+fresh deploy is fully dressed; a church replaces any of them in the Customizer.
 
 Then in the church's admin: **Templates → Connect your template**, paste the
 deployed URL. Ministree reads `/ministree-manifest` and builds a Customizer from
