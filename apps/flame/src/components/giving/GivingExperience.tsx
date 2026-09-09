@@ -81,7 +81,7 @@ const inputClass =
 /** Mirrors PEOPLE_OPT_IN_CONSENT in Ministree's contracts — the fixed line
  *  that makes the tick valid consent, so it is not editable here. */
 const PEOPLE_OPT_IN_CONSENT =
-  "We'll keep your details and get in touch about church life and events. Unsubscribe any time.";
+  "By ticking, you join our membership list. We'll keep your details safe and keep in touch about church life and events. You can leave at any time.";
 
 export default function GivingExperience({
   giving,

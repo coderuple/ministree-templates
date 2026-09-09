@@ -58,7 +58,7 @@ export interface Purchaser {
  * what makes the tick valid consent, so it is not a Customizer field.
  */
 export const PEOPLE_OPT_IN_CONSENT =
-  "We'll keep your details and get in touch about church life and events. Unsubscribe any time.";
+  "By ticking, you join our membership list. We'll keep your details safe and keep in touch about church life and events. You can leave at any time.";
 
 /** The invitation above it, in the church's own words when they set one. */
 function optInInviteFor(profile: { name?: string | null; peopleOptInInvite?: string | null } | null) {
