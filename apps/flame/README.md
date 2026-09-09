@@ -10,7 +10,7 @@ Next.js 16 (App Router) · Tailwind CSS v4 · three.js / React Three Fiber · GS
 
 ```bash
 npm install
-npm run dev      # http://localhost:3000
+npm run dev      # http://localhost:3100
 npm run build
 ```
 

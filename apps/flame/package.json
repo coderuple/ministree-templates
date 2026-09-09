@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "dev": "next dev",
+    "predev": "lsof -ti tcp:3100 -sTCP:LISTEN | xargs kill",
+    "dev": "next dev --port 3100",
     "lint": "eslint",
-    "start": "next start",
+    "start": "next start --port 3100",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

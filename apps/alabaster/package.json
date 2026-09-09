@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "lsof -ti tcp:3101 -sTCP:LISTEN | xargs kill",
     "dev": "next dev --port 3101",
     "build": "next build",
     "start": "next start --port 3101",

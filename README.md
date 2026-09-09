@@ -8,7 +8,7 @@ reads a church's content from Ministree and renders it with its own design.
 | `apps/alabaster` | 3101 | **The Ember.** Ivory and crimson, Cormorant Garamond. Serene and editorial. |
 | `apps/ivory` | 3102 | **Unstoppable.** Bone, ink and crimson, Bodoni Moda. A fashion title's March issue. |
 | `apps/fire` | 3103 | **Carried by the Wind.** Smoke warming to gold, Instrument Serif. One unbroken composition. |
-| `apps/flame` | 3000 | A general-purpose multi-page church site. Moved in from its own repo, history intact. |
+| `apps/flame` | 3100 | A general-purpose multi-page church site. Moved in from its own repo, history intact. |
 
 The three conference templates are **single-event** templates: the whole site is
 one event, read from the church's own Events module. They ship with Uncommon
