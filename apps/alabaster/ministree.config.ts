@@ -105,6 +105,15 @@ export default defineMinistreeTemplate({
       description:
         "Pills by default. Imagery stays square whatever this is — the contrast between soft actions and hard photo edges is the look.",
     },
+    {
+      name: "--hero-photo",
+      type: "length",
+      control: "opacity",
+      default: "1",
+      label: "Opening photo strength",
+      description:
+        "How much the photo behind the opening shows through. Drag left to fade it back so the words lead, right for the photo at full strength.",
+    },
   ],
 
   presets: [

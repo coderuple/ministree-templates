@@ -463,7 +463,8 @@ button { font: inherit; color: inherit; }
 .hero-portrait {
   position: absolute;
   inset: 0;
-  opacity: calc((var(--p, 0) - 0.16) * 2.4);
+  /* Fades in with the scroll, then stops at --hero-photo (a Customizer slider). */
+  opacity: calc(min(1, (var(--p, 0) - 0.16) * 2.4) * var(--hero-photo, 1));
   pointer-events: none;
 }
 /* Full bleed. The portrait is the room the words stand in, not a framed

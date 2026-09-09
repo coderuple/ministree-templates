@@ -471,6 +471,7 @@ button { font: inherit; color: inherit; }
   position: absolute;
   left: 50%;
   top: 50%;
+  opacity: var(--hero-photo, 1); /* Customizer slider */
   width: min(66cqi, 720px);
   aspect-ratio: 1;
   transform: translate(-50%, -50%) translateY(calc(var(--p, 0) * -6cqi)) scale(calc(0.86 + var(--p, 0) * 0.3));

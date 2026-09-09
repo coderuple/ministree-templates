@@ -494,6 +494,7 @@ button { font: inherit; color: inherit; }
   position: absolute;
   right: 0;
   top: 0;
+  opacity: var(--hero-photo, 1); /* Customizer slider */
   width: calc(clamp(150px, 34cqi, 560px) + var(--m) * 40cqi);
   max-width: 100%;
   height: calc(52% + var(--m) * -10%);

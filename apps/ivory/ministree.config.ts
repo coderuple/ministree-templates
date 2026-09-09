@@ -99,6 +99,15 @@ export default defineMinistreeTemplate({
        square — buttons, panels, photographs — and rounding any one of them is
        the single change that stops it reading as a printed page. A church who
        wants soft corners wants Alabaster. */
+    {
+      name: "--hero-photo",
+      type: "length",
+      control: "opacity",
+      default: "1",
+      label: "Opening photo strength",
+      description:
+        "How much the photo behind the opening shows through. Drag left to fade it back so the words lead, right for the photo at full strength.",
+    },
   ],
 
   presets: [
