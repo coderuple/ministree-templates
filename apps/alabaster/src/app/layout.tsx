@@ -33,13 +33,15 @@ export async function generateMetadata(): Promise<Metadata> {
      share card should say so. The church's name belongs in the footer, not in
      the title of their own conference. */
   const event = await loadFeaturedEvent(content);
+  /* The tab icon: the conference's own when it brought one, else the church's. */
+  const favicon = content.nav.favicon || settings?.faviconUrl || null;
   const title = event?.title ?? content.name ?? siteName(settings);
   const description = event?.description ?? settings?.seoDescription ?? content.description;
 
   return {
     title: { default: title, template: `%s · ${title}` },
     description,
-    icons: settings?.faviconUrl ? [{ url: settings.faviconUrl }] : undefined,
+    icons: favicon ? [{ url: favicon }] : undefined,
     openGraph: {
       title,
       description,

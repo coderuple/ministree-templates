@@ -22,7 +22,7 @@ import {
 export const revalidate = 300;
 
 export default async function Home() {
-  const { content, event, church, eventTitle, dateLabel, socials, ticketing, email, logoDark } =
+  const { content, event, church, eventTitle, dateLabel, socials, ticketing, email, logoDark, navLogo } =
     await loadPageData();
 
   const c = content;
@@ -59,7 +59,7 @@ export default async function Home() {
         links={navLinks(c, event)}
         ticketsHref={ticketsHref}
         ticketsLabel={c.tickets.ctaLabel}
-        logo={logoDark}
+        logo={navLogo}
         wordmark={eventTitle}
         socials={socials}
         sticky={c.nav.stickyHeader !== false}

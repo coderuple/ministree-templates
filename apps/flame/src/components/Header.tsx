@@ -42,7 +42,8 @@ export default async function Header() {
   const items: NavNode[] =
     navItems.length > 0 ? navItems : defaults.nav.map((n) => ({ label: n.label, href: n.href }));
   const name = siteName(settings);
-  const logoUrl = settings?.logoUrl ?? null;
+  /* The site can bring its own header mark; the church's is the fallback. */
+  const logoUrl = chrome.logo || settings?.logoUrl || null;
   const darkAllowed =
     (settings?.themeOverrides as Record<string, unknown> | undefined)?.darkModeEnabled !== false;
 

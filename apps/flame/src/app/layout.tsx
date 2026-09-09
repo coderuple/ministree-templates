@@ -70,6 +70,9 @@ export async function generateMetadata(): Promise<Metadata> {
   /* In single-event mode the site IS the event, so the browser tab, the search
      result and every share card should say so — the church's name belongs in
      the "presented by" line, not in the title. */
+  /* The tab icon: the site's own when it brought one, else the church's. */
+  const favicon =
+    (content.chrome as { favicon?: string } | undefined)?.favicon || settings?.faviconUrl || null;
   const c = content as { siteMode?: string; event?: { title?: string; tagline?: string } };
   if (c.siteMode === "singleEvent") {
     const event = await loadFeaturedEvent(content);
@@ -77,7 +80,7 @@ export async function generateMetadata(): Promise<Metadata> {
       return {
         title: { default: event.title, template: `%s · ${event.title}` },
         description: event.description ?? description,
-        icons: settings?.faviconUrl ? [{ url: settings.faviconUrl }] : undefined,
+        icons: favicon ? [{ url: favicon }] : undefined,
       };
     }
   }
@@ -85,7 +88,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: { default: name, template: `%s · ${name}` },
     description,
-    icons: settings?.faviconUrl ? [{ url: settings.faviconUrl }] : undefined,
+    icons: favicon ? [{ url: favicon }] : undefined,
   };
 }
 

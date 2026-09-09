@@ -563,6 +563,18 @@ export default defineMinistreeTemplate({
         kind: "group",
         label: "Navigation",
         fields: {
+          logo: {
+            kind: "media",
+            label: "Your own logo",
+            optional: true,
+            help: "Sits in the header in place of the church's logo. Leave it empty to use the church's own \u2014 or the conference name, if the church has none.",
+          },
+          favicon: {
+            kind: "media",
+            label: "Browser tab icon",
+            optional: true,
+            help: "The little square in the browser tab. A square PNG works best. Leave it empty to use the church's.",
+          },
           stickyHeader: {
             kind: "boolean",
             label: "Menu follows the page",

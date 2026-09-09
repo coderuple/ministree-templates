@@ -243,6 +243,8 @@ export const site = {
   },
 
   nav: {
+    logo: "",
+    favicon: "",
     stickyHeader: true,
     showTicketBar: true,
   },

@@ -133,6 +133,8 @@ export const site = {
   ],
 
   chrome: {
+    logo: "",
+    favicon: "",
     logoSize: "default",
     logoTextSize: "default",
     showGiveButton: true,

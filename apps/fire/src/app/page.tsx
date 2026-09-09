@@ -24,7 +24,7 @@ import {
 export const revalidate = 300;
 
 export default async function Home() {
-  const { content, event, church, eventTitle, dateLabel, socials, ticketing, email, logoLight, logoDark } =
+  const { content, event, church, eventTitle, dateLabel, socials, ticketing, email, logoDark, navLogo } =
     await loadPageData();
 
   const c = content;
@@ -67,7 +67,7 @@ export default async function Home() {
         links={navLinks(c, event)}
         ticketsHref={ticketsHref}
         ticketsLabel={c.tickets.ctaLabel}
-        logo={logoLight}
+        logo={navLogo}
         wordmark={eventTitle}
         socials={socials}
         sticky={c.nav.stickyHeader !== false}

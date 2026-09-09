@@ -628,6 +628,18 @@ export default defineMinistreeTemplate({
         kind: "group",
         label: "Header & footer",
         fields: {
+          logo: {
+            kind: "media",
+            label: "Your own logo",
+            optional: true,
+            help: "Sits in the header in place of the church's logo. Leave it empty to use the church's own.",
+          },
+          favicon: {
+            kind: "media",
+            label: "Browser tab icon",
+            optional: true,
+            help: "The little square in the browser tab. A square PNG works best. Leave it empty to use the church's.",
+          },
           logoSize: {
             kind: "choice",
             control: "logoSize",

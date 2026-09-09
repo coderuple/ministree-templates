@@ -30,6 +30,9 @@ export interface PageData {
   ticketing: ResolvedTicketing;
   email: string | null;
   logoLight: string | null;
+  /** The header mark: the conference's own logo when it brought one, else the
+   *  church's. The footer keeps the church's either way — it signs the page. */
+  navLogo: string | null;
   logoDark: string | null;
 }
 
@@ -94,6 +97,7 @@ export async function loadPageData(): Promise<PageData> {
        on the dark one, and a single white mark disappears into one of them. */
     logoLight: profile?.logoUrl ?? settings?.logoUrl ?? null,
     logoDark: profile?.logoUrlDark ?? profile?.logoUrl ?? settings?.logoUrl ?? null,
+    navLogo: content.nav.logo || (profile?.logoUrlDark ?? profile?.logoUrl ?? settings?.logoUrl ?? null),
   };
 }
 
