@@ -297,7 +297,6 @@ export function Speakers({
   headingA,
   headingB,
   speakers,
-  slots = 0,
   note,
 }: {
   marker?: string;
@@ -305,8 +304,6 @@ export function Speakers({
   headingA: string;
   headingB?: string;
   speakers: Speaker[];
-  /** How many frames this section draws. Fixed by the design. */
-  slots?: number;
   note?: string;
 }) {
   if (speakers.length === 0) return null;

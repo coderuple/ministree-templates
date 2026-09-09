@@ -255,6 +255,8 @@ button { font: inherit; color: inherit; }
 [data-reveal="up"] { transform: translateY(44px); }
 [data-reveal="blur"] { transform: scale(1.03); filter: blur(18px); }
 [data-reveal][data-seen] { opacity: 1; transform: none; filter: none; }
+/* "Sections fade in" switched off in the Customizer: at rest from the first paint. */
+[data-reveals="off"] [data-reveal] { opacity: 1; transform: none; filter: none; transition: none; }
 
 /* --- Reduced motion ---------------------------------------------------- */
 /* Reveals render at rest and the ambient drifts stop. The --p scroll mapping

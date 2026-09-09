@@ -1,4 +1,4 @@
-import { defineMinistreeTemplate } from "@ministree/template-sdk";
+import { defineMinistreeTemplate, type SectionWrapperSupport } from "@ministree/template-sdk";
 import { site } from "./src/config/site";
 
 /**
@@ -8,6 +8,18 @@ import { site } from "./src/config/site";
  * colour schemes, header + footer nav), which CSS tokens churches can re-brand,
  * and the demo content defaults. Light is the baseline; dark is opt-in.
  */
+/** What flame's shared section band honours of the builder's wrapper block. */
+const WRAPPER: SectionWrapperSupport = {
+  subtitle: true,
+  variant: true,
+  darkSurfaceScope: false,
+  background: ["color", "gradient", "image"],
+  anchorId: true,
+  className: true,
+  textAlign: false,
+  animation: false,
+};
+
 export default defineMinistreeTemplate({
   meta: {
     name: "Flame",
@@ -42,35 +54,87 @@ export default defineMinistreeTemplate({
       "search",
       "notFound",
     ],
+    /* Each entry says what flame's component actually reads of that section, so
+       the Ministree editor only offers a church the controls that change this
+       site. A bare string would promise every builder option; most sections
+       here draw one fixed treatment and read a handful of props. `wrapper` is
+       the shared block: this design honours the dark variant, a colour /
+       gradient / photo background and the anchor + class hooks, and has no
+       treatment for text alignment, entrance animation or a container-scoped
+       dark band. */
     sections: [
-      "hero",
-      "richText",
-      "cta",
-      "links",
-      "features",
-      "accordion",
-      "location",
-      "video",
-      "audio",
-      "imageGallery",
-      "imageSection",
-      "sermonsList",
-      "eventsList",
-      "givingCta",
-      "givingMethods",
-      "profileCards",
-      "cardBox",
-      "marquee",
-      "schedule",
-      "statement",
-      "embed",
-      "form",
-      "columns",
-      "carousel",
-      "profileHeader",
-      "groupsList",
-      "teamsList",
-      "sermonGroups",
+      {
+        type: "hero",
+        props: ["title", "subtitle", "text", "badgeText", "ctas", "backgroundColor", "backgroundGradient", "backgroundImageUrl"],
+        options: { contentAlignHorizontal: ["left", "center", "right"], height: ["compact", "default", "tall", "full"] },
+        wrapper: { ...WRAPPER, subtitle: false },
+      },
+      { type: "richText", props: ["content"], wrapper: WRAPPER },
+      { type: "cta", props: ["heading", "description", "ctas"], wrapper: WRAPPER },
+      { type: "links", props: ["heading", "description", "items"], options: { layout: ["stack", "grid"], columns: [1, 2, 3] }, wrapper: WRAPPER },
+      {
+        type: "features",
+        props: ["heading", "items"],
+        options: { layout: ["tiles"], markerStyle: ["number", "letter", "none"], align: ["left", "center", "right"] },
+        wrapper: WRAPPER,
+      },
+      { type: "accordion", props: ["items"], wrapper: WRAPPER },
+      { type: "location", props: ["heading", "location", "serviceTimes", "mapImageUrl"], wrapper: { ...WRAPPER, subtitle: false } },
+      { type: "video", props: ["url", "posterUrl", "controls"], wrapper: WRAPPER },
+      { type: "audio", props: ["url", "title"], wrapper: WRAPPER },
+      { type: "imageGallery", props: ["items"], options: { layout: ["grid", "masonry"], columns: ["2", "3", "4"] }, wrapper: WRAPPER },
+      { type: "imageSection", props: ["imageUrl", "alt", "caption"], wrapper: WRAPPER },
+      {
+        type: "sermonsList",
+        props: ["limit", "seriesSlug", "sermonIds"],
+        options: { source: ["latest", "chosen"], layout: ["grid", "list"], columns: [2, 3, 4] },
+        wrapper: WRAPPER,
+      },
+      {
+        type: "eventsList",
+        props: ["limit", "eventIds"],
+        options: { source: ["upcoming", "chosen"], layout: ["list", "grid"], columns: [2, 3, 4] },
+        wrapper: WRAPPER,
+      },
+      { type: "givingCta", props: ["heading", "description", "ctas"], options: { appearance: ["banner", "plain"] }, wrapper: WRAPPER },
+      { type: "givingMethods", props: ["heading", "description", "columns", "featuredIndex", "methods"], wrapper: WRAPPER },
+      {
+        type: "profileCards",
+        props: ["limit", "tagSlug", "cards", "personIds"],
+        options: { source: ["static", "people", "chosen"], layout: ["grid", "list", "roster", "circles"], columns: [2, 3, 4] },
+        wrapper: WRAPPER,
+      },
+      {
+        type: "cardBox",
+        props: ["gridGap", "cards"],
+        options: { layoutMode: ["grid", "stack"], blockType: ["heading", "richText", "image", "linkList"] },
+        wrapper: WRAPPER,
+      },
+      { type: "marquee", props: ["items", "separator", "speed", "direction"], wrapper: { ...WRAPPER, subtitle: false } },
+      { type: "schedule", props: ["heading", "items", "showRail", "note"], wrapper: WRAPPER },
+      { type: "statement", props: ["eyebrow", "statement", "attribution"], wrapper: { ...WRAPPER, subtitle: false } },
+      { type: "embed", props: ["config"], wrapper: WRAPPER },
+      { type: "form", props: ["formSlug"], wrapper: WRAPPER },
+      { type: "columns", props: ["count", "items"], wrapper: WRAPPER },
+      { type: "carousel", props: ["slides", "slidesPerView"], wrapper: WRAPPER },
+      {
+        type: "profileHeader",
+        props: ["name", "subtitle", "description", "imageUrl", "stats", "ctaLabel", "ctaUrl"],
+        wrapper: { ...WRAPPER, subtitle: false },
+      },
+      {
+        type: "groupsList",
+        props: ["limit", "ctaLabel", "groups", "groupIds"],
+        options: { source: ["groups", "static", "chosen"], layout: ["grid", "list"] },
+        wrapper: WRAPPER,
+      },
+      {
+        type: "teamsList",
+        props: ["limit", "ctaLabel", "teams", "teamIds"],
+        options: { source: ["teams", "static", "chosen"], layout: ["list", "grid"] },
+        wrapper: WRAPPER,
+      },
+      { type: "sermonGroups", props: ["groups", "title", "subtitle"], wrapper: WRAPPER },
     ],
     navigation: { header: true, footer: true },
     colorSchemes: ["light", "dark"],

@@ -18,8 +18,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/event-kit
       '@ministree/template-sdk':
-        specifier: file:../../vendor/ministree-template-sdk-0.6.0.tgz
-        version: file:vendor/ministree-template-sdk-0.6.0.tgz(next@16.2.9(@babel/core@7.29.7)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
+        specifier: file:../../vendor/ministree-template-sdk-0.7.1.tgz
+        version: file:vendor/ministree-template-sdk-0.7.1.tgz(next@16.2.9(@babel/core@7.29.7)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
       '@stripe/react-stripe-js':
         specifier: ^6.9.0
         version: 6.9.0(@stripe/stripe-js@9.15.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -61,8 +61,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/event-kit
       '@ministree/template-sdk':
-        specifier: file:../../vendor/ministree-template-sdk-0.6.0.tgz
-        version: file:vendor/ministree-template-sdk-0.6.0.tgz(next@16.2.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
+        specifier: file:../../vendor/ministree-template-sdk-0.7.1.tgz
+        version: file:vendor/ministree-template-sdk-0.7.1.tgz(next@16.2.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
       '@stripe/react-stripe-js':
         specifier: ^6.9.0
         version: 6.9.0(@stripe/stripe-js@9.15.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -101,8 +101,8 @@ importers:
   apps/flame:
     dependencies:
       '@ministree/template-sdk':
-        specifier: file:../../vendor/ministree-template-sdk-0.6.0.tgz
-        version: file:vendor/ministree-template-sdk-0.6.0.tgz(next@16.2.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
+        specifier: file:../../vendor/ministree-template-sdk-0.7.1.tgz
+        version: file:vendor/ministree-template-sdk-0.7.1.tgz(next@16.2.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
       '@react-three/drei':
         specifier: ^10.7.8
         version: 10.7.8(@react-three/fiber@9.7.0(@types/react@19.2.18)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.184.0))(@types/react@19.2.18)(@types/three@0.184.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.184.0)
@@ -171,8 +171,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/event-kit
       '@ministree/template-sdk':
-        specifier: file:../../vendor/ministree-template-sdk-0.6.0.tgz
-        version: file:vendor/ministree-template-sdk-0.6.0.tgz(next@16.2.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
+        specifier: file:../../vendor/ministree-template-sdk-0.7.1.tgz
+        version: file:vendor/ministree-template-sdk-0.7.1.tgz(next@16.2.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
       '@stripe/react-stripe-js':
         specifier: ^6.9.0
         version: 6.9.0(@stripe/stripe-js@9.15.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -211,8 +211,8 @@ importers:
   packages/event-kit:
     dependencies:
       '@ministree/template-sdk':
-        specifier: file:../../vendor/ministree-template-sdk-0.6.0.tgz
-        version: file:vendor/ministree-template-sdk-0.6.0.tgz(next@16.2.9(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)
+        specifier: file:../../vendor/ministree-template-sdk-0.7.1.tgz
+        version: file:vendor/ministree-template-sdk-0.7.1.tgz(next@16.2.9(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)
       '@stripe/react-stripe-js':
         specifier: ^6.9.0
         version: 6.9.0(@stripe/stripe-js@9.15.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -539,9 +539,9 @@ packages:
   '@mediapipe/tasks-vision@0.10.17':
     resolution: {integrity: sha512-CZWV/q6TTe8ta61cZXjfnnHsfWIdFhms03M9T7Cnd5y2mdpylJM0rF1qRq+wsQVRMLz1OYPVEBU9ph2Bx8cxrg==}
 
-  '@ministree/template-sdk@file:vendor/ministree-template-sdk-0.6.0.tgz':
-    resolution: {integrity: sha512-qYqCyDJ8g6tpHzdUy9CJKUEeJ/NYw4lKduNmEvyEu1wtEcoWZsiSIjelrWr0qFeUzn+lzMH9hvzTn//+eAuoPw==, tarball: file:vendor/ministree-template-sdk-0.6.0.tgz}
-    version: 0.6.0
+  '@ministree/template-sdk@file:vendor/ministree-template-sdk-0.7.1.tgz':
+    resolution: {integrity: sha512-aXsCd34yvwTCCvJpqnvAjTH2v9hXbi2gLhuIcYc+hajnjyMfAqlvME3cJuRhrWGpWGGT2adaNy/6A8fF+3drNg==, tarball: file:vendor/ministree-template-sdk-0.7.1.tgz}
+    version: 0.7.1
     hasBin: true
     peerDependencies:
       next: '>=14'
@@ -2816,7 +2816,7 @@ snapshots:
 
   '@mediapipe/tasks-vision@0.10.17': {}
 
-  '@ministree/template-sdk@file:vendor/ministree-template-sdk-0.6.0.tgz(next@16.2.9(@babel/core@7.29.7)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)':
+  '@ministree/template-sdk@file:vendor/ministree-template-sdk-0.7.1.tgz(next@16.2.9(@babel/core@7.29.7)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)':
     dependencies:
       jiti: 2.7.0
       zod: 3.25.76
@@ -2824,7 +2824,7 @@ snapshots:
       next: 16.2.9(@babel/core@7.29.7)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react: 19.2.4
 
-  '@ministree/template-sdk@file:vendor/ministree-template-sdk-0.6.0.tgz(next@16.2.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)':
+  '@ministree/template-sdk@file:vendor/ministree-template-sdk-0.7.1.tgz(next@16.2.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)':
     dependencies:
       jiti: 2.7.0
       zod: 3.25.76
@@ -2832,7 +2832,7 @@ snapshots:
       next: 16.2.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react: 19.2.4
 
-  '@ministree/template-sdk@file:vendor/ministree-template-sdk-0.6.0.tgz(next@16.2.9(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)':
+  '@ministree/template-sdk@file:vendor/ministree-template-sdk-0.7.1.tgz(next@16.2.9(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)':
     dependencies:
       jiti: 2.7.0
       zod: 3.25.76

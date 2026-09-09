@@ -21,7 +21,7 @@
     "test": "node --experimental-strip-types --test src/*.test.ts"
   },
   "dependencies": {
-    "@ministree/template-sdk": "file:../../vendor/ministree-template-sdk-0.6.0.tgz",
+    "@ministree/template-sdk": "file:../../vendor/ministree-template-sdk-0.7.1.tgz",
     "@stripe/react-stripe-js": "^6.9.0",
     "@stripe/stripe-js": "^9.15.0"
   },

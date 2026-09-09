@@ -2,8 +2,10 @@ import {
   RichText,
   SectionWrapper,
   Sections,
+  assertRegistryMatchesSupports,
   getForm,
   getGroups,
+  getPeople,
   getSermons,
   getEvents,
   getTeams,
@@ -44,7 +46,8 @@ import { Button, Container } from "@/components/ui";
 import MarqueeBand from "@/components/Marquee";
 import { EventCard, SermonCard } from "@/components/cards";
 import { CopyValue } from "@/components/copy-value";
-import { loadSlugs } from "@/lib/ministree";
+import { loadSlugs, manifest } from "@/lib/ministree";
+import MagneticButton from "@/components/MagneticButton";
 import FormRenderer from "@/components/FormRenderer";
 import { extractFormFields } from "@/lib/forms";
 
@@ -74,26 +77,106 @@ function Band({
   );
 }
 
+type CtaLike = { label?: string; url?: string; href?: string; variant?: string };
+
+/** Ministree's button variants, mapped onto the four this design draws. */
+function buttonVariant(v: string | undefined, i: number, onDark: boolean): "primary" | "outline" | "ghost" | "dark" {
+  if (!v || v === "default" || v === "custom") return i === 0 ? "primary" : "outline";
+  if (v.startsWith("ghost") || v === "link") return "ghost";
+  if (v.startsWith("outline")) return "outline";
+  if (v === "white" || v.startsWith("glass")) return onDark ? "outline" : "dark";
+  return "primary";
+}
+
+function Ctas({ ctas, className = "", onDark = false }: { ctas?: CtaLike[]; className?: string; onDark?: boolean }) {
+  const items = (ctas ?? []).filter((c) => c.label && (c.url ?? c.href));
+  if (!items.length) return null;
+  return (
+    <div className={`flex flex-wrap gap-3 ${className}`}>
+      {items.map((c, i) => {
+        const href = c.url ?? c.href ?? "#";
+        return (
+          <MagneticButton key={i} href={href} variant={buttonVariant(c.variant, i, onDark)} external={/^https?:/i.test(href)}>
+            {c.label}
+          </MagneticButton>
+        );
+      })}
+    </div>
+  );
+}
+
 function Title({ section, heading }: { section: PageSection; heading?: string }) {
   const title = heading ?? section.title;
   if (!title || section.hideTitle) return null;
   return (
     <div className="mb-10">
-      {section.subtitle ? <p className="micro text-ember">{section.subtitle}</p> : null}
+      {section.subtitle && !section.hideSubtitle ? <p className="micro text-ember">{section.subtitle}</p> : null}
       <h2 className="font-display mt-3 text-4xl uppercase leading-[0.95] tracking-tight sm:text-5xl">{title}</h2>
     </div>
   );
 }
 
 function Hero({ section, props, context }: SectionComponentProps) {
-  const p = props as HeroProps;
+  const p = props as HeroProps & {
+    subtitle?: string;
+    text?: string;
+    badgeText?: string;
+    ctas?: CtaLike[];
+    backgroundColor?: string;
+    backgroundGradient?: string;
+    backgroundImageUrl?: string;
+    contentAlignHorizontal?: "left" | "center" | "right";
+    height?: "compact" | "default" | "tall" | "full";
+  };
   const title = p.title ?? section.title ?? "";
+  const subtitle = p.subtitle ?? section.subtitle;
+  /* The hero keeps its background on its own props rather than on the wrapper.
+     Hand them to the wrapper as a section background so the same layer stack
+     draws them, image on top of paint, in the order the church chose. */
+  const hasBackground = Boolean(p.backgroundImageUrl || p.backgroundColor || p.backgroundGradient);
+  const withBackground = hasBackground
+    ? {
+        ...section,
+        background: {
+          ...(section.background ?? {}),
+          backgroundColor: p.backgroundColor,
+          backgroundGradient: p.backgroundGradient,
+          backgroundImageUrl: p.backgroundImageUrl,
+        },
+      }
+    : section;
+  const hasImage = Boolean(p.backgroundImageUrl);
+  const align = p.contentAlignHorizontal ?? "center";
+  const alignClass =
+    align === "left" ? "items-start text-left" : align === "right" ? "items-end text-right" : "items-center text-center";
+  const heightClass =
+    p.height === "compact"
+      ? "py-16 sm:py-20"
+      : p.height === "tall"
+        ? "py-40 sm:py-52"
+        : p.height === "full"
+          ? "flex min-h-[calc(100svh-4rem)] items-center py-28"
+          : "py-28 sm:py-36";
   return (
-    <SectionWrapper section={section} context={context} className="relative overflow-hidden bg-surface/40 py-28 text-ink sm:py-36">
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-[radial-gradient(ellipse_at_50%_120%,_color-mix(in_srgb,var(--ember)_18%,transparent),transparent_60%)]" />
-      <Container className="relative text-center">
-        {section.subtitle ? <p className="micro text-ember">{section.subtitle}</p> : null}
-        <h1 className="font-display mx-auto mt-5 max-w-4xl text-6xl uppercase leading-[0.88] tracking-tight sm:text-8xl">{title}</h1>
+    <SectionWrapper
+      section={withBackground}
+      context={context}
+      className={`relative overflow-hidden ${hasImage ? "text-panel-ink" : "bg-surface/40 text-ink"} ${heightClass}`}
+    >
+      {hasImage ? (
+        // A photograph behind display type needs a scrim for the words to read.
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/35 to-black/10" />
+      ) : (
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-[radial-gradient(ellipse_at_50%_120%,_color-mix(in_srgb,var(--ember)_18%,transparent),transparent_60%)]" />
+      )}
+      <Container className={`relative flex w-full flex-col ${alignClass}`}>
+        {p.badgeText ? (
+          <span className="micro inline-block rounded-full border border-current/30 px-3 py-1">{p.badgeText}</span>
+        ) : null}
+        {subtitle ? <p className={`micro text-ember ${p.badgeText ? "mt-4" : ""}`}>{subtitle}</p> : null}
+        <h1 className="font-display mt-5 max-w-4xl text-6xl uppercase leading-[0.88] tracking-tight sm:text-8xl">{title}</h1>
+        {p.text ? <p className="font-serif mt-6 max-w-2xl text-xl italic opacity-80">{p.text}</p> : null}
+        <Ctas ctas={p.ctas} className="mt-9" onDark={hasImage} />
       </Container>
     </SectionWrapper>
   );
@@ -133,10 +216,13 @@ function Cta({ section, props, context }: SectionComponentProps) {
 
 function Links({ section, props, context }: SectionComponentProps) {
   const p = props as LinksProps;
+  const cols = p.layout === "grid" ? Number(p.columns ?? 2) : 1;
+  const grid = cols >= 3 ? "sm:grid-cols-2 lg:grid-cols-3" : cols === 2 ? "sm:grid-cols-2" : "";
   return (
     <Band section={section} context={context}>
       <Title section={section} heading={p.heading} />
-      <div className="grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+      {p.description ? <p className="-mt-6 mb-8 max-w-2xl text-muted">{p.description}</p> : null}
+      <div className={`grid gap-px border border-line bg-line ${grid}`}>
         {(p.items ?? []).map((item, i) => (
           <a key={i} href={item.href ?? item.url ?? "#"} data-cursor className="group bg-bg p-8 transition-colors hover:bg-surface">
             <p className="font-display text-2xl uppercase tracking-tight transition-colors group-hover:text-ember">{item.label}</p>
@@ -150,14 +236,17 @@ function Links({ section, props, context }: SectionComponentProps) {
 }
 
 function Features({ section, props, context }: SectionComponentProps) {
-  const p = props as FeaturesProps;
+  const p = props as FeaturesProps & { markerStyle?: "number" | "letter" | "icon" | "none"; align?: "inherit" | "left" | "center" | "right" };
+  const marker = (i: number) =>
+    p.markerStyle === "none" ? null : p.markerStyle === "letter" ? String.fromCharCode(65 + i) : String(i + 1).padStart(2, "0");
+  const alignClass = p.align === "center" ? "text-center" : p.align === "right" ? "text-right" : "";
   return (
     <Band section={section} context={context}>
       <Title section={section} heading={p.heading} />
-      <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+      <div className={`grid gap-10 sm:grid-cols-2 lg:grid-cols-3 ${alignClass}`}>
         {(p.items ?? []).map((f, i) => (
           <div key={i} className="border-t border-line pt-5">
-            <p className="font-display text-sm text-ember">{String(i + 1).padStart(2, "0")}</p>
+            {marker(i) ? <p className="font-display text-sm text-ember">{marker(i)}</p> : null}
             <h3 className="font-display mt-2 text-2xl uppercase tracking-tight">{f.title}</h3>
             {f.description ? <p className="mt-2 text-sm text-muted">{f.description}</p> : null}
           </div>
@@ -245,11 +334,28 @@ function Audio({ section, props, context }: SectionComponentProps) {
 
 function ImageGallery({ section, props, context }: SectionComponentProps) {
   const p = props as ImageGalleryProps;
+  const n = Number(p.columns ?? 3);
+  const items = p.items ?? [];
+  if (p.layout === "masonry") {
+    const cols = n === 4 ? "columns-2 sm:columns-3 lg:columns-4" : n === 2 ? "columns-2" : "columns-2 sm:columns-3";
+    return (
+      <Band section={section} context={context}>
+        <Title section={section} />
+        <div className={`${cols} gap-2 [&>img]:mb-2 [&>img]:break-inside-avoid`}>
+          {items.map((img, i) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img key={i} src={img.imageUrl} alt={img.alt} className="w-full border border-line object-cover transition-transform duration-700 hover:scale-[1.03]" />
+          ))}
+        </div>
+      </Band>
+    );
+  }
+  const cols = n === 4 ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4" : n === 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3";
   return (
     <Band section={section} context={context}>
       <Title section={section} />
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {(p.items ?? []).map((img, i) => (
+      <div className={`grid gap-2 ${cols}`}>
+        {items.map((img, i) => (
           // eslint-disable-next-line @next/next/no-img-element
           <img key={i} src={img.imageUrl} alt={img.alt} className="aspect-square w-full border border-line object-cover transition-transform duration-700 hover:scale-[1.03]" />
         ))}
@@ -275,16 +381,20 @@ function ImageSection({ section, props, context }: SectionComponentProps) {
 async function SermonsList({ section, props, context }: SectionComponentProps) {
   const p = props as SermonsListProps;
   const limit = p.limit ?? 6;
+  const chosen = p.source === "chosen" ? (p.sermonIds ?? []) : null;
   const [data, slugs] = await Promise.all([
-    p.source === "static" ? Promise.resolve(null) : getSermons(undefined, { limit, ...(p.seriesSlug ? { seriesSlug: p.seriesSlug } : {}) }),
+    p.source === "static" || (chosen && chosen.length === 0)
+      ? Promise.resolve(null)
+      : getSermons(undefined, chosen ? { ids: chosen.join(",") } : { limit, ...(p.seriesSlug ? { seriesSlug: p.seriesSlug } : {}) }),
     loadSlugs(),
   ]);
   const items = data?.items ?? [];
   if (!items.length) return null;
+  const cols = p.columns === 2 ? "sm:grid-cols-2" : p.columns === 4 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-2 lg:grid-cols-3";
   return (
     <Band section={section} context={context}>
       <Title section={section} heading={section.title ?? "Latest messages"} />
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className={p.layout === "list" ? "grid gap-6" : `grid gap-6 ${cols}`}>
         {items.map((s) => (
           <SermonCard key={s.id} sermon={s} href={hrefFor(slugs, "sermons", s.slug)} />
         ))}
@@ -296,16 +406,20 @@ async function SermonsList({ section, props, context }: SectionComponentProps) {
 async function EventsList({ section, props, context }: SectionComponentProps) {
   const p = props as EventsListProps;
   const limit = p.limit ?? 5;
+  const chosen = p.source === "chosen" ? (p.eventIds ?? []) : null;
   const [data, slugs] = await Promise.all([
-    p.source === "static" ? Promise.resolve(null) : getEvents(undefined, { limit, when: "upcoming" }),
+    p.source === "static" || (chosen && chosen.length === 0)
+      ? Promise.resolve(null)
+      : getEvents(undefined, chosen ? { ids: chosen.join(",") } : { limit, when: "upcoming" }),
     loadSlugs(),
   ]);
   const items = data?.items ?? [];
   if (!items.length) return null;
+  const cols = p.columns === 2 ? "sm:grid-cols-2" : p.columns === 4 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-2 lg:grid-cols-3";
   return (
     <Band section={section} context={context}>
       <Title section={section} heading={section.title ?? "Upcoming events"} />
-      <div className="space-y-4">
+      <div className={p.layout === "grid" ? `grid gap-6 ${cols}` : "space-y-4"}>
         {items.map((e) => (
           <EventCard key={e.id} event={e} href={hrefFor(slugs, "events", e.slug)} />
         ))}
@@ -315,53 +429,130 @@ async function EventsList({ section, props, context }: SectionComponentProps) {
 }
 
 async function GivingCta({ section, props, context }: SectionComponentProps) {
-  const p = props as GivingCtaProps;
+  const p = props as GivingCtaProps & { appearance?: string; ctas?: CtaLike[] };
   const slugs = await loadSlugs();
+  const ctas: CtaLike[] = p.ctas?.length ? p.ctas : [{ label: "Give now", url: hrefFor(slugs, "giving") }];
+  const plain = p.appearance === "plain";
+  const inner = (
+    <>
+      <h2 className="font-display text-4xl uppercase leading-[0.95] tracking-tight sm:text-5xl">{p.heading ?? "Partner with the vision"}</h2>
+      {p.description ? (
+        <p className={`font-serif mx-auto mt-4 max-w-xl text-xl italic ${plain ? "text-muted" : "text-panel-ink/70"}`}>{p.description}</p>
+      ) : null}
+      <Ctas ctas={ctas} className="mt-9 justify-center" onDark={!plain} />
+    </>
+  );
   return (
     <Band section={section} context={context}>
-      <div className="relative overflow-hidden border border-line bg-panel px-8 py-20 text-center text-panel-ink">
-        <div aria-hidden className="pointer-events-none absolute -left-16 -bottom-16 size-64 rounded-full bg-[var(--ember)]/25 blur-3xl" />
-        <h2 className="font-display text-4xl uppercase leading-[0.95] tracking-tight sm:text-5xl">{p.heading ?? "Partner with the vision"}</h2>
-        {p.description ? <p className="font-serif mx-auto mt-4 max-w-xl text-xl italic text-panel-ink/70">{p.description}</p> : null}
-        <div className="mt-9 flex justify-center">
-          <Button href={hrefFor(slugs, "giving")}>Give now</Button>
+      {plain ? (
+        <div className="text-center">{inner}</div>
+      ) : (
+        <div className="relative overflow-hidden border border-line bg-panel px-8 py-20 text-center text-panel-ink">
+          <div aria-hidden className="pointer-events-none absolute -left-16 -bottom-16 size-64 rounded-full bg-[var(--ember)]/25 blur-3xl" />
+          {inner}
         </div>
-      </div>
+      )}
     </Band>
   );
 }
 
-function ProfileCards({ section, props, context }: SectionComponentProps) {
+type ProfileCard = { imageUrl?: string; name: string; subtitle?: string; description?: string; link?: string };
+
+/** `source: 'people'` / `'chosen'` — the church's People, as the builder picked them. */
+async function livePeople(p: ProfileCardsProps): Promise<ProfileCard[]> {
+  const params =
+    p.source === "chosen"
+      ? p.personIds?.length
+        ? { ids: p.personIds.join(",") }
+        : null
+      : { ...(p.tagSlug ? { tagSlug: String(p.tagSlug) } : {}), limit: p.limit ?? 6 };
+  if (!params) return [];
+  const data = await getPeople(undefined, params);
+  return (data?.items ?? []).map((x) => ({
+    imageUrl: x.portraitUrl ?? x.avatarUrl,
+    name: [x.firstName, x.lastName].filter(Boolean).join(" ").trim(),
+    subtitle: x.role,
+    description: x.metadata?.bio,
+  }));
+}
+
+function CardShell({ card, className, children }: { card: ProfileCard; className: string; children: React.ReactNode }) {
+  return card.link ? (
+    <a href={card.link} data-cursor className={className}>
+      {children}
+    </a>
+  ) : (
+    <div className={className}>{children}</div>
+  );
+}
+
+async function ProfileCards({ section, props, context }: SectionComponentProps) {
   const p = props as ProfileCardsProps;
-  const cards = p.cards ?? [];
+  const source = p.source ?? "static";
+  const cards: ProfileCard[] =
+    source === "static" ? (p.cards ?? []).filter((c) => c.name?.trim()) : await livePeople(p);
+  if (!cards.length) return null;
+  const layout = p.layout ?? "grid";
 
   // Roster: the cinematic "lineup" — a typographic numbered list with ember hover.
-  if (p.layout === "roster") {
+  if (layout === "roster") {
     return (
       <Band section={section} context={context}>
         <Title section={section} />
         <div className="border-t border-line">
           {cards.map((c, i) => (
-            <div key={i} data-cursor className="group flex items-baseline gap-6 border-b border-line py-6">
+            <CardShell key={i} card={c} className="group flex items-baseline gap-6 border-b border-line py-6">
               <span className="font-display text-sm text-ember">{String(i + 1).padStart(2, "0")}</span>
               <span className="font-display text-3xl uppercase tracking-tight transition-colors group-hover:text-ember sm:text-5xl">
                 {c.name}
               </span>
               {c.subtitle ? <span className="micro ml-auto text-right text-muted">{c.subtitle}</span> : null}
-            </div>
+            </CardShell>
           ))}
         </div>
       </Band>
     );
   }
 
+  // List: a portrait beside the words, one person per row.
+  if (layout === "list") {
+    return (
+      <Band section={section} context={context}>
+        <Title section={section} />
+        <div className="divide-y divide-line border-y border-line">
+          {cards.map((c, i) => (
+            <CardShell key={i} card={c} className="group flex items-center gap-6 py-6">
+              <div className="size-20 shrink-0 overflow-hidden border border-line bg-surface sm:size-24">
+                {c.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={c.imageUrl} alt={c.name} className="h-full w-full object-cover" />
+                ) : null}
+              </div>
+              <div className="min-w-0">
+                <p className="font-display text-2xl uppercase tracking-tight transition-colors group-hover:text-ember">{c.name}</p>
+                {c.subtitle ? <p className="micro mt-1 text-muted">{c.subtitle}</p> : null}
+                {c.description ? <p className="mt-2 text-sm text-muted">{c.description}</p> : null}
+              </div>
+            </CardShell>
+          ))}
+        </div>
+      </Band>
+    );
+  }
+
+  // Grid, or circles: the same grid with round portraits and no card chrome.
+  const circles = layout === "circles";
+  const cols = p.columns ?? 3;
+  const grid = cols === 2 ? "sm:grid-cols-2" : cols === 4 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-2 lg:grid-cols-3";
   return (
     <Band section={section} context={context}>
       <Title section={section} />
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className={`grid gap-6 ${grid}`}>
         {cards.map((c, i) => (
-          <div key={i} className="group text-center">
-            <div className="mx-auto aspect-square w-full overflow-hidden border border-line bg-surface">
+          <CardShell key={i} card={c} className="group text-center">
+            <div
+              className={`mx-auto aspect-square overflow-hidden bg-surface ${circles ? "w-3/4 rounded-full" : "w-full border border-line"}`}
+            >
               {c.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={c.imageUrl} alt={c.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" />
@@ -369,7 +560,8 @@ function ProfileCards({ section, props, context }: SectionComponentProps) {
             </div>
             <p className="font-display mt-4 text-xl uppercase tracking-tight">{c.name}</p>
             {c.subtitle ? <p className="micro mt-1 text-muted">{c.subtitle}</p> : null}
-          </div>
+            {c.description ? <p className="mt-2 text-sm text-muted">{c.description}</p> : null}
+          </CardShell>
         ))}
       </div>
     </Band>
@@ -493,18 +685,63 @@ function GivingMethods({ section, props, context }: SectionComponentProps) {
   );
 }
 
+type CardBlock = { type?: string; text?: string; display?: string; doc?: unknown; content?: unknown; imageUrl?: string; alt?: string; items?: Array<{ label?: string; url?: string }> };
+
+function CardBoxCard({ card }: { card: Record<string, unknown> }) {
+  const blocks = (card.blocks ?? []) as CardBlock[];
+  const link = (card.cardLink as { url?: string; href?: string } | undefined) ?? undefined;
+  const href = link?.url ?? link?.href;
+  const body = blocks.map((b, i) => {
+    switch (b.type) {
+      case "heading":
+        return b.display === "cardTitle" || !b.display ? (
+          <h3 key={i} className="font-display text-2xl uppercase tracking-tight">{b.text}</h3>
+        ) : (
+          <p key={i} className="micro text-ember">{b.text}</p>
+        );
+      case "richText":
+        return <RichText key={i} doc={(b.content ?? b.doc) as Parameters<typeof RichText>[0]["doc"]} className="text-sm text-muted" />;
+      case "image":
+        return b.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={i} src={b.imageUrl} alt={b.alt ?? ""} className="w-full border border-line object-cover" />
+        ) : null;
+      case "linkList":
+        return (
+          <div key={i} className="flex flex-wrap gap-x-4 gap-y-2">
+            {(b.items ?? []).map((it, j) => (
+              <a key={j} href={it.url ?? "#"} className="micro text-ember">
+                {it.label} →
+              </a>
+            ))}
+          </div>
+        );
+      default:
+        return null;
+    }
+  });
+  const cls = "block bg-bg p-8 space-y-4 transition-colors";
+  return href ? (
+    <a href={href} data-cursor className={`${cls} hover:bg-surface`}>
+      {body}
+    </a>
+  ) : (
+    <div className={cls}>{body}</div>
+  );
+}
+
 function CardBox({ section, props, context }: SectionComponentProps) {
-  const p = props as CardBoxProps;
+  const p = props as CardBoxProps & { gridGap?: string };
   const cards = (p.cards ?? []) as Array<Record<string, unknown>>;
+  const gap =
+    p.gridGap === "none" ? "gap-0" : p.gridGap === "sm" ? "gap-2" : p.gridGap === "md" ? "gap-4" : p.gridGap === "xl" ? "gap-10" : p.gridGap === "2xl" ? "gap-14" : "gap-px";
+  const layout = p.layoutMode === "stack" ? "flex flex-col" : "grid sm:grid-cols-2 lg:grid-cols-3";
   return (
     <Band section={section} context={context}>
       <Title section={section} />
-      <div className="grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+      <div className={`${layout} ${gap} ${gap === "gap-px" ? "border border-line bg-line" : ""}`}>
         {cards.map((c, i) => (
-          <div key={i} className="bg-bg p-8">
-            {typeof c.title === "string" ? <h3 className="font-display text-2xl uppercase tracking-tight">{c.title}</h3> : null}
-            {typeof c.description === "string" ? <p className="mt-2 text-sm text-muted">{c.description}</p> : null}
-          </div>
+          <CardBoxCard key={i} card={c} />
         ))}
       </div>
     </Band>
@@ -653,8 +890,11 @@ function ProfileHeader({ section, props, context }: SectionComponentProps<Profil
 
 /** Small groups — from the church's own list, or hand-written. */
 async function GroupsList({ section, props, context }: SectionComponentProps<GroupsListProps>) {
+  const chosen = props.source === "chosen" ? (props.groupIds ?? []) : null;
   const live =
-    props.source === "static" ? null : await getGroups(undefined, { limit: props.limit ?? 12 });
+    props.source === "static" || (chosen && chosen.length === 0)
+      ? null
+      : await getGroups(undefined, chosen ? { ids: chosen.join(",") } : { limit: props.limit ?? 12 });
   const items =
     props.source === "static"
       ? (props.groups ?? []).map((g) => ({
@@ -674,19 +914,20 @@ async function GroupsList({ section, props, context }: SectionComponentProps<Gro
           ctaLabel: undefined as string | undefined,
         }));
   if (items.length === 0) return null;
+  const list = props.layout === "list";
 
   return (
     <Band section={section} context={context}>
       <Title section={section} />
-      <div className="grid gap-px overflow-hidden rounded-flame border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+      <div className={list ? "divide-y divide-line border-y border-line" : "grid gap-px overflow-hidden rounded-flame border border-line bg-line sm:grid-cols-2 lg:grid-cols-3"}>
         {items.map((g) => (
-          <div key={g.id} className="bg-bg p-6">
+          <div key={g.id} className={list ? "py-5" : "bg-bg p-6"}>
             <p className="font-display text-xl uppercase">{g.name}</p>
             {g.when ? <p className="micro mt-1 text-ember">{g.when}</p> : null}
             {g.description ? <p className="mt-3 text-sm text-muted">{g.description}</p> : null}
             {g.href ? (
               <a href={g.href} className="micro mt-4 inline-block text-ember">
-                {g.ctaLabel ?? "Find out more"} →
+                {g.ctaLabel ?? props.ctaLabel ?? "Find out more"} →
               </a>
             ) : null}
           </div>
@@ -698,7 +939,11 @@ async function GroupsList({ section, props, context }: SectionComponentProps<Gro
 
 /** Serving teams, with their open positions where the church tracks them. */
 async function TeamsList({ section, props, context }: SectionComponentProps<TeamsListProps>) {
-  const live = props.source === "static" ? null : await getTeams(undefined, { limit: props.limit ?? 12 });
+  const chosen = props.source === "chosen" ? (props.teamIds ?? []) : null;
+  const live =
+    props.source === "static" || (chosen && chosen.length === 0)
+      ? null
+      : await getTeams(undefined, chosen ? { ids: chosen.join(",") } : { limit: props.limit ?? 12 });
   const items =
     props.source === "static"
       ? (props.teams ?? []).map((t) => ({
@@ -716,16 +961,17 @@ async function TeamsList({ section, props, context }: SectionComponentProps<Team
           href: undefined as string | undefined,
         }));
   if (items.length === 0) return null;
+  const grid = props.layout === "grid";
 
   return (
     <Band section={section} context={context}>
       <Title section={section} />
-      <ul className="divide-y divide-line border-y border-line">
+      <ul className={grid ? "grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-3" : "divide-y divide-line border-y border-line"}>
         {items.map((t) => (
-          <li key={t.id} className="flex flex-wrap items-baseline gap-x-4 gap-y-1 py-5">
+          <li key={t.id} className={grid ? "bg-bg p-6" : "flex flex-wrap items-baseline gap-x-4 gap-y-1 py-5"}>
             <p className="font-display text-xl uppercase">{t.name}</p>
             {t.openings ? <span className="micro text-ember">{t.openings}</span> : null}
-            {t.description ? <p className="w-full text-sm text-muted sm:w-auto sm:flex-1">{t.description}</p> : null}
+            {t.description ? <p className={grid ? "mt-3 text-sm text-muted" : "w-full text-sm text-muted sm:w-auto sm:flex-1"}>{t.description}</p> : null}
             {t.href ? (
               <a href={t.href} className="micro text-ember">
                 {props.ctaLabel ?? "Join"} →
@@ -813,3 +1059,7 @@ export const flameSections: SectionRegistry = {
   statement: Statement,
   embed: Embed,
 };
+
+/* Dev-only: a type declared in the manifest with no component here, or a
+   component the manifest never mentions, is a promise the site cannot keep. */
+assertRegistryMatchesSupports(manifest.supports.sections, flameSections);

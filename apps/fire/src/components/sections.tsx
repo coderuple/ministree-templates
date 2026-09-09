@@ -290,15 +290,12 @@ export function Speakers({
   headingA,
   headingB,
   speakers,
-  slots = 0,
   placeholder,
 }: {
   eyebrow: string;
   headingA: string;
   headingB?: string;
   speakers: Speaker[];
-  /** How many frames this section draws. Fixed by the design. */
-  slots?: number;
   placeholder?: {
     show: boolean;
     label: string;

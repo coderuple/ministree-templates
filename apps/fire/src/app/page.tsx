@@ -59,7 +59,7 @@ export default async function Home() {
   const stages = [c.stages.one, c.stages.two, c.stages.three];
 
   return (
-    <ScrollEngine>
+    <ScrollEngine reveals={c.effects.scrollReveals !== false}>
       {/* One layer, behind everything, for the whole page. */}
       <Backdrop />
 

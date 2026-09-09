@@ -162,7 +162,7 @@ export const site = {
     headingA: "Three days you'll",
     headingEm: "feel",
     headingB: "for a year.",
-    chips: "Worship\nPrayer\nSisterhood\nEncounter\nRenewal",
+    chips: "Worship\nPrayer\nSisterhood\nEncounter",
     images: [] as string[],
     /* How many frames this section draws. The shot list for them
 

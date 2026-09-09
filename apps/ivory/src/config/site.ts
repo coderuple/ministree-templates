@@ -46,8 +46,6 @@ export const site = {
     headingB: "a spark.",
     lede: "A moment. A stirring. A woman deciding to believe again.",
     body: "And when that spark meets the breath of God, something begins that cannot easily be contained.\n\nSome will catch the fire. Some will rediscover embers they thought had disappeared. Others will find that what already burns within them can burn brighter still.",
-    closingA: "This is Uncommon Woman 2027.",
-    closingB: "Unstoppable. Living Emboldened.",
     pullLine: "What God ignites cannot be contained.",
     image: "",
     insetImage: "",
@@ -250,7 +248,6 @@ export const site = {
   },
 
   effects: {
-    embers: true,
     scrollReveals: true,
   },
 };

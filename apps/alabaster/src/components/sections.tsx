@@ -209,7 +209,7 @@ export function Manifesto({
 
         <div className="manifesto-figure" data-reveal="blur">
           <MediaFrame src={image} alt="" aspect="3 / 4" sizes="(max-width: 760px) 100vw, 45vw" />
-          {insetImage !== undefined ? (
+          {insetImage ? (
             <div className="manifesto-inset">
               <MediaFrame src={insetImage} alt="" size="1280 × 1600" sizes="20vw" />
             </div>
@@ -313,15 +313,12 @@ export function Speakers({
   headingA,
   headingB,
   speakers,
-  slots = 0,
   placeholder,
 }: {
   eyebrow: string;
   headingA: string;
   headingB?: string;
   speakers: Speaker[];
-  /** How many frames this section draws. Fixed by the design. */
-  slots?: number;
   placeholder?: {
     show: boolean;
     label: string;

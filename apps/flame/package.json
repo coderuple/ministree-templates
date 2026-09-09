@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ministree/template-sdk": "file:../../vendor/ministree-template-sdk-0.6.0.tgz",
+    "@ministree/template-sdk": "file:../../vendor/ministree-template-sdk-0.7.1.tgz",
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
     "@react-three/postprocessing": "^3.1.1",

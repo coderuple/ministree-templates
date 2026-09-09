@@ -53,7 +53,7 @@ export default async function Home() {
   const stages = [c.stages.one, c.stages.two, c.stages.three];
 
   return (
-    <ScrollEngine>
+    <ScrollEngine reveals={c.effects.scrollReveals !== false}>
       {/* The nav is ink, so it takes the light logo in both places. */}
       <Nav
         links={navLinks(c, event)}

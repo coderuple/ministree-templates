@@ -43,10 +43,14 @@ export function ScrollEngine({
     [0.34, 0.64],
     [0.66, 1],
   ],
+  /** Off means every [data-reveal] is simply there — the stylesheet renders it
+   *  at rest via `data-reveals="off"` and the observer never runs. */
+  reveals = true,
 }: {
   children: ReactNode;
   className?: string;
   stageSegments?: ReadonlyArray<readonly [number, number]>;
+  reveals?: boolean;
 }) {
   const frameRef = useRef<HTMLDivElement>(null);
 
@@ -126,7 +130,7 @@ export function ScrollEngine({
        stylesheet already renders them at rest, so the page is complete without
        this ever running. Scroll mapping above still runs either way. */
     let revealObserver: IntersectionObserver | undefined;
-    if (!reduced) {
+    if (!reduced && reveals) {
       const revealEls = Array.from(frame.querySelectorAll<HTMLElement>('[data-reveal]'));
       if (revealEls.length) {
         revealObserver = new IntersectionObserver(
@@ -153,7 +157,7 @@ export function ScrollEngine({
   }, [stageSegments]);
 
   return (
-    <div ref={frameRef} className={className} data-frame>
+    <div ref={frameRef} className={className} data-frame data-reveals={reveals ? undefined : "off"}>
       {children}
     </div>
   );

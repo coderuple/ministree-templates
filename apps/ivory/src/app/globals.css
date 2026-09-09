@@ -277,6 +277,8 @@ button { font: inherit; color: inherit; }
 [data-reveal="right"] { transform: translateX(-52px); }
 [data-reveal="blur"] { transform: scale(1.02); filter: blur(14px); }
 [data-reveal][data-seen] { opacity: 1; transform: none; filter: none; }
+/* "Sections fade in" switched off in the Customizer: at rest from the first paint. */
+[data-reveals="off"] [data-reveal] { opacity: 1; transform: none; filter: none; transition: none; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

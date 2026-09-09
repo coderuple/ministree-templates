@@ -184,6 +184,7 @@ export default defineMinistreeTemplate({
           subhead: { kind: "text", label: "The line under it", optional: true },
           ctaLabel: { kind: "text", label: "Button", width: "half" },
           secondaryLabel: { kind: "text", label: "Second button", width: "half", optional: true },
+          secondaryHref: { kind: "link", label: "\u2026goes to", width: "half", optional: true, help: "Empty scrolls to the About section." },
           pullQuote: { kind: "textarea", label: "Corner quote", optional: true },
           pullQuoteRef: { kind: "text", label: "…where it's from", optional: true },
           image: {
@@ -325,7 +326,7 @@ export default defineMinistreeTemplate({
           beats: {
             kind: "repeatable",
             label: "What each day is called",
-            help: "In the same order as the event's dates. A day with no row here still shows its date.",
+            help: "In the same order as the event's dates. A day with no row here still shows its date; rows beyond the event's dates are not shown.",
             fields: {
               name: { kind: "text", label: "Name", width: "half" },
               description: { kind: "textarea", label: "What happens" },
@@ -343,7 +344,7 @@ export default defineMinistreeTemplate({
       venue: {
         kind: "group",
         label: "Venue",
-        help: "The address comes from the event. This is the wording around it.",
+        help: "The address comes from the event; this is the wording around it. Shown when the event has a venue, or when you add pictures here.",
         fields: {
           enabled: { kind: "boolean", label: "Show this section" },
           eyebrow: { kind: "text", label: "Small label", width: "half" },
@@ -415,6 +416,7 @@ export default defineMinistreeTemplate({
       faq: {
         kind: "group",
         label: "Questions",
+        help: "The section appears once it has at least one question.",
         fields: {
           enabled: { kind: "boolean", label: "Show this section" },
           eyebrow: { kind: "text", label: "Small label", width: "half" },
@@ -440,7 +442,12 @@ export default defineMinistreeTemplate({
           perks: { kind: "textarea", label: "What a ticket includes", optional: true, help: "One per line." },
           note: { kind: "textarea", label: "Small print", optional: true, help: "Age limits, refunds, door times." },
           phone: { kind: "text", label: "A number to ring", optional: true, width: "half" },
-          soldOutMessage: { kind: "text", label: "When they've all gone", width: "half" },
+          soldOutMessage: {
+            kind: "text",
+            label: "When they've all gone",
+            width: "half",
+            visibleWhen: { field: "ticketing.mode", equals: "onSite" },
+          },
           ticketing: {
             kind: "group",
             label: "Where people buy",
