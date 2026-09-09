@@ -78,7 +78,6 @@ export const site = {
 
        lives on the matching field in the Customizer. */
 
-    slots: 5,
   },
 
   scripture: {

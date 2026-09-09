@@ -223,16 +223,7 @@ export interface Stage {
   body: string;
 }
 
-export function Stages({
-  stages,
-  images,
-  slots = 0,
-}: {
-  stages: Stage[];
-  images: string[];
-  /** How many frames this section draws. Fixed by the design. */
-  slots?: number;
-}) {
+export function Stages({ stages, images }: { stages: Stage[]; images: string[] }) {
   if (stages.length === 0) return null;
 
   return (

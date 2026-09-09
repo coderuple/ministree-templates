@@ -101,7 +101,6 @@ export default async function Home() {
         <Stages
           stages={stages}
           images={[...(c.stages.images ?? [])]}
-          slots={c.stages.slots}
         />
       ) : null}
 

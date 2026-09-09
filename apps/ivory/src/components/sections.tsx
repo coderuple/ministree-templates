@@ -229,16 +229,7 @@ export interface Stage {
   body: string;
 }
 
-export function Stages({
-  stages,
-  images,
-  slots = 0,
-}: {
-  stages: Stage[];
-  images: string[];
-  /** How many frames this section draws. Fixed by the design. */
-  slots?: number;
-}) {
+export function Stages({ stages, images }: { stages: Stage[]; images: string[] }) {
   if (stages.length === 0) return null;
 
   return (
@@ -562,7 +553,7 @@ export function Stories({
             aligned, so the text reads as one more column of the contact sheet. */}
         <div className="stories-row" data-reveal="up">
           {Array.from({ length: slots }, (_, i) => (
-            <MediaFrame key={i} src={images[i]} alt="" size="1070 × 1600" sizes="20vw" />
+            <MediaFrame key={i} src={images[i]} alt="" size="1280 × 1600" sizes="20vw" />
           ))}
           <p className="body stories-note">{body}</p>
         </div>
