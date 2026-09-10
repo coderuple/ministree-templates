@@ -15,9 +15,13 @@ export const site = {
   description:
     "Mantle Men's Conference 2027 — The Standard. Two days for men of every generation, winding back through the noise to the first draft of a man.",
 
-  /* Blank on purpose, every one. Blank inherits from the event the church
-     picked; typing here overrides it for this site alone and never touches
-     the event record. See `event-kit/overrides.ts` for why price is absent. */
+  /* Where the site's facts come from — the picked event as it is, the picked
+     event with `eventDetails` having the last word, or `eventDetails` alone.
+     See `event-kit/overrides.ts`. */
+  eventSource: "event",
+
+  /* Blank on purpose, every one. With an event picked, blank inherits and
+     filled wins; typed by hand, blank is left off the site. Never a price. */
   eventDetails: {
     title: "",
     dateLabel: "",
@@ -27,8 +31,10 @@ export const site = {
     venue: { name: "", address: "", city: "", directionsUrl: "" },
     days: [] as Array<{ date: string; time: string }>,
     speakers: [] as Array<{ name: string; role: string; image: string; bio: string }>,
-    tickets: [] as Array<{ name: string; description: string }>,
   },
+
+  /* Positional renames of the picked event's own tiers — wording only. */
+  eventTicketNames: [] as Array<{ name: string; description: string }>,
 
   /* 01 · NOISE — the question, buried in everything shouting an answer. */
   hero: {

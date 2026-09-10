@@ -55,9 +55,13 @@ export default async function EventSite({
 
   const church = siteName(settings);
   const title = (e.title ?? church) as string;
-  const dateLabel = e.startAt
-    ? formatDateRange(e.startAt as string, e.endAt as string | undefined, locale)
-    : null;
+  /* A label the Customizer typed ("October 2026 · dates on release") is printed
+     in place of the range; the real dates still drive the countdown below. */
+  const typedDateLabel =
+    typeof e.dateLabel === "string" && e.dateLabel.trim() ? e.dateLabel.trim() : null;
+  const dateLabel =
+    typedDateLabel ??
+    (e.startAt ? formatDateRange(e.startAt as string, e.endAt as string | undefined, locale) : null);
   /* The outlined year sits under the lockup as a graphic. Plenty of events
      already carry it in their name ("Youth Retreat 2026"), and printing it
      again beside the title reads as a mistake rather than as a device. */
@@ -85,9 +89,15 @@ export default async function EventSite({
     street?: string;
     city?: string;
     postalCode?: string;
+    address?: string;
+    directionsUrl?: string;
   } | null;
   const venueName = venue?.venueName ?? null;
-  const address = [venue?.street, venue?.city, venue?.postalCode].filter(Boolean).join(", ") || null;
+  /* A full address typed in the Customizer is printed exactly as typed. */
+  const address =
+    venue?.address?.trim() ||
+    [venue?.street, venue?.city, venue?.postalCode].filter(Boolean).join(", ") ||
+    null;
   const venueLabel = [venueName, venue?.city].filter(Boolean).join(" · ") || null;
 
   const heroImage = ((e.heroMedia as { url?: string } | null)?.url ??
@@ -290,11 +300,13 @@ export default async function EventSite({
             name: venueName ?? "Where",
             blurb: null,
             address,
-            directionsUrl: address
-              ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                  [venueName, address].filter(Boolean).join(", "),
-                )}`
-              : null,
+            directionsUrl:
+              venue?.directionsUrl?.trim() ||
+              (address
+                ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                    [venueName, address].filter(Boolean).join(", "),
+                  )}`
+                : null),
             images: venueImages,
           }
         : null,
@@ -306,7 +318,10 @@ export default async function EventSite({
          bar, this section. A church selling through Eventbrite moves all of
          them at once instead of leaving one pointing at a page that no longer
          takes orders. */
-      href: resolveTicketsHref(ticketing, `${hrefFor(slugs, "events")}/${e.slug as string}`),
+      /* Details typed by hand have no event behind them, so there is no event
+         page to fall back to — only an address the church typed can take a
+         button. */
+      href: resolveTicketsHref(ticketing, e.slug ? `${hrefFor(slugs, "events")}/${e.slug as string}` : ""),
       ctaLabel: ticketsCtaLabel(ticketing, str("ticketsCta") ?? "Get tickets"),
       blurb: null,
       note: str("ticketsNote"),
@@ -364,7 +379,10 @@ export default async function EventSite({
     backdropVideo: str("backdropVideo"),
     ticketsHref: evt.tickets?.href ?? null,
     ticketsLabel: evt.tickets?.ctaLabel ?? "Get tickets",
-    hasTickets: tiers.length > 0,
+    /* Tiers to show — or, for details typed by hand, which never have any, an
+       address the church gave for wherever tickets are actually sold. A real
+       event with no tiers still shows no ticket button. */
+    hasTickets: tiers.length > 0 || (!e.slug && Boolean(evt.tickets?.href)),
     blocks,
     nav,
     socials,

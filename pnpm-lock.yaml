@@ -100,6 +100,9 @@ importers:
 
   apps/flame:
     dependencies:
+      '@ministree-templates/event-kit':
+        specifier: workspace:*
+        version: link:../../packages/event-kit
       '@ministree/template-sdk':
         specifier: file:../../vendor/ministree-template-sdk-0.7.1.tgz
         version: file:vendor/ministree-template-sdk-0.7.1.tgz(next@16.2.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)

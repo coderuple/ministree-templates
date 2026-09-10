@@ -1,59 +1,89 @@
 /**
- * The Customizer's last word over the event's facts.
+ * Where a conference site's facts come from.
  *
- * The event stays the source of every fact — that rule is why `page-data.ts`
- * exists in each app. This is the escape hatch for the times a church needs
- * the SITE to say something the RECORD cannot:
+ * A church answers one question in the Customizer — "Where do the details
+ * come from?" — and this file is that answer, applied to the event RECORD
+ * before anything reads it:
  *
- *   - the conference has a public name ("REWIND 26") and an internal one
- *   - dates are announced as "October 2026, exact dates on release"
- *   - the venue is "central London, revealed to ticket holders"
- *   - two speakers are confirmed but not yet on the event record
+ *   event         the picked event, exactly as it is
+ *   eventTweaked  the picked event, with `eventDetails` having the last word
+ *   manual        no event at all; the site is built from `eventDetails`
  *
- * Blank inherits, filled wins — the same rule the description and the hero
- * image have always followed here, applied to the rest of the facts.
+ * Working on the raw record rather than on one template's view of it is the
+ * point. Every template maps the record its own way — four through
+ * `toEventView`, Flame through its own `EventSite` — and all of them pick the
+ * answer up for free, the browser tab and the share card included, because
+ * there is nowhere left downstream for the old value to leak through.
  *
- * Two deliberate limits:
+ * Where a church's wording has no field on the record — dates printed as
+ * "October, exact days on release", a day's times as "Doors 6:30" — it rides
+ * along as a display key (`dateLabel`, `timeLabel`, `locationJson.address`,
+ * `locationJson.directionsUrl`) and the mappers prefer it when present.
  *
- * 1. **Only on top of a connected event.** With nothing connected the demo
- *    conference still stands in, as it always did. Synthesising an event out
- *    of overrides alone would hand `/tickets` an event with no tiers and no
- *    id — a checkout that renders and cannot possibly take an order.
+ * Three deliberate limits:
  *
- * 2. **Never the price.** Checkout posts the event's real `ticketTypeId`s to
- *    the orders API, so a price typed here would be shown and not charged.
- *    Tier names and blurbs are display-only and safe; the number is not.
+ * 1. **Never the price.** Checkout posts the event's real `ticketTypeId`s, so
+ *    a price typed here would be shown and not charged. Tier names and blurbs
+ *    are display-only and safe; the number is not.
+ * 2. **Details typed by hand sell nothing on the site.** They carry no ticket
+ *    types and no payment methods, which sends `resolveTicketing` to its
+ *    fallback: every button goes wherever the church said tickets are sold, or
+ *    nowhere. A checkout for an event with no id cannot take an order.
+ * 3. **Details typed by hand need a name.** Until the title has something in
+ *    it the answer is null, so the demo conference (or Flame's church home)
+ *    still stands in — exactly as it does for a picker with nothing picked.
+ *
+ * A field nobody can see never decides what the site says: "exactly as it is"
+ * ignores saved details, and "typed by hand" ignores a saved event.
  */
 
-import { speakerSlugger, type EventDay, type EventVenue, type EventView, type Speaker, type TicketTier } from './event.ts';
-import { formatDateRange, formatDayNumeral, formatTimeRange, formatWeekday, type Locale } from './format.ts';
+import type { EventDetail } from '@ministree/template-sdk';
+
+export type EventSource = 'event' | 'eventTweaked' | 'manual';
 
 /** What the Customizer stores. Every key optional — an untouched group is `{}`. */
-export interface EventOverrides {
+export interface EventDetails {
   title?: string;
-  description?: string;
-  /** `YYYY-MM-DD` from a `date` field. Moves the countdown and the SEO dates. */
+  /** Free text printed in place of the formatted range: "October 2026 · dates TBC". */
+  dateLabel?: string;
+  /** `YYYY-MM-DD` from a `date` field. */
   startAt?: string;
   endAt?: string;
-  /** Free text that beats the formatted range: "October 2026 · dates TBC". */
-  dateLabel?: string;
-  heroImage?: string;
-  venue?: {
-    name?: string;
-    address?: string;
-    city?: string;
-    directionsUrl?: string;
-  };
+  description?: string;
+  venue?: { name?: string; address?: string; city?: string; directionsUrl?: string };
   /** Any row with a date replaces the event's own dates, in this order. */
   days?: Array<{ date?: string; time?: string }>;
   /** Any row with a name replaces the event's whole lineup. */
   speakers?: Array<{ name?: string; role?: string; image?: string; bio?: string }>;
-  /** Positional, like `days.beats`: row 1 renames tier 1. Extra rows are ignored. */
-  tickets?: Array<{ name?: string; description?: string }>;
 }
+
+/** Positional, like `days.beats`: row 1 renames tier 1. Extra rows are ignored. */
+export type TicketNames = Array<{ name?: string; description?: string }>;
+
+interface SourceContent {
+  eventSource?: string;
+  eventDetails?: EventDetails;
+  eventTicketNames?: TicketNames;
+}
+
+type Row = Record<string, unknown>;
 
 const text = (v: unknown): string | null =>
   typeof v === 'string' && v.trim() ? v.trim() : null;
+
+/** Anything unrecognised — a template saved before the choice existed included — reads as "as it is". */
+export function eventSource(content: unknown): EventSource {
+  const v = (content as SourceContent | null)?.eventSource;
+  return v === 'eventTweaked' || v === 'manual' ? v : 'event';
+}
+
+export function resolveEventRecord(record: EventDetail | null, content: unknown): EventDetail | null {
+  const c = (content ?? {}) as SourceContent;
+  const source = eventSource(c);
+  if (source === 'manual') return fromDetails(c.eventDetails);
+  if (source === 'eventTweaked' && record) return withDetails(record, c.eventDetails, c.eventTicketNames);
+  return record;
+}
 
 /**
  * A `date` field gives a bare `YYYY-MM-DD`, which `new Date()` reads as UTC
@@ -65,167 +95,134 @@ function atNoon(value: string | null): string | null {
   return value && /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T12:00:00` : value;
 }
 
-function mapsUrl(name: string | null, address: string | null): string | null {
-  const query = [name, address].filter(Boolean).join(', ');
-  return query
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
+function withDetails(record: EventDetail, d: EventDetails = {}, names: TicketNames = []): EventDetail {
+  const r = record as EventDetail & Row;
+  const out: Row = { ...r };
+
+  const title = text(d.title);
+  if (title) out.title = title;
+  const description = text(d.description);
+  if (description) out.description = description;
+  const dateLabel = text(d.dateLabel);
+  if (dateLabel) out.dateLabel = dateLabel;
+
+  /* An overridden start with no end is a one-day answer, not a range that
+     still ends on the record's old date. */
+  const startAt = atNoon(text(d.startAt));
+  const endAt = atNoon(text(d.endAt));
+  if (startAt) {
+    out.startAt = startAt;
+    out.endAt = endAt;
+  }
+
+  const locationJson = venueWith((r.locationJson ?? null) as Row | null, d.venue);
+  if (locationJson) out.locationJson = locationJson;
+
+  /* A single-date event's one column follows a moved start, or the hero says
+     one date and the schedule another. A multi-date event keeps its
+     occurrences — those are real dates people bought tickets against. */
+  const current = (r.occurrences ?? []) as Row[];
+  const occurrences =
+    dayRows(d.days) ?? (startAt && current.length <= 1 ? [dayRow(0, startAt, endAt, '')] : null);
+  if (occurrences) out.occurrences = occurrences;
+
+  const people = speakerRows(d.speakers);
+  if (people) out.people = people;
+
+  if (names.length) out.ticketTypes = renameTiers((r.ticketTypes ?? []) as Row[], names);
+
+  return out as unknown as EventDetail;
+}
+
+function fromDetails(d: EventDetails = {}): EventDetail | null {
+  const title = text(d.title);
+  if (!title) return null;
+  const startAt = atNoon(text(d.startAt));
+  const endAt = atNoon(text(d.endAt));
+  const record: Row = {
+    id: '',
+    slug: '',
+    title,
+    description: text(d.description),
+    startAt,
+    endAt,
+    locationJson: venueWith(null, d.venue),
+    occurrences: dayRows(d.days) ?? (startAt ? [dayRow(0, startAt, endAt, '')] : []),
+    people: speakerRows(d.speakers) ?? [],
+    /* Limit 2: nothing to sell, and no provider to sell it through. */
+    ticketTypes: [],
+    paymentMethods: [],
+  };
+  const dateLabel = text(d.dateLabel);
+  if (dateLabel) record.dateLabel = dateLabel;
+  return record as unknown as EventDetail;
+}
+
+/**
+ * Field by field over whatever the record already says, so a church that
+ * only renames the room keeps its address. A typed full address is printed as
+ * typed — never with the old city and postcode tacked on the end.
+ */
+function venueWith(current: Row | null, v: EventDetails['venue']): Row | null {
+  const name = text(v?.name);
+  const address = text(v?.address);
+  const city = text(v?.city);
+  const directionsUrl = text(v?.directionsUrl);
+  if (!name && !address && !city && !directionsUrl) return current;
+  return {
+    ...(current ?? {}),
+    ...(name ? { venueName: name } : null),
+    ...(city ? { city } : null),
+    ...(address ? { address } : null),
+    ...(directionsUrl ? { directionsUrl } : null),
+  };
+}
+
+/**
+ * All or nothing: two filled rows mean "these are the days", not "these two,
+ * then whatever the record had after them". An empty `timeLabel` is an
+ * answer too — a day typed with no times shows none, not the noon its date
+ * was pinned to.
+ */
+function dayRows(rows: EventDetails['days']): Row[] | null {
+  const dated = (rows ?? []).filter((row) => text(row?.date));
+  return dated.length
+    ? dated.map((row, i) => dayRow(i, atNoon(text(row.date)) as string, null, text(row.time) ?? ''))
+    : null;
+}
+
+function dayRow(i: number, startAt: string, endAt: string | null, timeLabel: string): Row {
+  return { id: `override-${i}`, startAt, endAt, status: 'scheduled', timeLabel };
+}
+
+/**
+ * All or nothing, for the same reason. Written as guest rows — name, title,
+ * photo and bio on the event's own row — which is the shape every template's
+ * mapper already reads first, so slugs and fallbacks behave exactly as they
+ * do for a real visiting speaker.
+ */
+function speakerRows(rows: EventDetails['speakers']): Row[] | null {
+  const named = (rows ?? []).filter((row) => text(row?.name));
+  return named.length
+    ? named.map((row, i) => ({
+        id: `override-${i}`,
+        name: text(row.name),
+        title: text(row.role),
+        photoUrl: text(row.image),
+        bio: text(row.bio),
+      }))
     : null;
 }
 
 /**
- * `null` in, `null` out — see limit 1 above, and no override group at all
- * hands back the very same event object.
+ * Wording only. `id`, `price`, `capacity` and the sale window are untouched on
+ * purpose: those are what checkout posts and what the buyer is charged.
  */
-export function applyEventOverrides(
-  event: EventView | null,
-  overrides: EventOverrides | undefined | null,
-  locale: Locale,
-): EventView | null {
-  if (!event || !overrides) return event;
-
-  const startAt = atNoon(text(overrides.startAt));
-  const endAt = atNoon(text(overrides.endAt));
-  const venue = overrideVenue(event.venue, overrides.venue);
-  const days = overrideDays(event.days, overrides.days, startAt, endAt, locale);
-  const speakers = overrideSpeakers(event.speakers, overrides.speakers);
-  const tickets = overrideTickets(event.tickets, overrides.tickets);
-
-  /* An overridden start with no end is a one-day answer, not a range that
-     still ends on the record's old date. Only reach for the event's end when
-     the start was left alone too. */
-  const dateLabel =
-    text(overrides.dateLabel) ??
-    (startAt ? formatDateRange(startAt, endAt, locale) : event.dateLabel);
-
-  return {
-    ...event,
-    title: text(overrides.title) ?? event.title,
-    description: text(overrides.description) ?? event.description,
-    heroImage: text(overrides.heroImage) ?? event.heroImage,
-    dateLabel,
-    startAtMs: startAt ? new Date(startAt).getTime() : event.startAtMs,
-    endAtMs: endAt ? new Date(endAt).getTime() : startAt ? null : event.endAtMs,
-    venue,
-    days,
-    speakers,
-    tickets,
-    /* Recomputed, not copied: a renamed tier is still the same tier, but this
-       has to agree with the array it sits beside whatever else changed. */
-    onSale: tickets.some((t) => t.onSale && !t.soldOut),
-  };
-}
-
-/**
- * Field by field, so a church that only wants to hide the address keeps the
- * venue's name. A venue typed here appears even when the event has none —
- * that is the "central London, revealed later" case.
- */
-function overrideVenue(
-  current: EventVenue | null,
-  o: EventOverrides['venue'],
-): EventVenue | null {
-  const name = text(o?.name) ?? current?.name ?? null;
-  const address = text(o?.address) ?? current?.address ?? null;
-  if (!name && !address) return null;
-
-  /* Re-derived rather than inherited: keeping the record's map link beside a
-     typed address would point at the wrong building. */
-  const touched = Boolean(text(o?.name) || text(o?.address));
-  return {
-    name,
-    address,
-    city: text(o?.city) ?? current?.city ?? null,
-    directionsUrl:
-      text(o?.directionsUrl) ??
-      (touched ? mapsUrl(name, address) : (current?.directionsUrl ?? null)),
-  };
-}
-
-/**
- * All or nothing. A church filling in two rows means "these are the days" —
- * merging them positionally into the event's own would leave a third column
- * from the record sitting after them, which nobody asked for.
- *
- * Falls back to re-deriving the single day from an overridden start, so
- * moving the date moves the schedule column with it.
- */
-function overrideDays(
-  current: EventDay[],
-  rows: EventOverrides['days'],
-  startAt: string | null,
-  endAt: string | null,
-  locale: Locale,
-): EventDay[] {
-  const dated = (rows ?? [])
-    .map((row) => ({ date: atNoon(text(row?.date)), time: text(row?.time) }))
-    .filter((row): row is { date: string; time: string | null } => Boolean(row.date));
-
-  if (dated.length) {
-    return dated.map((row, i) => ({
-      id: `override-${i}`,
-      numeral: formatDayNumeral(row.date, locale),
-      weekday: formatWeekday(row.date, locale),
-      time: row.time ?? '',
-      startAt: row.date,
-      cancelled: false,
-    }));
-  }
-
-  /* A single-date event has one column derived from the event's own start.
-     Override the start and that column has to follow, or the hero says one
-     date and the schedule another. Multi-day events keep their occurrences:
-     those are real dates people bought tickets against. */
-  if (startAt && current.length <= 1) {
-    return [
-      {
-        id: 'override-0',
-        numeral: formatDayNumeral(startAt, locale),
-        weekday: formatWeekday(startAt, locale),
-        time: formatTimeRange(startAt, endAt, locale),
-        startAt,
-        cancelled: false,
-      },
-    ];
-  }
-
-  return current;
-}
-
-/** All or nothing, for the same reason as the days. */
-function overrideSpeakers(current: Speaker[], rows: EventOverrides['speakers']): Speaker[] {
-  const named = (rows ?? []).filter((row) => text(row?.name));
-  if (!named.length) return current;
-
-  const slugify = speakerSlugger();
-  return named.map((row, i) => {
-    const name = text(row.name) as string;
-    return {
-      id: `override-${i}`,
-      slug: slugify(name),
-      name,
-      role: text(row.role),
-      image: text(row.image),
-      bio: text(row.bio),
-    };
-  });
-}
-
-/**
- * Positional, and wording only. Row 1 renames tier 1, exactly as `days.beats`
- * names day 1 — a church already knows that rule from the schedule section.
- *
- * `id`, `priceMinor`, `price`, `remaining` and the sale window are untouched
- * on purpose: those are what checkout posts and what the buyer is charged.
- */
-function overrideTickets(current: TicketTier[], rows: EventOverrides['tickets']): TicketTier[] {
-  if (!rows?.length) return current;
-  return current.map((tier, i) => {
-    const row = rows[i];
-    if (!row) return tier;
-    return {
-      ...tier,
-      name: text(row.name) ?? tier.name,
-      description: text(row.description) ?? tier.description,
-    };
+function renameTiers(tiers: Row[], names: TicketNames): Row[] {
+  return tiers.map((tier, i) => {
+    const row = names[i];
+    return row
+      ? { ...tier, name: text(row.name) ?? tier.name, description: text(row.description) ?? tier.description }
+      : tier;
   });
 }

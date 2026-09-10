@@ -164,40 +164,53 @@ export default defineMinistreeTemplate({
   content: {
     defaults: site,
     fields: {
+      eventSource: {
+        kind: "select",
+        label: "Where do the details come from?",
+        options: [
+          { value: "event", label: "An event, exactly as it is" },
+          { value: "eventTweaked", label: "An event, with some details changed" },
+          { value: "manual", label: "I’ll type them myself" },
+        ],
+        help: "Picking an event keeps this site in step with Events and lets people buy tickets here. Typing them yourself is for an event that isn’t in Events yet — nobody can buy tickets on this site then, so say where they can in the Tickets tab.",
+      },
+
       featuredEvent: {
         kind: "entity",
         module: "events",
+        visibleWhen: { field: "eventSource", in: ["event", "eventTweaked"] },
         label: "Which event?",
         help: "The whole site is built from this one — its dates, venue, speakers and tickets.",
       },
 
       eventDetails: {
         kind: "group",
-        label: "Say something different from the event",
-        help: "Every fact on this site is read from the event above. Leave a box empty and it keeps saying what the event says. Fill one in and this site says yours instead — the event itself is never changed.",
+        label: "The details",
+        visibleWhen: { field: "eventSource", in: ["eventTweaked", "manual"] },
+        help: "With an event picked, an empty box keeps saying what the event says, and a filled one says yours instead — the event itself is never changed. Typing them yourself, an empty box is simply left off the site.",
         fields: {
           title: {
             kind: "text",
-            label: "Call the conference",
+            label: "What it’s called",
             width: "half",
             optional: true,
-            help: "For when the event is filed under one name and advertised under another.",
+            help: "Typing the details yourself? The site switches over to them once this has something in it.",
           },
           dateLabel: {
             kind: "text",
             label: "Word the dates",
             width: "half",
             optional: true,
-            help: "“October 2027, exact dates on release”. Replaces the printed dates only — the countdown still runs to the real ones.",
+            help: "“October 2027, exact dates on release”. Printed in place of the dates below.",
           },
           startAt: {
             kind: "date",
             label: "Starts",
             width: "half",
             optional: true,
-            help: "Moves what search engines are told. Leave both dates empty to use the event’s own.",
+            help: "The dates printed on the site, and anything counting down to them.",
           },
-          endAt: { kind: "date", label: "Ends", width: "half", optional: true },
+          endAt: { kind: "date", label: "Ends", width: "half", optional: true, help: "Leave it empty for a one-day event." },
           description: {
             kind: "textarea",
             label: "Describe it",
@@ -211,28 +224,28 @@ export default defineMinistreeTemplate({
             fields: {
               name: { kind: "text", label: "Where", width: "half", optional: true },
               city: { kind: "text", label: "Town or city", width: "half", optional: true },
-              address: { kind: "text", label: "Full address", optional: true },
+              address: { kind: "text", label: "Full address", optional: true, help: "Printed exactly as you type it." },
               directionsUrl: {
                 kind: "url",
                 label: "Map link",
                 optional: true,
-                help: "Empty builds one from the address above.",
+                help: "Empty builds one from the name and address.",
               },
             },
           },
           days: {
             kind: "repeatable",
             label: "The dates",
-            help: "Add rows only to show dates other than the event’s own. One row is one day, and the first row replaces all of them.",
+            help: "One row is one day, and the first row replaces all of them. A row with no times shows just the date.",
             fields: {
               date: { kind: "date", label: "Date", width: "half" },
-              time: { kind: "text", label: "Times", width: "half", help: "“Doors 6:30 · starts 7:30”. Anything you like." },
+              time: { kind: "text", label: "Times", width: "half", optional: true, help: "“Doors 6:30 · starts 7:30”. Anything you like." },
             },
           },
           speakers: {
             kind: "repeatable",
             label: "The lineup",
-            help: "Add rows only to show people other than the ones on the event. The first row replaces the whole lineup, so list everyone you want shown.",
+            help: "The first row replaces the whole lineup, so list everyone you want shown.",
             fields: {
               name: { kind: "text", label: "Name", width: "half" },
               role: { kind: "text", label: "What they do", width: "half", optional: true },
@@ -240,15 +253,17 @@ export default defineMinistreeTemplate({
               bio: { kind: "textarea", label: "About them", optional: true },
             },
           },
-          tickets: {
-            kind: "repeatable",
-            label: "What the tickets are called",
-            help: "In the same order as the event’s tickets — the first row renames the first one. Wording only: people are charged the event’s price, and their ticket keeps the event’s name.",
-            fields: {
-              name: { kind: "text", label: "Name", width: "half", optional: true },
-              description: { kind: "text", label: "What it includes", width: "half", optional: true },
-            },
-          },
+        },
+      },
+
+      eventTicketNames: {
+        kind: "repeatable",
+        label: "What the tickets are called",
+        visibleWhen: { field: "eventSource", equals: "eventTweaked" },
+        help: "In the same order as the event’s tickets — the first row renames the first one. Wording only: people are charged the event’s price, and their ticket keeps the event’s name.",
+        fields: {
+          name: { kind: "text", label: "Name", width: "half", optional: true },
+          description: { kind: "text", label: "What it includes", width: "half", optional: true },
         },
       },
 
@@ -728,10 +743,10 @@ export default defineMinistreeTemplate({
         {
           id: "event",
           title: "Event",
-          description: "Which conference this site is for, and where to say something different from it.",
+          description: "Which conference this site is for, and where its details come from.",
           groups: [
-            { fields: ["featuredEvent"] },
-            { title: "The event’s own details", fields: ["eventDetails"] },
+            { fields: ["eventSource", "featuredEvent"] },
+            { title: "The details", fields: ["eventDetails", "eventTicketNames"] },
           ],
         },
         {

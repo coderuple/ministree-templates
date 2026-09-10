@@ -42,6 +42,22 @@ export const site = {
   // composable section stack below; `ministreePage` renders a CMS page instead.
   siteMode: "fullSite",
   featuredEvent: "",
+  /* Where the event site's facts come from — the picked event as it is, the
+     picked event with `eventDetails` having the last word, or `eventDetails`
+     alone. See event-kit's `overrides.ts`. */
+  eventSource: "event",
+  /* Blank on purpose, every one. No `days`: this event site has no per-day
+     columns, its schedule is the event's own running order. Never a price. */
+  eventDetails: {
+    title: "",
+    dateLabel: "",
+    startAt: "",
+    endAt: "",
+    description: "",
+    venue: { name: "", address: "", city: "", directionsUrl: "" },
+    speakers: [] as Array<{ name: string; role: string; image: string; bio: string }>,
+  },
+  eventTicketNames: [] as Array<{ name: string; description: string }>,
   homeSource: "templateHome",
   homePageSlug: "",
   homeSections: {

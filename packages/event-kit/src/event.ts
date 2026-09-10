@@ -8,6 +8,7 @@ import {
   toMinorUnits,
   type Locale,
 } from './format.ts';
+import { eventSource, resolveEventRecord } from './overrides.ts';
 
 /**
  * One event, in the shape the three concepts render.
@@ -92,13 +93,31 @@ export interface EventView {
   paymentMethods?: string[];
 }
 
-/** The event a single-event site is built around, or null. */
+/**
+ * The event a single-event site is built around, or null — already resolved
+ * against the Customizer's choice of where the details come from, so the
+ * page, the tickets route and `generateMetadata` can never disagree about
+ * what the event is called. See `overrides.ts`.
+ */
 export async function loadFeaturedEvent(content: unknown): Promise<EventDetail | null> {
   const c = content as { featuredEvent?: string };
-  if (!c?.featuredEvent) return null;
-  const [event] = await resolveEntities<EventDetail>(undefined, 'events', c.featuredEvent);
-  return event ?? null;
+  /* Typing the details by hand hides the picker, but the slug it last held is
+     still saved. A field nobody can see must never decide what the site says —
+     and is not worth a fetch either. */
+  const record =
+    eventSource(content) !== 'manual' && c?.featuredEvent
+      ? ((await resolveEntities<EventDetail>(undefined, 'events', c.featuredEvent))[0] ?? null)
+      : null;
+  return resolveEventRecord(record, content);
 }
+
+/**
+ * A display label the Customizer wrote onto the record — `dateLabel`, a
+ * venue's `address` or `directionsUrl` — which the mappers below prefer over
+ * building one from the record's own fields. See `overrides.ts`.
+ */
+const displayText = (v: unknown): string | null =>
+  typeof v === 'string' && v.trim() ? v.trim() : null;
 
 export function toEventView(event: EventDetail, locale: Locale, fallbackCurrency = 'GBP'): EventView {
   const e = event as EventDetail & Record<string, unknown>;
@@ -115,7 +134,7 @@ export function toEventView(event: EventDetail, locale: Locale, fallbackCurrency
     title: (e.title as string) ?? '',
     description: (e.description as string | null) ?? null,
     currency,
-    dateLabel: formatDateRange(startAt, endAt, locale),
+    dateLabel: displayText(e.dateLabel) ?? formatDateRange(startAt, endAt, locale),
     /* Resolved here, on the server, and passed as a number. `new Date(iso)` on
        a string with no offset is parsed as the READER's local time, so a
        visitor in another country would see a countdown hours out. Ministree
@@ -141,9 +160,9 @@ export function toEventView(event: EventDetail, locale: Locale, fallbackCurrency
  * Names collide — two Smiths, a mother and daughter on the same bill. The
  * second takes a -2 so a shared ?speaker= link always resolves to one card.
  * React still keys off `id`; this exists only for the URL. Stateful, so one
- * slugger per list: `overrides.ts` builds its own for a replaced lineup.
+ * slugger per list.
  */
-export function speakerSlugger(): (name: string) => string {
+function speakerSlugger(): (name: string) => string {
   const used = new Map<string, number>();
   return (name: string) => {
     const base =
@@ -216,7 +235,12 @@ function toDays(e: Record<string, unknown>, locale: Locale): EventDay[] {
         id: String(o.id ?? i),
         numeral: formatDayNumeral(o.startAt as string, locale),
         weekday: formatWeekday(o.startAt as string, locale),
-        time: formatTimeRange(o.startAt as string, o.endAt as string | undefined, locale),
+        /* An empty label is an answer: a day typed with no times shows none,
+           not the noon its date was pinned to. */
+        time:
+          typeof o.timeLabel === 'string'
+            ? o.timeLabel
+            : formatTimeRange(o.startAt as string, o.endAt as string | undefined, locale),
         startAt: (o.startAt as string | undefined) ?? null,
         cancelled: false,
       }));
@@ -266,19 +290,25 @@ function toVenue(e: Record<string, unknown>): EventVenue | null {
     street?: string;
     city?: string;
     postalCode?: string;
+    address?: string;
+    directionsUrl?: string;
   } | null;
   if (!v) return null;
   const name = v.venueName ?? null;
-  const address = [v.street, v.city, v.postalCode].filter(Boolean).join(', ') || null;
+  /* A full address typed in the Customizer is printed exactly as typed. */
+  const address =
+    displayText(v.address) ?? ([v.street, v.city, v.postalCode].filter(Boolean).join(', ') || null);
   if (!name && !address) return null;
   return {
     name,
     address,
     city: v.city ?? null,
-    directionsUrl: address
-      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-          [name, address].filter(Boolean).join(', '),
-        )}`
-      : null,
+    directionsUrl:
+      displayText(v.directionsUrl) ??
+      (address
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+            [name, address].filter(Boolean).join(', '),
+          )}`
+        : null),
   };
 }

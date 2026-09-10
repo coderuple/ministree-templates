@@ -1,5 +1,4 @@
 import { loadFeaturedEvent, toEventView, type EventView } from "@ministree-templates/event-kit/event";
-import { applyEventOverrides } from "@ministree-templates/event-kit/overrides";
 import { resolveSocials, type SocialLink } from "@ministree-templates/event-kit/socials";
 import {
   resolveTicketing,
@@ -45,15 +44,11 @@ export async function loadPageData(): Promise<PageData> {
     loadLocale(),
   ]);
 
+  /* Already resolved against the Customizer's choice of source — the picked
+     event as it is, the picked event with details changed, or details typed
+     by hand. See `event-kit/overrides.ts`. */
   const record = await loadFeaturedEvent(content);
-  /* The event is still the source of every fact. The Customizer gets the
-     last word over any of them, one field at a time, for the cases the
-     record cannot express — see `event-kit/overrides.ts`. */
-  const event = applyEventOverrides(
-    record ? toEventView(record, locale) : null,
-    content.eventDetails,
-    locale,
-  );
+  const event = record ? toEventView(record, locale) : null;
 
   const church = siteName(settings);
   /* The church's own four are the fallback. A conference usually has its own
@@ -64,12 +59,12 @@ export async function loadPageData(): Promise<PageData> {
     (profile?.socials ?? null) as Record<string, string | null | undefined> | null,
   );
 
-  /* The demo dates are only ever a stand-in. A connected event brings its own,
-     and they win — a church should never see last year's dates because the
-     template shipped with them. */
-  const dateLabel =
-    event?.dateLabel ||
-    formatDateRange("2027-03-18T19:30:00Z", "2027-03-20T18:00:00Z", locale);
+  /* The demo dates are only ever a stand-in, for NO event. An event brings its
+     own and they win — including an event with no dates, which prints none
+     rather than borrowing last year's from the template. */
+  const dateLabel = event
+    ? event.dateLabel
+    : formatDateRange("2027-03-18T19:30:00Z", "2027-03-20T18:00:00Z", locale);
 
   /* One answer for the whole site. Resolved here rather than at each button
      so the header, the hero, the closing call and the bar at the bottom can

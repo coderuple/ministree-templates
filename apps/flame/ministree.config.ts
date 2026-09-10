@@ -431,12 +431,107 @@ export default defineMinistreeTemplate({
           { value: "singleEvent", label: "A site for one event" },
         ],
       },
+      eventSource: {
+        kind: "select",
+        label: "Where do the details come from?",
+        visibleWhen: { field: "siteMode", equals: "singleEvent" },
+        options: [
+          { value: "event", label: "An event, exactly as it is" },
+          { value: "eventTweaked", label: "An event, with some details changed" },
+          { value: "manual", label: "I’ll type them myself" },
+        ],
+        help: "Picking an event keeps this site in step with Events. Typing them yourself is for an event that isn’t in Events yet — set where tickets are sold under Where people buy, or no ticket buttons show.",
+      },
       featuredEvent: {
         kind: "entity",
         module: "events",
         label: "Which event?",
         help: "Everything on the site comes from this event — its dates, venue, speakers, schedule and tickets.",
-        visibleWhen: { field: "siteMode", equals: "singleEvent" },
+        visibleWhen: [
+          { field: "siteMode", equals: "singleEvent" },
+          { field: "eventSource", in: ["event", "eventTweaked"] },
+        ],
+      },
+
+      eventDetails: {
+        kind: "group",
+        label: "The details",
+        visibleWhen: [
+          { field: "siteMode", equals: "singleEvent" },
+          { field: "eventSource", in: ["eventTweaked", "manual"] },
+        ],
+        help: "With an event picked, an empty box keeps saying what the event says, and a filled one says yours instead — the event itself is never changed. Typing them yourself, an empty box is simply left off the site.",
+        fields: {
+          title: {
+            kind: "text",
+            label: "What it’s called",
+            width: "half",
+            optional: true,
+            help: "Typing the details yourself? The site switches over to them once this has something in it.",
+          },
+          dateLabel: {
+            kind: "text",
+            label: "Word the dates",
+            width: "half",
+            optional: true,
+            help: "“October 2027, exact dates on release”. Printed in place of the dates below.",
+          },
+          startAt: {
+            kind: "date",
+            label: "Starts",
+            width: "half",
+            optional: true,
+            help: "The dates printed on the site, and the countdown in the hero.",
+          },
+          endAt: { kind: "date", label: "Ends", width: "half", optional: true, help: "Leave it empty for a one-day event." },
+          description: {
+            kind: "textarea",
+            label: "Describe it",
+            optional: true,
+            help: "The vision section, search results and share cards.",
+          },
+          venue: {
+            kind: "group",
+            label: "Venue",
+            help: "Useful when the room is not announced yet, or the event is filed at your office address.",
+            fields: {
+              name: { kind: "text", label: "Where", width: "half", optional: true },
+              city: { kind: "text", label: "Town or city", width: "half", optional: true },
+              address: { kind: "text", label: "Full address", optional: true, help: "Printed exactly as you type it." },
+              directionsUrl: {
+                kind: "url",
+                label: "Map link",
+                optional: true,
+                help: "Empty builds one from the name and address.",
+              },
+            },
+          },
+          speakers: {
+            kind: "repeatable",
+            label: "The lineup",
+            help: "The first row replaces the whole lineup, so list everyone you want shown.",
+            fields: {
+              name: { kind: "text", label: "Name", width: "half" },
+              role: { kind: "text", label: "What they do", width: "half", optional: true },
+              image: { kind: "media", label: "Portrait", optional: true },
+              bio: { kind: "textarea", label: "About them", optional: true },
+            },
+          },
+        },
+      },
+
+      eventTicketNames: {
+        kind: "repeatable",
+        label: "What the tickets are called",
+        visibleWhen: [
+          { field: "siteMode", equals: "singleEvent" },
+          { field: "eventSource", equals: "eventTweaked" },
+        ],
+        help: "In the same order as the event’s tickets — the first row renames the first one. Wording only: people are charged the event’s price, and their ticket keeps the event’s name.",
+        fields: {
+          name: { kind: "text", label: "Name", width: "half", optional: true },
+          description: { kind: "text", label: "What it includes", width: "half", optional: true },
+        },
       },
 
       /* Event-mode copy. Everything factual — dates, venue, speakers, schedule,
@@ -777,7 +872,9 @@ export default defineMinistreeTemplate({
           title: "Home",
           description: "Your home page — hero, welcome, and the composable stack beneath it.",
           groups: [
-            { columns: 2, fields: ["siteMode", "featuredEvent"] },
+            { columns: 2, fields: ["siteMode", "eventSource"] },
+            { fields: ["featuredEvent"] },
+            { title: "The details", fields: ["eventDetails", "eventTicketNames"] },
             { title: "Event page", fields: ["eventSections", "event"] },
             { title: "Home source", columns: 2, fields: ["homeSource", "homePageSlug"] },
             { title: "Hero", fields: ["hero"] },

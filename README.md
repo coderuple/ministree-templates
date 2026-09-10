@@ -88,25 +88,35 @@ apps/*/
 ```
 
 `packages/event-kit` holds the Ministree bridge, the event view-model, the
-scroll engine, the Customizer's overrides over the event's facts, checkout and
+scroll engine, where a site's event facts come from, checkout and
 the formatters. It deliberately renders **no** headings, sections or grids —
 only the checkout and a media frame — so the designs cannot drift toward each
 other through it.
 
-### Overriding the event
+### Where an event's details come from
 
-Every fact on a conference site is read from the event the church picked. The
-`eventDetails` group in each manifest is the escape hatch for the cases the
-record cannot express — a conference advertised under a different name, dates
-announced as "October, exact days on release", a venue revealed only to ticket
-holders, speakers confirmed before anyone put them on the event.
+Every conference template — and Flame, when it is a site for one event — asks
+the church one question in the Customizer: **Where do the details come from?**
 
-Blank inherits, filled wins, one field at a time. It layers on top of a
-connected event only — with nothing connected the demo conference still stands
-in. **Price is deliberately absent**: checkout posts the event's real
+| Answer | Event picker | Details fields | Tickets bought on this site |
+| --- | --- | --- | --- |
+| An event, exactly as it is | shown | hidden | yes |
+| An event, with some details changed | shown | shown | yes |
+| I'll type them myself | hidden | shown | no — buttons go wherever the church says tickets are sold, or nowhere |
+
+It is answered once, on the raw event record, before any template maps it:
+`resolveEventRecord` in `packages/event-kit/src/overrides.ts`, called from every
+`loadFeaturedEvent`. So the page, the tickets route and the browser tab can
+never disagree, and a new template gets all three answers for free.
+
+With an event picked, a blank field inherits and a filled one wins. Typed by
+hand, the site switches over once the name has something in it; until then the
+demo conference (or Flame's church home) still stands in. A field the church
+cannot currently see never decides what the site says.
+
+**Price is deliberately absent.** Checkout posts the event's real
 `ticketTypeId`s, so a price typed in the Customizer would be shown and not
-charged. Tier names and blurbs are display-only and safe. See
-`packages/event-kit/src/overrides.ts`.
+charged. Tier names and blurbs are display-only and safe.
 
 Each concept owns its own stylesheet. There is no Tailwind in the four
 conference apps: their type and motion are one-off fluid values

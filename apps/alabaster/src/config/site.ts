@@ -15,9 +15,13 @@ export const site = {
   description:
     "Uncommon Woman Conference 2027 — Unstoppable!! Living Emboldened. Three days for women who want to live boldly, fully and unashamedly in Christ.",
 
-  /* Blank on purpose, every one. Blank inherits from the event the church
-     picked; typing here overrides it for this site alone and never touches
-     the event record. See `event-kit/overrides.ts` for why price is absent. */
+  /* Where the site's facts come from — the picked event as it is, the picked
+     event with `eventDetails` having the last word, or `eventDetails` alone.
+     See `event-kit/overrides.ts`. */
+  eventSource: "event",
+
+  /* Blank on purpose, every one. With an event picked, blank inherits and
+     filled wins; typed by hand, blank is left off the site. Never a price. */
   eventDetails: {
     title: "",
     dateLabel: "",
@@ -27,8 +31,10 @@ export const site = {
     venue: { name: "", address: "", city: "", directionsUrl: "" },
     days: [] as Array<{ date: string; time: string }>,
     speakers: [] as Array<{ name: string; role: string; image: string; bio: string }>,
-    tickets: [] as Array<{ name: string; description: string }>,
   },
+
+  /* Positional renames of the picked event's own tiers — wording only. */
+  eventTicketNames: [] as Array<{ name: string; description: string }>,
 
   hero: {
     headline: "Unstoppable",

@@ -51,7 +51,7 @@ export default async function Home() {
     .filter((t) => t.onSale && !t.soldOut && t.price)
     .sort((a, b) => (a.priceMinor ?? 0) - (b.priceMinor ?? 0))[0];
 
-  const standardVenue = event?.venue ?? demoVenue(c);
+  const standardVenue = event ? event.venue : demoVenue(c);
   const venueLine = standardVenue?.name || standardVenue?.city || "";
 
   return (
@@ -108,7 +108,7 @@ export default async function Home() {
         <Experience content={c.experience} />
       ) : null}
 
-      <VenueFaq venueContent={c.venue} faqContent={c.faq} venue={event?.venue ?? demoVenue(c)} />
+      <VenueFaq venueContent={c.venue} faqContent={c.faq} venue={event ? event.venue : demoVenue(c)} />
 
       <Register
         content={c.register}

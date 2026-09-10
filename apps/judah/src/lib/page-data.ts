@@ -1,5 +1,4 @@
 import { loadFeaturedEvent, toEventView, type EventView } from "@ministree-templates/event-kit/event";
-import { applyEventOverrides } from "@ministree-templates/event-kit/overrides";
 import { resolveSocials, type SocialLink } from "@ministree-templates/event-kit/socials";
 import {
   resolveTicketing,
@@ -49,15 +48,11 @@ export async function loadPageData(): Promise<PageData> {
     loadLocale(),
   ]);
 
+  /* Already resolved against the Customizer's choice of source — the picked
+     event as it is, the picked event with details changed, or details typed
+     by hand. See `event-kit/overrides.ts`. */
   const record = await loadFeaturedEvent(content);
-  /* The event is still the source of every fact. The Customizer gets the last
-     word over any of them, one field at a time, for the cases the record
-     cannot express — see `event-kit/overrides.ts`. */
-  const event = applyEventOverrides(
-    record ? toEventView(record, locale) : null,
-    content.eventDetails,
-    locale,
-  );
+  const event = record ? toEventView(record, locale) : null;
 
   const church = siteName(settings);
   /* The church's own accounts are the fallback. A conference usually has its
@@ -68,7 +63,8 @@ export async function loadPageData(): Promise<PageData> {
     (profile?.socials ?? null) as Record<string, string | null | undefined> | null,
   );
 
-  const dateLabel = event?.dateLabel || formatDateRange(DEMO_START, DEMO_END, locale);
+  /* Demo dates stand in for NO event — never for an event that has none. */
+  const dateLabel = event ? event.dateLabel : formatDateRange(DEMO_START, DEMO_END, locale);
 
   /* One answer for the whole site. Resolved here rather than at each button so
      the header, the standard, the register band and the bar at the bottom can
@@ -153,7 +149,9 @@ export function facts(
   ticketPrice: string | null,
 ) {
   const c = content.facts;
-  const venue = event?.venue ?? demoVenue(content);
+  /* The demo venue stands in for NO event — never for an event that simply
+     has no venue of its own, which should say so rather than borrow one. */
+  const venue = event ? event.venue : demoVenue(content);
   return [
     { label: c.whenLabel, value: dateLabel, note: c.whenNote },
     {
