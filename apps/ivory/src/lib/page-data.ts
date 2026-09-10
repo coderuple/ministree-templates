@@ -1,4 +1,5 @@
 import { loadFeaturedEvent, toEventView, type EventView } from "@ministree-templates/event-kit/event";
+import { applyEventOverrides } from "@ministree-templates/event-kit/overrides";
 import { resolveSocials, type SocialLink } from "@ministree-templates/event-kit/socials";
 import {
   resolveTicketing,
@@ -45,7 +46,14 @@ export async function loadPageData(): Promise<PageData> {
   ]);
 
   const record = await loadFeaturedEvent(content);
-  const event = record ? toEventView(record, locale) : null;
+  /* The event is still the source of every fact. The Customizer gets the
+     last word over any of them, one field at a time, for the cases the
+     record cannot express — see `event-kit/overrides.ts`. */
+  const event = applyEventOverrides(
+    record ? toEventView(record, locale) : null,
+    content.eventDetails,
+    locale,
+  );
 
   const church = siteName(settings);
   /* The church's own four are the fallback. A conference usually has its own

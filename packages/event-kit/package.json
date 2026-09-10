@@ -12,6 +12,7 @@
     "./format": "./src/format.ts",
     "./media-frame": "./src/media-frame.tsx",
     "./ministree": "./src/ministree.ts",
+    "./overrides": "./src/overrides.ts",
     "./scroll-engine": "./src/scroll-engine.tsx",
     "./socials": "./src/socials.ts",
     "./stripe-panel": "./src/stripe-panel.tsx",

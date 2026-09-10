@@ -1,6 +1,6 @@
 # ministree-templates
 
-Four Ministree website templates, each a separately deployable Next.js app that
+Five Ministree website templates, each a separately deployable Next.js app that
 reads a church's content from Ministree and renders it with its own design.
 
 | App | Port | What it is |
@@ -8,16 +8,17 @@ reads a church's content from Ministree and renders it with its own design.
 | `apps/alabaster` | 3101 | **The Ember.** Ivory and crimson, Cormorant Garamond. Serene and editorial. |
 | `apps/ivory` | 3102 | **Unstoppable.** Bone, ink and crimson, Bodoni Moda. A fashion title's March issue. |
 | `apps/fire` | 3103 | **Carried by the Wind.** Smoke warming to gold, Instrument Serif. One unbroken composition. |
+| `apps/judah` | 3104 | **The Rewind.** Near-black and oxide red, Newsreader and Barlow Condensed. A conference that plays backwards. |
 | `apps/flame` | 3100 | A general-purpose multi-page church site. Moved in from its own repo, history intact. |
 
-The three conference templates are **single-event** templates: the whole site is
-one event, read from the church's own Events module. They ship with Uncommon
-Woman Conference 2027 as demo content, so each one looks finished before anyone
-connects it.
+The four conference templates are **single-event** templates: the whole site is
+one event, read from the church's own Events module. Three ship with Uncommon
+Woman Conference 2027 as demo content and Judah with a men's conference, so each
+one looks finished before anyone connects it.
 
 ```bash
 pnpm install
-pnpm dev            # all four
+pnpm dev            # all five
 pnpm --filter fire dev
 pnpm build
 pnpm --filter @ministree-templates/event-kit test
@@ -87,11 +88,27 @@ apps/*/
 ```
 
 `packages/event-kit` holds the Ministree bridge, the event view-model, the
-scroll engine, checkout and the formatters. It deliberately renders **no**
-headings, sections or grids — only the checkout and a media frame — so the three
-designs cannot drift toward each other through it.
+scroll engine, the Customizer's overrides over the event's facts, checkout and
+the formatters. It deliberately renders **no** headings, sections or grids —
+only the checkout and a media frame — so the designs cannot drift toward each
+other through it.
 
-Each concept owns its own stylesheet. There is no Tailwind in the three
+### Overriding the event
+
+Every fact on a conference site is read from the event the church picked. The
+`eventDetails` group in each manifest is the escape hatch for the cases the
+record cannot express — a conference advertised under a different name, dates
+announced as "October, exact days on release", a venue revealed only to ticket
+holders, speakers confirmed before anyone put them on the event.
+
+Blank inherits, filled wins, one field at a time. It layers on top of a
+connected event only — with nothing connected the demo conference still stands
+in. **Price is deliberately absent**: checkout posts the event's real
+`ticketTypeId`s, so a price typed in the Customizer would be shown and not
+charged. Tier names and blurbs are display-only and safe. See
+`packages/event-kit/src/overrides.ts`.
+
+Each concept owns its own stylesheet. There is no Tailwind in the four
 conference apps: their type and motion are one-off fluid values
 (`clamp(34px, 11.2cqi, 176px)`, `scale(calc(0.022 + var(--p) * 0.95))`) with
 almost no repeated value, so a utility class per one-off would be longer than the
@@ -129,7 +146,7 @@ check, so it holds before the engine hydrates.
 
 ## Updating the SDK
 
-Drop the new tarball into `vendor/` and point the four `package.json` files at
+Drop the new tarball into `vendor/` and point the five `package.json` files at
 it. The version is in the filename, so the specifier changes and pnpm
 re-resolves.
 

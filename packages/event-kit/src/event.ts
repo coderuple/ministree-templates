@@ -136,18 +136,16 @@ export function toEventView(event: EventDetail, locale: Locale, fallbackCurrency
 }
 
 /**
- * An event person is either a member of the church or a guest. A guest has no
- * Person record at all — their name, title, photo and bio live on the event's
- * own row — so reading only the linked person drops exactly the visiting
- * speakers a conference site is built around. The guest fields win when
- * present, because that is where someone typed the billing they want.
+ * One speaker slug per lineup, collision-safe.
+ *
+ * Names collide — two Smiths, a mother and daughter on the same bill. The
+ * second takes a -2 so a shared ?speaker= link always resolves to one card.
+ * React still keys off `id`; this exists only for the URL. Stateful, so one
+ * slugger per list: `overrides.ts` builds its own for a replaced lineup.
  */
-function toSpeakers(e: Record<string, unknown>): Speaker[] {
-  /* Names collide — two Smiths, a mother and daughter on the same bill. The
-     second takes a -2 so a shared ?speaker= link always resolves to one card.
-     React still keys off `id`; this exists only for the URL. */
+export function speakerSlugger(): (name: string) => string {
   const used = new Map<string, number>();
-  const slugify = (name: string) => {
+  return (name: string) => {
     const base =
       name
         .toLowerCase()
@@ -159,6 +157,17 @@ function toSpeakers(e: Record<string, unknown>): Speaker[] {
     used.set(base, seen);
     return seen === 1 ? base : `${base}-${seen}`;
   };
+}
+
+/**
+ * An event person is either a member of the church or a guest. A guest has no
+ * Person record at all — their name, title, photo and bio live on the event's
+ * own row — so reading only the linked person drops exactly the visiting
+ * speakers a conference site is built around. The guest fields win when
+ * present, because that is where someone typed the billing they want.
+ */
+function toSpeakers(e: Record<string, unknown>): Speaker[] {
+  const slugify = speakerSlugger();
 
   return ((e.people ?? []) as Array<Record<string, unknown>>)
     .map((entry, i) => {

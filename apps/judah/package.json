@@ -1,0 +1,30 @@
+{
+  "name": "judah",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "predev": "lsof -ti tcp:3104 -sTCP:LISTEN | xargs kill",
+    "dev": "next dev --port 3104",
+    "build": "next build",
+    "start": "next start --port 3104",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ministree-templates/event-kit": "workspace:*",
+    "@ministree/template-sdk": "file:../../vendor/ministree-template-sdk-0.7.1.tgz",
+    "@stripe/react-stripe-js": "^6.9.0",
+    "@stripe/stripe-js": "^9.15.0",
+    "next": "16.2.9",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "16.2.9",
+    "typescript": "^5.9.3"
+  }
+}

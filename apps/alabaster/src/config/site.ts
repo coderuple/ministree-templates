@@ -15,6 +15,21 @@ export const site = {
   description:
     "Uncommon Woman Conference 2027 — Unstoppable!! Living Emboldened. Three days for women who want to live boldly, fully and unashamedly in Christ.",
 
+  /* Blank on purpose, every one. Blank inherits from the event the church
+     picked; typing here overrides it for this site alone and never touches
+     the event record. See `event-kit/overrides.ts` for why price is absent. */
+  eventDetails: {
+    title: "",
+    dateLabel: "",
+    startAt: "",
+    endAt: "",
+    description: "",
+    venue: { name: "", address: "", city: "", directionsUrl: "" },
+    days: [] as Array<{ date: string; time: string }>,
+    speakers: [] as Array<{ name: string; role: string; image: string; bio: string }>,
+    tickets: [] as Array<{ name: string; description: string }>,
+  },
+
   hero: {
     headline: "Unstoppable",
     accentMark: "!!",

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, Jost } from "next/font/google";
 import { getPreviewToken } from "@ministree/template-sdk/next";
 import { PreviewBridge } from "@ministree/template-sdk/preview";
-import { loadContent, loadLocale, loadSettings, loadThemeCss, siteName } from "@/lib/ministree";
-import { loadFeaturedEvent } from "@ministree-templates/event-kit/event";
+import { loadLocale, loadSettings, loadThemeCss, siteName } from "@/lib/ministree";
+import { loadPageData } from "@/lib/page-data";
 import "./globals.css";
 
 /* The two faces this concept is. next/font resolves at build time and
@@ -24,18 +24,21 @@ const jost = Jost({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const [settings, content, locale] = await Promise.all([
+  /* Through `loadPageData`, not the raw event record: the Customizer can now
+     have the last word over the event's title, dates and description, and a
+     tab that still says the record's name would be the one place on the site
+     that disagrees with the page under it. Every loader inside is request
+     cached, so this costs no second fetch. */
+  const [{ content, event, eventTitle, locale }, settings] = await Promise.all([
+    loadPageData(),
     loadSettings(),
-    loadContent(),
-    loadLocale(),
   ]);
+  /* The tab icon: the conference's own when it brought one, else the church's. */
+  const favicon = content.nav.favicon || settings?.faviconUrl || null;
   /* The site IS the event, so the browser tab, the search result and every
      share card should say so. The church's name belongs in the footer, not in
      the title of their own conference. */
-  const event = await loadFeaturedEvent(content);
-  /* The tab icon: the conference's own when it brought one, else the church's. */
-  const favicon = content.nav.favicon || settings?.faviconUrl || null;
-  const title = event?.title ?? content.name ?? siteName(settings);
+  const title = eventTitle || siteName(settings);
   const description = event?.description ?? settings?.seoDescription ?? content.description;
 
   return {
@@ -47,7 +50,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
       type: "website",
       locale: locale ?? undefined,
-      images: event?.coverImageUrl ? [{ url: event.coverImageUrl }] : undefined,
+      images: event?.heroImage ? [{ url: event.heroImage }] : undefined,
     },
   };
 }

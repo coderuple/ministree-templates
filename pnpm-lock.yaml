@@ -208,6 +208,49 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  apps/judah:
+    dependencies:
+      '@ministree-templates/event-kit':
+        specifier: workspace:*
+        version: link:../../packages/event-kit
+      '@ministree/template-sdk':
+        specifier: file:../../vendor/ministree-template-sdk-0.7.1.tgz
+        version: file:vendor/ministree-template-sdk-0.7.1.tgz(next@16.2.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
+      '@stripe/react-stripe-js':
+        specifier: ^6.9.0
+        version: 6.9.0(@stripe/stripe-js@9.15.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@stripe/stripe-js':
+        specifier: ^9.15.0
+        version: 9.15.0
+      next:
+        specifier: 16.2.9
+        version: 16.2.9(@babel/core@7.29.7)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
+      react-dom:
+        specifier: 19.2.4
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@types/node':
+        specifier: ^20.19.43
+        version: 20.19.43
+      '@types/react':
+        specifier: ^19.2.18
+        version: 19.2.18
+      '@types/react-dom':
+        specifier: ^19.2.7
+        version: 19.2.7(@types/react@19.2.18)
+      eslint:
+        specifier: ^9.39.5
+        version: 9.39.5(jiti@2.7.0)
+      eslint-config-next:
+        specifier: 16.2.9
+        version: 16.2.9(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   packages/event-kit:
     dependencies:
       '@ministree/template-sdk':

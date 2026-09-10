@@ -1,35 +1,48 @@
 import type { Metadata } from "next";
-import { Instrument_Serif, Schibsted_Grotesk } from "next/font/google";
+import { Barlow_Condensed, IBM_Plex_Mono, Newsreader } from "next/font/google";
 import { getPreviewToken } from "@ministree/template-sdk/next";
 import { PreviewBridge } from "@ministree/template-sdk/preview";
 import { loadLocale, loadSettings, loadThemeCss, siteName } from "@/lib/ministree";
 import { loadPageData } from "@/lib/page-data";
 import "./globals.css";
 
-/* The two faces this concept is. next/font resolves at build time and
+/* The three faces this concept is. next/font resolves at build time and
    self-hosts them, so there is no render-blocking request to Google and no
-   third party watching the reader. */
-const instrument = Instrument_Serif({
-  weight: "400",
+   third party watching the reader.
+
+   Three, not the usual two, because Judah speaks in three registers and each
+   one is load-bearing: a serif for what is being said, a condensed sans for
+   what is being shouted, and a monospace for everything the tape machine
+   itself says. Drop the mono and the archive stops reading as an archive. */
+const newsreader = Newsreader({
+  /* Variable with an optical-size axis: at 340px it wants the high-contrast
+     display cut, at a 10px caption the sturdier text cut. One file, both. */
+  weight: "variable",
   style: ["normal", "italic"],
+  axes: ["opsz"],
   subsets: ["latin"],
-  variable: "--font-instrument",
+  variable: "--font-newsreader",
   display: "swap",
 });
-const schibsted = Schibsted_Grotesk({
-  /* Variable: this family has no 300, and its lightest cut is 400. */
-  weight: "variable",
+const barlow = Barlow_Condensed({
+  weight: ["400", "500"],
   subsets: ["latin"],
-  variable: "--font-schibsted",
+  variable: "--font-barlow",
+  display: "swap",
+});
+const plexMono = IBM_Plex_Mono({
+  weight: ["400", "500"],
+  subsets: ["latin"],
+  variable: "--font-plex-mono",
   display: "swap",
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  /* Through `loadPageData`, not the raw event record: the Customizer can now
-     have the last word over the event's title, dates and description, and a
-     tab that still says the record's name would be the one place on the site
-     that disagrees with the page under it. Every loader inside is request
-     cached, so this costs no second fetch. */
+  /* Through `loadPageData`, not the raw event record: the Customizer can have
+     the last word over the event's title, dates and description, and a tab
+     that still said the record's name would be the one place on the site that
+     disagrees with the page under it. Every loader inside is request cached,
+     so this costs no second fetch. */
   const [{ content, event, eventTitle, locale }, settings] = await Promise.all([
     loadPageData(),
     loadSettings(),
@@ -65,7 +78,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   ]);
 
   return (
-    <html lang={locale ?? "en"} className={`${instrument.variable} ${schibsted.variable}`}>
+    <html
+      lang={locale ?? "en"}
+      className={`${newsreader.variable} ${barlow.variable} ${plexMono.variable}`}
+    >
       <head>
         {themeCss ? (
           <style id="ministree-theme" dangerouslySetInnerHTML={{ __html: themeCss }} />

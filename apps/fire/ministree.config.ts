@@ -177,6 +177,87 @@ export default defineMinistreeTemplate({
         help: "The whole site is built from this one — its dates, venue, speakers and tickets.",
       },
 
+      eventDetails: {
+        kind: "group",
+        label: "Say something different from the event",
+        help: "Every fact on this site is read from the event above. Leave a box empty and it keeps saying what the event says. Fill one in and this site says yours instead \u2014 the event itself is never changed.",
+        fields: {
+          title: {
+            kind: "text",
+            label: "Call the conference",
+            width: "half",
+            optional: true,
+            help: "For when the event is filed under one name and advertised under another.",
+          },
+          dateLabel: {
+            kind: "text",
+            label: "Word the dates",
+            width: "half",
+            optional: true,
+            help: "\u201cOctober 2026, exact dates on release\u201d. Replaces the printed dates only \u2014 the countdown still runs to the real ones.",
+          },
+          startAt: {
+            kind: "date",
+            label: "Starts",
+            width: "half",
+            optional: true,
+            help: "Moves the countdown and what search engines are told. Leave both dates empty to use the event\u2019s own.",
+          },
+          endAt: { kind: "date", label: "Ends", width: "half", optional: true },
+          description: {
+            kind: "textarea",
+            label: "Describe it",
+            optional: true,
+            help: "Used for search results and share cards.",
+          },
+          venue: {
+            kind: "group",
+            label: "Venue",
+            help: "Useful when the room is not announced yet, or the event is filed at your office address.",
+            fields: {
+              name: { kind: "text", label: "Where", width: "half", optional: true },
+              city: { kind: "text", label: "Town or city", width: "half", optional: true },
+              address: { kind: "text", label: "Full address", optional: true },
+              directionsUrl: {
+                kind: "url",
+                label: "Map link",
+                optional: true,
+                help: "Empty builds one from the address above.",
+              },
+            },
+          },
+          days: {
+            kind: "repeatable",
+            label: "The dates",
+            help: "Add rows only to show dates other than the event\u2019s own. One row is one day, and the first row replaces all of them.",
+            fields: {
+              date: { kind: "date", label: "Date", width: "half" },
+              time: { kind: "text", label: "Times", width: "half", help: "\u201cDoors 6:30 \u00b7 starts 7:30\u201d. Anything you like." },
+            },
+          },
+          speakers: {
+            kind: "repeatable",
+            label: "The lineup",
+            help: "Add rows only to show people other than the ones on the event. The first row replaces the whole lineup, so list everyone you want shown.",
+            fields: {
+              name: { kind: "text", label: "Name", width: "half" },
+              role: { kind: "text", label: "What they do", width: "half", optional: true },
+              image: { kind: "media", label: "Portrait", optional: true },
+              bio: { kind: "textarea", label: "About them", optional: true },
+            },
+          },
+          tickets: {
+            kind: "repeatable",
+            label: "What the tickets are called",
+            help: "In the same order as the event\u2019s tickets \u2014 the first row renames the first one. Wording only: people are charged the event\u2019s price, and their ticket keeps the event\u2019s name.",
+            fields: {
+              name: { kind: "text", label: "Name", width: "half", optional: true },
+              description: { kind: "text", label: "What it includes", width: "half", optional: true },
+            },
+          },
+        },
+      },
+
       hero: {
         kind: "group",
         label: "Opening",
@@ -600,6 +681,7 @@ export default defineMinistreeTemplate({
           description: "Which conference this site is for, and the words that open it.",
           groups: [
             { fields: ["featuredEvent"] },
+            { title: "The event\u2019s own details", fields: ["eventDetails"] },
             { title: "Opening", fields: ["hero"] },
             { title: "Statement", fields: ["manifesto"] },
           ],
