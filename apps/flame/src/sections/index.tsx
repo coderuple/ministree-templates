@@ -15,6 +15,7 @@ import {
   type CardBoxProps,
   type CtaProps,
   type EmbedProps,
+  type EventListItem,
   type EventsListProps,
   type FeaturesProps,
   type GivingCtaProps,
@@ -36,6 +37,7 @@ import {
   type ColumnsProps,
   type GroupsListProps,
   type ProfileHeaderProps,
+  type Sermon,
   type SermonGroupsProps,
   type SermonsListProps,
   type TeamsListProps,
@@ -70,11 +72,39 @@ function Band({
   narrow?: boolean;
   className?: string;
 }) {
+  const spacing = BAND_SPACING[(section as { spacing?: string }).spacing ?? ""] ?? BAND_SPACING.normal;
   return (
-    <SectionWrapper section={section} context={context} className={`bg-bg py-20 text-ink sm:py-28 ${className}`}>
+    <SectionWrapper section={section} context={context} className={`bg-bg ${spacing} text-ink ${className}`}>
       <Container size={narrow ? "narrow" : "default"}>{children}</Container>
     </SectionWrapper>
   );
+}
+
+/** A section's own vertical rhythm (its Spacing setting) in flame's scale —
+ *  `normal` is flame's native band. Literal classes so Tailwind keeps them. */
+const BAND_SPACING: Record<string, string> = {
+  compact: "py-12 sm:py-16",
+  normal: "py-20 sm:py-28",
+  spacious: "py-28 sm:py-40",
+};
+
+/** A "Custom list" row as the platform stores it — the SDK types these as `unknown[]`. */
+type StaticRow = { title: string; description?: string; imageUrl?: string; startAt?: string; dateHint?: string; linkUrl?: string };
+
+/** The hand-made rows worth a card: anything with a title. */
+function staticRows(items: unknown[] | undefined): StaticRow[] {
+  return (items ?? []).filter(
+    (row): row is StaticRow =>
+      !!row && typeof row === "object" && typeof (row as StaticRow).title === "string" && (row as StaticRow).title.trim() !== "",
+  );
+}
+
+function rowToSermon(row: StaticRow, id: string): Sermon {
+  return { id, slug: "", title: row.title, date: row.dateHint, description: row.description ?? null, thumbnailUrl: row.imageUrl || null };
+}
+
+function rowToEvent(row: StaticRow, id: string): EventListItem {
+  return { id, slug: "", title: row.title, description: row.description ?? null, startAt: row.startAt ?? "", coverImageUrl: row.imageUrl || null };
 }
 
 type CtaLike = { label?: string; url?: string; href?: string; variant?: string };
@@ -388,15 +418,21 @@ async function SermonsList({ section, props, context }: SectionComponentProps) {
       : getSermons(undefined, chosen ? { ids: chosen.join(",") } : { limit, ...(p.seriesSlug ? { seriesSlug: p.seriesSlug } : {}) }),
     loadSlugs(),
   ]);
-  const items = data?.items ?? [];
-  if (!items.length) return null;
+  // A custom list is the section's own rows, each linked wherever it says.
+  const cards: { sermon: Sermon; href: string }[] =
+    p.source === "static"
+      ? staticRows(p.staticItems)
+          .slice(0, limit)
+          .map((row, i) => ({ sermon: rowToSermon(row, `${section.id}-${i}`), href: row.linkUrl || "#" }))
+      : (data?.items ?? []).map((s) => ({ sermon: s, href: hrefFor(slugs, "sermons", s.slug) }));
+  if (!cards.length) return null;
   const cols = p.columns === 2 ? "sm:grid-cols-2" : p.columns === 4 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-2 lg:grid-cols-3";
   return (
     <Band section={section} context={context}>
       <Title section={section} heading={section.title ?? "Latest messages"} />
       <div className={p.layout === "list" ? "grid gap-6" : `grid gap-6 ${cols}`}>
-        {items.map((s) => (
-          <SermonCard key={s.id} sermon={s} href={hrefFor(slugs, "sermons", s.slug)} />
+        {cards.map(({ sermon, href }) => (
+          <SermonCard key={sermon.id} sermon={sermon} href={href} />
         ))}
       </div>
     </Band>
@@ -413,15 +449,22 @@ async function EventsList({ section, props, context }: SectionComponentProps) {
       : getEvents(undefined, chosen ? { ids: chosen.join(",") } : { limit, when: "upcoming" }),
     loadSlugs(),
   ]);
-  const items = data?.items ?? [];
-  if (!items.length) return null;
+  const cards: { event: EventListItem; href: string }[] =
+    p.source === "static"
+      ? staticRows(p.staticItems)
+          // An event card is a date badge — a row without a real date has nothing to show.
+          .filter((row) => !Number.isNaN(Date.parse(row.startAt ?? "")))
+          .slice(0, limit)
+          .map((row, i) => ({ event: rowToEvent(row, `${section.id}-${i}`), href: row.linkUrl || "#" }))
+      : (data?.items ?? []).map((e) => ({ event: e, href: hrefFor(slugs, "events", e.slug) }));
+  if (!cards.length) return null;
   const cols = p.columns === 2 ? "sm:grid-cols-2" : p.columns === 4 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-2 lg:grid-cols-3";
   return (
     <Band section={section} context={context}>
       <Title section={section} heading={section.title ?? "Upcoming events"} />
       <div className={p.layout === "grid" ? `grid gap-6 ${cols}` : "space-y-4"}>
-        {items.map((e) => (
-          <EventCard key={e.id} event={e} href={hrefFor(slugs, "events", e.slug)} />
+        {cards.map(({ event, href }) => (
+          <EventCard key={event.id} event={event} href={href} />
         ))}
       </div>
     </Band>
@@ -991,14 +1034,25 @@ async function SermonGroups({ section, props, context }: SectionComponentProps<S
   const slugs = await loadSlugs();
 
   const rails = await Promise.all(
-    groups.map(async (g) => {
+    groups.map(async (g, gi) => {
+      // A custom-list group carries its own rows — nothing to fetch.
+      if ((g.sourceType as string) === "static") {
+        const rows = staticRows((g as { items?: unknown[] }).items).slice(0, g.limit ?? 8);
+        return {
+          group: g,
+          cards: rows.map((row, i) => ({ sermon: rowToSermon(row, `${section.id}-${gi}-${i}`), href: row.linkUrl || "#" })),
+        };
+      }
       const params: Record<string, string | number> = { limit: g.limit ?? 8 };
       if (g.sourceType === "series" && g.seriesSlug) params.seriesSlug = g.seriesSlug;
       if (g.sourceType === "speaker" && g.speakerId) params.speakerId = g.speakerId;
       if (g.sourceType === "topic" && g.tag) params.tags = g.tag;
       if (g.sourceType === "scripture" && g.book) params.book = g.book;
       const data = await getSermons(undefined, params);
-      return { group: g, items: data?.items ?? [] };
+      return {
+        group: g,
+        cards: (data?.items ?? []).map((sermon) => ({ sermon, href: hrefFor(slugs, "sermons", sermon.slug) })),
+      };
     }),
   );
 
@@ -1006,7 +1060,7 @@ async function SermonGroups({ section, props, context }: SectionComponentProps<S
     <Band section={section} context={context}>
       <Title section={section} />
       <div className="space-y-12">
-        {rails.filter((r) => r.items.length > 0).map((rail, i) => (
+        {rails.filter((r) => r.cards.length > 0).map((rail, i) => (
           <div key={i}>
             <div className="mb-4 flex items-baseline justify-between gap-4">
               <div>
@@ -1016,9 +1070,9 @@ async function SermonGroups({ section, props, context }: SectionComponentProps<S
             </div>
             {/* Scroll-snap rail: native momentum on touch, arrow keys on desktop. */}
             <div className="-mx-1 flex snap-x gap-4 overflow-x-auto px-1 pb-2">
-              {rail.items.map((sermon) => (
+              {rail.cards.map(({ sermon, href }) => (
                 <div key={sermon.id} className="w-64 shrink-0 snap-start">
-                  <SermonCard sermon={sermon} href={hrefFor(slugs, "sermons", sermon.slug)} />
+                  <SermonCard sermon={sermon} href={href} />
                 </div>
               ))}
             </div>

@@ -86,14 +86,14 @@ export default defineMinistreeTemplate({
       { type: "imageSection", props: ["imageUrl", "alt", "caption"], wrapper: WRAPPER },
       {
         type: "sermonsList",
-        props: ["limit", "seriesSlug", "sermonIds"],
-        options: { source: ["latest", "chosen"], layout: ["grid", "list"], columns: [2, 3, 4] },
+        props: ["limit", "seriesSlug", "sermonIds", "staticItems"],
+        options: { source: ["static", "latest", "chosen"], layout: ["grid", "list"], columns: [2, 3, 4] },
         wrapper: WRAPPER,
       },
       {
         type: "eventsList",
-        props: ["limit", "eventIds"],
-        options: { source: ["upcoming", "chosen"], layout: ["list", "grid"], columns: [2, 3, 4] },
+        props: ["limit", "eventIds", "staticItems"],
+        options: { source: ["static", "upcoming", "chosen"], layout: ["list", "grid"], columns: [2, 3, 4] },
         wrapper: WRAPPER,
       },
       { type: "givingCta", props: ["heading", "description", "ctas"], options: { appearance: ["banner", "plain"] }, wrapper: WRAPPER },
