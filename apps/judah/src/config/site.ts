@@ -2,7 +2,7 @@
  * Judah's demo conference — what the template renders with no church
  * connected, and the first-run defaults a church starts from.
  *
- * Mantle Men's Conference 2027, invented for the purpose. Every factual line
+ * Mandate Men's Conference 2027, invented for the purpose. Every factual line
  * here (title, dates, venue, speakers, tickets) is replaced by the connected
  * event's own record; only the words around them stay editable.
  *
@@ -11,9 +11,9 @@
  * a default changed later never reaches a church who has already connected.
  */
 export const site = {
-  name: "Mantle Men's Conference",
+  name: "Mandate Men's Conference",
   description:
-    "Mantle Men's Conference 2027 — The Standard. Two days for men of every generation, winding back through the noise to the first draft of a man.",
+    "Mandate Men's Conference 2027 — The Standard. Two days for men of every generation, winding back through the noise to the first draft of a man.",
 
   /* Where the site's facts come from — the picked event as it is, the picked
      event with `eventDetails` having the last word, or `eventDetails` alone.
@@ -38,7 +38,7 @@ export const site = {
 
   /* 01 · NOISE — the question, buried in everything shouting an answer. */
   hero: {
-    wordmark: "MANTLE",
+    wordmark: "MANDATE",
     wordmarkSuffix: "MMXXVII",
     headline: "What is a man",
     headlineItalic: "today?",
@@ -75,8 +75,8 @@ export const site = {
     marks: [
       { year: "2027", era: "PRESENT DAY" },
       { year: "2020", era: "THE LAST GATHERING" },
-      { year: "2015", era: "MANTLE ARCHIVE" },
-      { year: "2009", era: "MANTLE ARCHIVE" },
+      { year: "2015", era: "MANDATE ARCHIVE" },
+      { year: "2009", era: "MANDATE ARCHIVE" },
       { year: "2004", era: "THE FIRST CALL" },
       { year: "1999", era: "BEFORE THE FIRST CALL" },
     ],
@@ -122,7 +122,7 @@ export const site = {
 
   /* 06 · THE STANDARD — the campaign, finally named. */
   standard: {
-    eyebrow: "MANTLE PRESENTS",
+    eyebrow: "MANDATE PRESENTS",
     headingA: "The",
     headingB: "Standard",
     strapline: "A return to\noriginal design",
