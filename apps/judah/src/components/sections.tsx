@@ -2,6 +2,8 @@ import { MediaFrame } from "@ministree-templates/event-kit/media-frame";
 import type { EventVenue, Speaker } from "@ministree-templates/event-kit/event";
 import type { SocialLink } from "@ministree-templates/event-kit/socials";
 import type { SiteContent } from "@/config/site";
+import { HeroVideo } from "@/components/hero-video";
+import { embedFor, noiseInk, overlayProps, type Overlay } from "@/lib/media";
 
 /**
  * Judah's sections. Every one is a server component — the only client code on
@@ -13,6 +15,20 @@ import type { SiteContent } from "@/config/site";
  */
 
 type Content = SiteContent;
+
+/* Entrance stagger for a run of siblings, capped so the sixth card is not
+   still waiting after the reader has moved on. The engine sets `data-seen`;
+   the stylesheet reads `--reveal-delay`. */
+const stagger = (i: number) => ({ "--reveal-delay": `${Math.min(i, 5) * 90}ms` }) as React.CSSProperties;
+
+/* A photo scene's overlay, as attributes for the scene's root. On the root
+   rather than the photo, so the scrim, the type on it and the type's glow all
+   read the same colours. `extra` is any other inline variable the scene has. */
+function sceneProps(overlay: Overlay | undefined, extra?: Record<string, string | undefined>) {
+  const { style, fade, ink } = overlayProps(overlay);
+  for (const [k, v] of Object.entries(extra ?? {})) if (v) style[k] = v;
+  return { "data-fade": fade, "data-ink": ink, style: style as React.CSSProperties };
+}
 
 /* ── 01 · NOISE ────────────────────────────────────────────────────────── */
 export function Noise({
@@ -26,10 +42,18 @@ export function Noise({
   image: string | null;
 }) {
   return (
-    <section id="top" className="scene noise" data-track="pin">
+    <section
+      id="top"
+      className="scene noise"
+      data-track="pin"
+      {...sceneProps(content.overlay, { "--noise-ink": noiseInk(content.noiseColour, content.noiseCustom) })}
+    >
       <div className="pin">
         <div className="plate">
           <MediaFrame src={image} alt="" priority sizes="100vw" />
+          {content.video || content.videoUrl ? (
+            <HeroVideo src={content.video || null} embed={embedFor(content.videoUrl)} />
+          ) : null}
         </div>
 
         {/* The culture's voice, not the church's: four columns of what a man
@@ -86,7 +110,7 @@ export function Noise({
 /* ── 02 · INTERRUPT ────────────────────────────────────────────────────── */
 export function Interrupt({ content }: { content: Content["tension"] }) {
   return (
-    <section id="tension" className="scene interrupt" data-track="pin">
+    <section id="tension" className="scene interrupt inverse" data-track="pin" {...sceneProps(content.overlay)}>
       <div className="pin">
         <div className="plate">
           <MediaFrame src={content.image} alt="" sizes="100vw" />
@@ -207,7 +231,7 @@ export function Scripture({ content }: { content: Content["scripture"] }) {
 /* ── 05 · STILLNESS ────────────────────────────────────────────────────── */
 export function Stillness({ content }: { content: Content["stillness"] }) {
   return (
-    <section className="scene stillness" data-track="pin">
+    <section className="scene stillness inverse" data-track="pin">
       <div className="pin">
         <div className="horizon" aria-hidden="true" />
         <div className="stillness-body">
@@ -240,13 +264,15 @@ export function Standard({
 }) {
   return (
     <section id="standard" className="standard">
-      <div className="standard-eyebrow">{content.eyebrow}</div>
-      <h2 data-reveal>
+      <div className="standard-eyebrow" data-reveal>
+        {content.eyebrow}
+      </div>
+      <h2 data-reveal style={stagger(1)}>
         {content.headingA}
         <br />
         {content.headingB}
       </h2>
-      <div className="standard-foot">
+      <div className="standard-foot" data-reveal style={stagger(2)}>
         <p>{content.strapline}</p>
         <div className="standard-facts">
           {facts.map((line) => (
@@ -276,17 +302,19 @@ export function Film({ content, wordmark }: { content: Content["film"]; wordmark
   );
 
   return (
-    <section id="film" className="film">
-      <div className="film-frame hatch">
+    <section id="film" className="film" data-track="cover">
+      <div className="film-frame hatch inverse" {...sceneProps(content.overlay)}>
         <div className="plate">
           <MediaFrame src={content.image} alt="" sizes="100vw" />
         </div>
         {content.videoUrl ? (
-          <a className="film-body" href={content.videoUrl} target="_blank" rel="noreferrer noopener">
+          <a className="film-body" href={content.videoUrl} target="_blank" rel="noreferrer noopener" data-reveal>
             {body}
           </a>
         ) : (
-          <div className="film-body">{body}</div>
+          <div className="film-body" data-reveal>
+            {body}
+          </div>
         )}
         {content.timecode ? (
           <span className="film-tc mono-xs" aria-hidden="true">
@@ -304,15 +332,17 @@ export function Film({ content, wordmark }: { content: Content["film"]; wordmark
 /* ── 06c · CONTACT SHEET ───────────────────────────────────────────────── */
 export function ContactSheet({ content }: { content: Content["contactSheet"] }) {
   return (
-    <section className="sheet">
+    <section className="sheet" data-track="cover">
       <div className="sheet-head">
-        <h3 className="head-condensed">{content.heading}</h3>
+        <h3 className="head-condensed" data-reveal>
+          {content.heading}
+        </h3>
         {content.note ? <span className="mono-sm" style={{ opacity: 0.5 }}>{content.note}</span> : null}
       </div>
 
       <div className="sheet-grid">
         {content.frames.map((frame, i) => (
-          <figure key={i}>
+          <figure key={i} data-reveal="develop" style={stagger(i)}>
             <div className="shot hatch">
               <MediaFrame src={frame.image} alt="" sizes="(max-width: 760px) 50vw, 16vw" />
             </div>
@@ -321,7 +351,7 @@ export function ContactSheet({ content }: { content: Content["contactSheet"] }) 
         ))}
       </div>
 
-      <div className="sheet-wide hatch">
+      <div className="sheet-wide hatch" data-reveal="develop">
         <MediaFrame src={content.wideImage} alt="" sizes="100vw" />
         {content.wideCaption ? (
           <span className="mono-sm">[ {content.wideCaption} ]</span>
@@ -339,8 +369,8 @@ export function Facts({
 }) {
   return (
     <section className="facts">
-      {facts.map((fact) => (
-        <div className="fact" key={fact.label} data-reveal>
+      {facts.map((fact, i) => (
+        <div className="fact" key={fact.label} data-reveal style={stagger(i)}>
           <div className="fact-label">{fact.label}</div>
           <div className="fact-value">{fact.value}</div>
           {fact.note ? <p className="mono-md">{fact.note}</p> : null}
@@ -361,7 +391,9 @@ export function Speakers({
   return (
     <section id="speakers" className="speakers">
       <div className="speakers-head">
-        <h3 className="head-condensed">{content.heading}</h3>
+        <h3 className="head-condensed" data-reveal>
+          {content.heading}
+        </h3>
         {/* Only when there is nobody yet: a lineup that IS announced should
             not carry a note saying it is not. */}
         {speakers.length === 0 && content.note ? (
@@ -371,8 +403,8 @@ export function Speakers({
 
       {speakers.length > 0 ? (
         <div className="speakers-grid">
-          {speakers.map((person) => (
-            <figure className="speaker" key={person.id} data-reveal>
+          {speakers.map((person, i) => (
+            <figure className="speaker" key={person.id} data-reveal style={stagger(i)}>
               <div className="shot hatch">
                 <MediaFrame
                   src={person.image}
@@ -401,10 +433,10 @@ export function Speakers({
 export function Experience({ content }: { content: Content["experience"] }) {
   return (
     <section className="experience">
-      <h3>{content.heading}</h3>
+      <h3 data-reveal>{content.heading}</h3>
       <div className="experience-rows">
         {content.items.map((item, i) => (
-          <div className="experience-row" key={i} data-reveal>
+          <div className="experience-row" key={i} data-reveal style={stagger(i)}>
             <span className="n">{String(i + 1).padStart(2, "0")}</span>
             <span className="t">{item.title}</span>
             <span className="d mono-md">{item.body}</span>
@@ -434,10 +466,10 @@ export function VenueFaq({
       {showVenue ? (
         <div>
           <div className="col-label">{venueContent.label}</div>
-          <div className="venue-shot hatch">
+          <div className="venue-shot hatch" data-reveal="develop">
             <MediaFrame src={venueContent.image} alt="" sizes="(max-width: 760px) 100vw, 45vw" />
           </div>
-          <p className="venue-body mono-md">
+          <p className="venue-body mono-md" data-reveal style={stagger(1)}>
             {/* The address is the event's. Only the sentence after it is typed
                 in the Customizer — a church should never type their venue
                 twice. */}
@@ -460,7 +492,7 @@ export function VenueFaq({
         <div>
           <div className="col-label">{faqContent.label}</div>
           {questions.map((item, i) => (
-            <details className="faq-item" key={i}>
+            <details className="faq-item" key={i} data-reveal style={stagger(i)}>
               <summary>{item.question}</summary>
               <p className="mono-md">{item.answer}</p>
             </details>
@@ -484,15 +516,15 @@ export function Register({
   ctaHref: string | null;
 }) {
   return (
-    <section id="register" className="register">
-      <div className="register-eyebrow">
+    <section id="register" className="register" data-track="cover">
+      <div className="register-eyebrow" data-reveal>
         {dateLabel}
         {content.eyebrow ? ` · ${content.eyebrow}` : ""}
       </div>
       <h3>
-        {content.headingA}
+        <span className="meet-l">{content.headingA}</span>
         <br />
-        {content.headingB}
+        <span className="meet-r">{content.headingB}</span>
       </h3>
       {ctaHref ? (
         <a href={ctaHref} className="btn btn-invert">
@@ -517,7 +549,7 @@ export function Footer({
 }) {
   const legal = content.legal.filter((l) => l.label && l.href);
   return (
-    <footer className="footer">
+    <footer className="footer inverse">
       <div className="footer-mark">
         {logo ? (
           // eslint-disable-next-line @next/next/no-img-element

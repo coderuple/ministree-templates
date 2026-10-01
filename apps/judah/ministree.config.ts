@@ -10,10 +10,75 @@ import { site } from "./src/config/site";
  * that lets a church say something different from the record where they have
  * to.
  *
- * One colour scheme, deliberately. Judah's single ground is near-black — that
- * is its `:root`, not a dark mode. There is no light variant of this concept,
- * and inventing one would be a second design.
+ * Light by default — cream paper, near-black ink, oxide red and ochre gold —
+ * with the original near-black as the dark scheme. The church picks one in
+ * the Customizer (`scheme`, or Automatic) and each visitor can override it
+ * from the header; the stillness, the tape interruption, the film,
+ * the index and the footer stay dark bands in both.
  */
+/* The same three controls on every photo scene — the opening, the tape
+   stopping and the film. A function so each scene can say in its own words
+   what the overlay is doing there. */
+const overlayGroup = (help: string) => ({
+  kind: "group" as const,
+  label: "Overlay on the photo",
+  help,
+  fields: {
+    strength: {
+      kind: "choice" as const,
+      control: "opacity" as const,
+      label: "Strength",
+      help: "Left lets the photo through; right covers it. Keep enough that the words on top stay readable.",
+    },
+    colour: {
+      kind: "select" as const,
+      label: "Colour",
+      width: "half" as const,
+      options: [
+        { value: "ground", label: "The scene's own ground" },
+        { value: "black", label: "Black" },
+        { value: "signal", label: "Your signal colour" },
+        { value: "custom", label: "A colour of your own" },
+      ],
+    },
+    customColour: {
+      kind: "color" as const,
+      label: "Your colour",
+      width: "half" as const,
+      optional: true,
+      visibleWhen: { field: "colour", equals: "custom" },
+    },
+    fade: {
+      kind: "select" as const,
+      label: "Shape",
+      options: [
+        { value: "edges", label: "Heavier at the top and bottom (as designed)" },
+        { value: "bottom", label: "Heavier at the bottom" },
+        { value: "even", label: "Even all over" },
+      ],
+    },
+    text: {
+      kind: "select" as const,
+      label: "Text on top",
+      width: "half" as const,
+      options: [
+        { value: "auto", label: "Automatic — whatever reads on the overlay" },
+        { value: "light", label: "Light" },
+        { value: "dark", label: "Dark" },
+        { value: "custom", label: "A colour of your own" },
+      ],
+      help: "Automatic turns the text light on a dark overlay and dark on a light one.",
+    },
+    textColour: {
+      kind: "color" as const,
+      label: "Your text colour",
+      width: "half" as const,
+      optional: true,
+      visibleWhen: { field: "text", equals: "custom" },
+    },
+  },
+});
+
 export default defineMinistreeTemplate({
   meta: {
     name: "Judah",
@@ -33,47 +98,56 @@ export default defineMinistreeTemplate({
     surfaces: ["home"],
     sections: [],
     navigation: { header: false, footer: false },
-    /* Dark, and only dark. No token declares a darkDefault, so `:root` and the
-       dark block resolve to the same values and the page renders the same
-       either way — this says what the template IS rather than leaving a
-       church's gallery describing a near-black site as "light". */
-    colorSchemes: ["dark"],
+    colorSchemes: ["light", "dark"],
     features: ["ticketing"],
   },
 
-  /* Five colours. Every hairline, scrim, scanline and dim in the stylesheet is
+  /* Six colours. Every hairline, scrim, scanline and dim in the stylesheet is
      mixed from these, so a church that changes the ground gets a page that
      still agrees with itself rather than one rule left behind at the old hue.
      Exposing all twenty of the design's literals would let a church take the
-     page apart; these five cannot make it unreadable. */
+     page apart; these six cannot make it unreadable. */
   tokens: [
     {
       name: "--bg",
       type: "color",
-      default: "#090807",
+      default: "#f3ecdf",
+      darkDefault: "#090807",
       label: "Ground",
-      description: "The near-black the whole page sits on.",
+      description: "What the whole page sits on — cream paper, or near-black in the dark look.",
     },
     {
       name: "--ink",
       type: "color",
-      default: "#e7dccb",
+      default: "#17130f",
+      darkDefault: "#e7dccb",
       label: "Text",
-      description: "Aged ivory. Headlines and body copy; the small labels are dimmer mixes of it.",
+      description: "Headlines and body copy; the small labels are dimmer mixes of it.",
     },
     {
       name: "--flare",
       type: "color",
-      default: "#e5533b",
+      default: "#be331e",
+      darkDefault: "#e5533b",
       maps: "--color-primary",
       label: "Signal",
       description:
-        "The tape marker, the buttons, and the ground of the last band on the page. Pick your brand colour here if you want it carried through.",
+        "Every ticket button, the tape marker, and the ground of the last band on the page. Pick your brand colour here if you want it carried through.",
+    },
+    {
+      name: "--gold",
+      type: "color",
+      default: "#b8862b",
+      darkDefault: "#d4a24a",
+      label: "Accent",
+      description:
+        "The second colour: italic words in the big lines, the small labels, and the rules over the facts.",
     },
     {
       name: "--panel",
       type: "color",
-      default: "#14100c",
+      default: "#e9dfcb",
+      darkDefault: "#14100c",
       label: "Warm band",
       description:
         "The alternate ground the flat sections sit on. Keep it close to the ground — the rhythm is meant to be felt rather than seen.",
@@ -81,10 +155,11 @@ export default defineMinistreeTemplate({
     {
       name: "--deep",
       type: "color",
-      default: "#050403",
+      default: "#17130f",
+      darkDefault: "#050403",
       label: "Deep tone",
       description:
-        "The darkest band: the stillness, the index and the footer. Deliberately not your brand colour — it is the bottom of the page, and a bright one breaks the descent.",
+        "The dark bands: the stillness, the tape stopping, the film, the index and the footer. Dark in both looks — the type on it is always light. Deliberately not your brand colour.",
     },
     {
       name: "--font-display",
@@ -111,43 +186,70 @@ export default defineMinistreeTemplate({
       description:
         "Every small label, caption and timecode. This is the voice of the tape machine — changing it changes the whole feel.",
     },
+    /* Two corners, not one: square photographs with pill buttons is the most
+       common thing a church will want, and one control can't say it. Both
+       start square — hard edges are the design. Full-width bands, the header,
+       the phone ticket bar and the rules never round, whatever these say. */
+    {
+      name: "--radius-button",
+      type: "length",
+      control: "cornerRadius",
+      default: "0px",
+      label: "Button shape",
+      description:
+        "How round the buttons are — every ticket button, the menu and light/dark buttons, and the checkout's fields. Square, rounded, or all the way to a pill.",
+    },
+    {
+      name: "--radius",
+      type: "length",
+      control: "cornerRadius",
+      default: "0px",
+      label: "Corner rounding",
+      description:
+        "How round the photographs and cards are — the archive reel, the contact sheet, the speakers, the venue and the checkout's boxes.",
+    },
   ],
 
+  /* Each preset carries both looks, so switching Light/Dark never pairs one
+     scheme's ground with the other's ink. */
   presets: [
     {
       id: "rewind",
       label: "Rewind",
-      description: "The original. Near-black warming to oxide red.",
+      description: "The original. Cream paper and oxide red; near-black in the dark look.",
       tokens: {
-        "--bg": "#090807",
-        "--ink": "#e7dccb",
-        "--flare": "#e5533b",
-        "--panel": "#14100c",
-        "--deep": "#050403",
+        "--bg": { light: "#f3ecdf", dark: "#090807" },
+        "--ink": { light: "#17130f", dark: "#e7dccb" },
+        "--flare": { light: "#be331e", dark: "#e5533b" },
+        "--gold": { light: "#b8862b", dark: "#d4a24a" },
+        "--panel": { light: "#e9dfcb", dark: "#14100c" },
+        "--deep": { light: "#17130f", dark: "#050403" },
       },
     },
     {
       id: "signal",
       label: "Signal",
-      description: "The same tape, colder. Blue-black and a broadcast cyan.",
+      description: "The same tape, colder. Blue-grey paper and a broadcast cyan.",
       tokens: {
-        "--bg": "#06080b",
-        "--ink": "#dfe6ea",
-        "--flare": "#3ba7c4",
-        "--panel": "#0d1319",
-        "--deep": "#030507",
+        "--bg": { light: "#eef2f4", dark: "#06080b" },
+        "--ink": { light: "#0e1419", dark: "#dfe6ea" },
+        "--flare": { light: "#19708a", dark: "#3ba7c4" },
+        "--gold": { light: "#a87a28", dark: "#d4a24a" },
+        "--panel": { light: "#e1e8ec", dark: "#0d1319" },
+        "--deep": { light: "#0e1419", dark: "#030507" },
       },
     },
     {
       id: "ledger",
       label: "Ledger",
-      description: "Paper in a dark room. Warm ink and a brass mark.",
+      description: "Warm paper, warm ink and a brass mark.",
       tokens: {
-        "--bg": "#0b0a08",
-        "--ink": "#ece3d2",
-        "--flare": "#c79340",
-        "--panel": "#171410",
-        "--deep": "#050403",
+        "--bg": { light: "#f4eee2", dark: "#0b0a08" },
+        "--ink": { light: "#1a1610", dark: "#ece3d2" },
+        "--flare": { light: "#8a5f1c", dark: "#c79340" },
+        "--gold": { light: "#a8311c", dark: "#e5533b" },
+        "--panel": { light: "#e9e0ce", dark: "#171410" },
+        "--deep": { light: "#1a1610", dark: "#050403" },
       },
     },
   ],
@@ -303,7 +405,42 @@ export default defineMinistreeTemplate({
             kind: "media",
             label: "Behind the noise",
             optional: true,
-            help: "A wide, dark film still — men in low light, faces not quite readable. It fills the screen and everything sits on top, so nothing important should be near the middle. Empty uses the event's own picture.",
+            help: "A wide, dark film still — men in low light, faces not quite readable. It fills the screen and everything sits on top, so nothing important should be near the middle. Empty uses the event's own picture. With a video below, this is its still.",
+          },
+          video: {
+            kind: "media",
+            accept: "video",
+            label: "…or a video behind the noise",
+            optional: true,
+            help: "A short, silent loop, played over the picture above. Keep it small — it plays on phones too. Anyone who has asked their device for less motion or data sees the picture instead.",
+          },
+          videoUrl: {
+            kind: "url",
+            label: "…or a YouTube or Vimeo link",
+            optional: true,
+            help: "Used only when no video is uploaded. It plays muted and looping, but takes longer to start than an upload, and Vimeo hides its controls only on a paid plan.",
+          },
+          overlay: overlayGroup(
+            "The wash between the picture and the question. As designed it is the page's own ground — cream in the light look, near-black in the dark — so the words read whatever is behind them.",
+          ),
+          noiseColour: {
+            kind: "select",
+            label: "Colour of the drifting text",
+            width: "half",
+            options: [
+              { value: "same", label: "Same as the text on top" },
+              { value: "signal", label: "Your signal colour" },
+              { value: "accent", label: "Your accent colour" },
+              { value: "custom", label: "A colour of your own" },
+            ],
+            help: "The columns that drift up behind the question — the culture's voice, so it can be set apart from yours.",
+          },
+          noiseCustom: {
+            kind: "color",
+            label: "Your drifting-text colour",
+            width: "half",
+            optional: true,
+            visibleWhen: { field: "noiseColour", equals: "custom" },
           },
           noise: {
             kind: "repeatable",
@@ -339,6 +476,7 @@ export default defineMinistreeTemplate({
             optional: true,
             help: "One man, alone, harshly lit. Darker than the opening — the whole screen is scrimmed almost to black.",
           },
+          overlay: overlayGroup("As designed, the dark band's own near-black, so the type stays light on it."),
         },
       },
 
@@ -441,6 +579,7 @@ export default defineMinistreeTemplate({
             optional: true,
             help: "Very wide — the frame is 21:9. A single frame from the film itself works best.",
           },
+          overlay: overlayGroup("As designed, the dark band's own near-black, so the title and play button stay light on it."),
           videoUrl: {
             kind: "url",
             label: "Where the film plays",
@@ -688,6 +827,17 @@ export default defineMinistreeTemplate({
         },
       },
 
+      scheme: {
+        kind: "select",
+        label: "Light or dark",
+        options: [
+          { value: "light", label: "Light — cream paper, dark type" },
+          { value: "dark", label: "Dark — the original near-black" },
+          { value: "auto", label: "Automatic — follows each visitor's device" },
+        ],
+        help: "What a visitor sees first. They can switch it with the button in the header, and their device remembers their pick. The stillness, the film, the menu and the footer stay dark in both.",
+      },
+
       nav: {
         kind: "group",
         label: "Header & index",
@@ -696,7 +846,7 @@ export default defineMinistreeTemplate({
             kind: "media",
             label: "Your own logo",
             optional: true,
-            help: "Sits in the corner in place of the wordmark. It is drawn inverted against whatever is behind it, so a plain single-colour mark works best. Leave it empty to use the wordmark.",
+            help: "Sits in the header in place of the wordmark, on the page's own ground — so in the light look it needs to read on cream. Leave it empty to use the wordmark.",
           },
           favicon: {
             kind: "media",
@@ -708,12 +858,12 @@ export default defineMinistreeTemplate({
           stickyHeader: {
             kind: "boolean",
             label: "Header follows the page",
-            help: "Off means it scrolls away with the opening.",
+            help: "It carries the ticket button, so on a computer this keeps tickets one click away. Off means it scrolls away with the opening.",
           },
           showTicketBar: {
             kind: "boolean",
-            label: "Ticket button always visible",
-            help: "A small button that stays at the bottom of the screen.",
+            label: "Ticket bar on phones",
+            help: "A full-width ticket button along the bottom of a phone screen, the whole way down. On a computer it only appears when the header doesn't follow the page.",
           },
         },
       },
@@ -721,15 +871,21 @@ export default defineMinistreeTemplate({
       effects: {
         kind: "group",
         label: "The look of the film",
-        help: "The three things that make a photograph on this site read as footage. Turning all three off leaves the layout intact and the atmosphere gone.",
+        help: "How the site moves, and the three things that make a photograph on it read as footage. Turning those three off leaves the layout intact and the atmosphere gone.",
         fields: {
+          motion: {
+            kind: "boolean",
+            label: "Animations",
+            help: "Off stills the whole site: the drifting columns, the tape's flicker and sweep, the blur, the entrances and the slides. Exactly what a visitor gets when their device asks for less motion. The rewind still moves on as you scroll, so every scene is reached in order, and an opening video still plays.",
+          },
           grain: { kind: "boolean", label: "Scanlines over everything" },
           vignette: { kind: "boolean", label: "Darkened edges" },
           timecode: { kind: "boolean", label: "Counter in the header", help: "Counts down as the page winds back." },
           scrollReveals: {
             kind: "boolean",
-            label: "Sections fade in",
-            help: "Off means everything is simply there as you reach it.",
+            visibleWhen: { field: "motion", equals: true },
+            label: "Sections animate in",
+            help: "After the reveal: things rising in, photographs developing, the film growing and the last band's headline sliding together. Off means everything is simply there as you reach it.",
           },
         },
       },
@@ -763,8 +919,8 @@ export default defineMinistreeTemplate({
           title: "The conference",
           description: "Everything after the reveal, in the order it appears.",
           groups: [
-            { fields: ["standard", "film", "contactSheet"] },
-            { fields: ["facts", "speakers", "experience"] },
+            { fields: ["standard", "film", "speakers"] },
+            { fields: ["contactSheet", "facts", "experience"] },
             { fields: ["venue", "faq", "register"] },
           ],
         },
@@ -778,6 +934,7 @@ export default defineMinistreeTemplate({
           id: "chrome",
           title: "Header, footer & look",
           groups: [
+            { fields: ["scheme"] },
             { title: "Social links", fields: ["socialLinks"] },
             { fields: ["nav", "footer", "effects"] },
           ],

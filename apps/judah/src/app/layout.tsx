@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Barlow_Condensed, IBM_Plex_Mono, Newsreader } from "next/font/google";
 import { getPreviewToken } from "@ministree/template-sdk/next";
 import { PreviewBridge } from "@ministree/template-sdk/preview";
-import { loadLocale, loadSettings, loadThemeCss, siteName } from "@/lib/ministree";
+import { loadContent, loadLocale, loadSettings, loadThemeCss, siteName } from "@/lib/ministree";
 import { loadPageData } from "@/lib/page-data";
 import "./globals.css";
 
@@ -25,13 +25,13 @@ const newsreader = Newsreader({
   display: "swap",
 });
 const barlow = Barlow_Condensed({
-  weight: ["400", "500"],
+  weight: ["500", "600", "700"],
   subsets: ["latin"],
   variable: "--font-barlow",
   display: "swap",
 });
 const plexMono = IBM_Plex_Mono({
-  weight: ["400", "500"],
+  weight: ["500", "600"],
   subsets: ["latin"],
   variable: "--font-plex-mono",
   display: "swap",
@@ -69,20 +69,40 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+const SCHEMES = new Set(["light", "dark", "auto"]);
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [themeCss, locale, previewToken] = await Promise.all([
+  const [themeCss, locale, previewToken, content] = await Promise.all([
     loadThemeCss(),
     loadLocale(),
     // Non-null only inside the Customizer's preview iframe.
     getPreviewToken(),
+    loadContent(),
   ]);
+
+  /* The church's pick is what a visitor sees first; the visitor's own pick
+     from the header (remembered on their device) wins over it. Applied by an
+     inline script before first paint, so neither flashes the other scheme.
+     Not in the Customizer preview: there the church is the one choosing, and
+     a pick stored while they browsed their own site would hide their change. */
+  const scheme = SCHEMES.has(content.scheme) ? content.scheme : "light";
+  const schemeScript = `(function(){try{var d=document.documentElement,s=${JSON.stringify(scheme)};${
+    previewToken ? "" : "var v=localStorage.getItem('judah-scheme');if(v==='light'||v==='dark'||v==='auto')s=v;"
+  }d.dataset.scheme=s;d.classList.toggle('dark',s==='dark'||(s==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches));}catch(e){}})();`;
 
   return (
     <html
       lang={locale ?? "en"}
-      className={`${newsreader.variable} ${barlow.variable} ${plexMono.variable}`}
+      className={`${newsreader.variable} ${barlow.variable} ${plexMono.variable}${scheme === "dark" ? " dark" : ""}`}
+      data-scheme={scheme}
+      /* The church's Animations switch. On <html> so it holds from the first
+         paint, before the scroll engine hydrates. */
+      data-motion={content.effects.motion === false ? "off" : undefined}
+      /* The script above changes both before React hydrates. */
+      suppressHydrationWarning
     >
       <head>
+        <script dangerouslySetInnerHTML={{ __html: schemeScript }} />
         {themeCss ? (
           <style id="ministree-theme" dangerouslySetInnerHTML={{ __html: themeCss }} />
         ) : null}

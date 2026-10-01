@@ -25,7 +25,7 @@ import { demoVenue, facts, indexLinks, loadPageData } from "@/lib/page-data";
 export const revalidate = 300;
 
 export default async function Home() {
-  const { content, event, church, eventTitle, dateLabel, socials, ticketing, navLogo } =
+  const { content, event, church, eventTitle, dateLabel, socials, ticketing, navLogo, logoDark } =
     await loadPageData();
 
   const c = content;
@@ -55,7 +55,7 @@ export default async function Home() {
   const venueLine = standardVenue?.name || standardVenue?.city || "";
 
   return (
-    <ScrollEngine reveals={c.effects.scrollReveals !== false}>
+    <ScrollEngine reveals={c.effects.motion !== false && c.effects.scrollReveals !== false}>
       {c.effects.grain !== false ? <div className="grain" aria-hidden="true" /> : null}
       {c.effects.vignette !== false ? <div className="vignette" aria-hidden="true" /> : null}
       <div className="progress" aria-hidden="true" />
@@ -65,6 +65,8 @@ export default async function Home() {
         wordmark={c.hero.wordmark || eventTitle}
         suffix={c.hero.wordmarkSuffix}
         logo={navLogo}
+        logoDark={logoDark}
+        scheme={c.scheme}
         menuLabel={c.nav.menuLabel}
         ticketsHref={ticketsHref}
         ticketsLabel={c.tickets.ctaLabel}
@@ -99,11 +101,11 @@ export default async function Home() {
       />
 
       {c.film.enabled !== false ? <Film content={c.film} wordmark={c.hero.wordmark || church} /> : null}
+      {c.speakers.enabled !== false ? <Speakers content={c.speakers} speakers={speakers} /> : null}
       {c.contactSheet.enabled !== false ? <ContactSheet content={c.contactSheet} /> : null}
       {c.facts.enabled !== false ? (
         <Facts facts={facts(c, event, dateLabel, fromPrice?.price ?? null)} />
       ) : null}
-      {c.speakers.enabled !== false ? <Speakers content={c.speakers} speakers={speakers} /> : null}
       {c.experience.enabled !== false && c.experience.items.length > 0 ? (
         <Experience content={c.experience} />
       ) : null}
@@ -117,11 +119,12 @@ export default async function Home() {
         ctaHref={ticketsHref}
       />
 
-      <Footer content={c.footer} church={church} logo={navLogo} socials={socials} />
+      <Footer content={c.footer} church={church} logo={logoDark} socials={socials} />
 
-      {/* A way in that stays on screen the whole way down. The stylesheet
-          fades it in once the reader is past the opening — before that it has
-          nothing to offer, and it sat on top of the scroll cue. */}
+      {/* A way in that stays on screen the whole way down — on phones, where
+          the header has no room for a big button. On a computer the header
+          carries it, so the stylesheet only shows this when that header
+          doesn't follow the page. */}
       {c.nav.showTicketBar !== false && ticketsHref ? (
         <div className="ticket-bar">
           <a href={ticketsHref}>{c.tickets.stickyLabel}</a>

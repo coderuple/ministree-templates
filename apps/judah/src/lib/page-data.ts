@@ -29,16 +29,17 @@ export interface PageData {
   /** Where every ticket button on the site points, resolved once. */
   ticketing: ResolvedTicketing;
   email: string | null;
-  /** The header mark: the conference's own logo when it brought one, else the
-   *  church's. The footer keeps the church's either way — it signs the page. */
+  /** The header mark on a light ground: the conference's own logo when it
+   *  brought one, else the church's ordinary one. */
   navLogo: string | null;
+  /** The same choice on a dark ground — the footer, and a dark header. */
   logoDark: string | null;
 }
 
 /* The demo conference's dates. Only ever a stand-in: a connected event brings
    its own and they win outright, so nobody sees these once connected. */
-const DEMO_START = "2027-10-08T18:30:00Z";
-const DEMO_END = "2027-10-09T21:00:00Z";
+const DEMO_START = "2026-11-05T18:30:00Z";
+const DEMO_END = "2026-11-06T21:00:00Z";
 
 export async function loadPageData(): Promise<PageData> {
   const [content, settings, profile, locale] = await Promise.all([
@@ -92,9 +93,12 @@ export async function loadPageData(): Promise<PageData> {
     /* The Church Profile is the source of truth for identity; Site Settings
        only carries the website's override. No bundled mark to fall back on —
        a placeholder logo is the one asset a church would never want left in
-       by accident, so the header prints the conference name instead. */
-    navLogo: content.nav.logo || (profile?.logoUrlDark ?? profile?.logoUrl ?? settings?.logoUrl ?? null),
-    logoDark: profile?.logoUrlDark ?? profile?.logoUrl ?? settings?.logoUrl ?? null,
+       by accident, so the header prints the conference name instead.
+       The header sits on the page's own ground and the visitor can flip it,
+       so it carries both marks and the stylesheet shows the one that reads. */
+    navLogo: content.nav.logo || (profile?.logoUrl ?? settings?.logoUrl ?? profile?.logoUrlDark ?? null),
+    /* The footer is a dark band in both looks, and so is a dark header. */
+    logoDark: content.nav.logo || (profile?.logoUrlDark ?? profile?.logoUrl ?? settings?.logoUrl ?? null),
   };
 }
 
@@ -107,16 +111,18 @@ export async function loadPageData(): Promise<PageData> {
 export function indexLinks(content: SiteContent, event: EventView | null) {
   const hasVenue = Boolean(event?.venue) || Boolean(content.venue.image);
   return [
-    { label: "The rewind", href: "#top" },
+    { label: "The rewind", href: "#top", inBar: true },
     content.tension.enabled !== false && { label: "The tension", href: "#tension" },
     content.archive.enabled !== false && { label: "The archive", href: "#archive" },
     content.scripture.enabled !== false && { label: "Scripture", href: "#scripture" },
-    { label: "The standard", href: "#standard" },
-    content.speakers.enabled !== false && { label: "The voices", href: "#speakers" },
-    content.venue.enabled !== false && hasVenue && { label: "Venue", href: "#venue" },
+    { label: "The standard", href: "#standard", inBar: true },
+    content.speakers.enabled !== false && { label: "The voices", href: "#speakers", inBar: true },
+    content.venue.enabled !== false && hasVenue && { label: "Venue", href: "#venue", inBar: true },
     { label: "Tickets", href: "#register" },
   ]
-    .filter((l): l is { label: string; href: string } => Boolean(l))
+    /* `inBar`: also shown across a wide header. The scenes inside the rewind
+       are reached by scrolling it, and tickets has its own button. */
+    .filter((l): l is { label: string; href: string; inBar?: boolean } => Boolean(l))
     .map((l, i) => ({ ...l, n: String(i + 1).padStart(2, "0") }));
 }
 

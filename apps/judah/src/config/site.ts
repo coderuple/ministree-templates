@@ -2,7 +2,7 @@
  * Judah's demo conference — what the template renders with no church
  * connected, and the first-run defaults a church starts from.
  *
- * Mandate Men's Conference 2027, invented for the purpose. Every factual line
+ * Mandate Men's Conference 2026, invented for the purpose. Every factual line
  * here (title, dates, venue, speakers, tickets) is replaced by the connected
  * event's own record; only the words around them stay editable.
  *
@@ -10,10 +10,19 @@
  * overrides and saves the whole merged object the first time they open it, so
  * a default changed later never reaches a church who has already connected.
  */
+/* Every photo scene's overlay starts here: the scene's own ground, heaviest
+   at the top and bottom — the design as it was before it was adjustable. */
+const OVERLAY = { strength: "0.9", colour: "ground", customColour: "", fade: "edges", text: "auto", textColour: "" };
+
 export const site = {
   name: "Mandate Men's Conference",
   description:
-    "Mandate Men's Conference 2027 — The Standard. Two days for men of every generation, winding back through the noise to the first draft of a man.",
+    "Mandate Men's Conference 2026 — The Standard. Two days for men of every generation, winding back through the noise to the first draft of a man.",
+
+  /* "light", "dark" or "auto" (the visitor's device) — what a visitor sees
+     first; they can switch from the header. A church saved before this existed
+     has no key, and the merge gives it this one. */
+  scheme: "light",
 
   /* Where the site's facts come from — the picked event as it is, the picked
      event with `eventDetails` having the last word, or `eventDetails` alone.
@@ -39,12 +48,21 @@ export const site = {
   /* 01 · NOISE — the question, buried in everything shouting an answer. */
   hero: {
     wordmark: "MANDATE",
-    wordmarkSuffix: "MMXXVII",
+    wordmarkSuffix: "MMXXVI",
     headline: "What is a man",
     headlineItalic: "today?",
     strapline: "TOO MANY ANSWERS. ALL OF THEM LOUD.",
     scrollLabel: "SCROLL",
     image: "/images/hero-noise.webp",
+    /* An uploaded loop wins over a link; either plays over the image above,
+       which stays as its still. */
+    video: "",
+    videoUrl: "",
+    overlay: { ...OVERLAY },
+    /* The drifting columns' colour: "same" as the question, "signal",
+       "accent", or "custom" with `noiseCustom`. */
+    noiseColour: "same",
+    noiseCustom: "",
     /* The drifting columns. Each line is one card in the storm the reader
        scrolls out of — deliberately the culture's voice, not the church's. */
     noise: [
@@ -64,6 +82,7 @@ export const site = {
     headingAccent: "with the tape",
     body: "Every definition you have been handed was recorded over something older. So we stop playing forward. We wind back through the noise, back through our own history, back to the first draft of a man.",
     image: "/images/tension.webp",
+    overlay: { ...OVERLAY },
   },
 
   /* 03 · ARCHIVE — years wind backwards behind a rail of old footage. */
@@ -73,7 +92,7 @@ export const site = {
     /* Counted down, in order, as the section is scrolled. The first is where
        the reader stands; the last is as far back as the church can remember. */
     marks: [
-      { year: "2027", era: "PRESENT DAY" },
+      { year: "2026", era: "PRESENT DAY" },
       { year: "2020", era: "THE LAST GATHERING" },
       { year: "2015", era: "MANDATE ARCHIVE" },
       { year: "2009", era: "MANDATE ARCHIVE" },
@@ -134,6 +153,7 @@ export const site = {
     label: "The Rewind — teaser film",
     note: "60 SEC CUT",
     image: "/images/film.webp",
+    overlay: { ...OVERLAY },
     videoUrl: "",
     timecode: "● 00:00:60:00",
   },
@@ -159,7 +179,7 @@ export const site = {
   facts: {
     enabled: true,
     whenLabel: "01 / WHEN",
-    whenNote: "Two days in October. Doors an hour before the first session.",
+    whenNote: "Two days in November. Doors an hour before the first session.",
     whereLabel: "02 / WHERE",
     whereNote: "Parking on site, and a five-minute walk from the tram.",
     whoLabel: "03 / WHO",
@@ -249,7 +269,7 @@ export const site = {
   socialLinks: [] as Array<{ label: string; href: string }>,
 
   footer: {
-    organisation: "Cedar Road Church",
+    organisation: "Jesus House London",
     tagline: "SHAPING GODLY MANHOOD SINCE 1999",
     legal: [
       { label: "Privacy", href: "" },
@@ -267,6 +287,8 @@ export const site = {
   },
 
   effects: {
+    /* The master switch. Off is the reduced-motion page, for everyone. */
+    motion: true,
     scrollReveals: true,
     grain: true,
     vignette: true,
